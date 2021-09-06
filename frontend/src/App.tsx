@@ -1,10 +1,14 @@
 import React from 'react'
+import LoginPage from './pages/LoginPage'
+import AuthProvider from './auth/AuthProvider'
 
 function App() {
   return (
-    <div>
-      <p>Hello World!</p>
-    </div>
+    <AuthProvider>
+      <section>
+        <LoginPage />
+      </section>
+    </AuthProvider>
   )
 }
 

@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.UserEntity;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.stereotype.Service;
@@ -29,5 +30,9 @@ public class JwtService {
                 .setExpiration(exp)
                 .signWith(SignatureAlgorithm.HS256, "a very secret secret")
                 .compact();
+    }
+
+    public Claims decodeJwtClaims(String token){
+        return Jwts.parser().setSigningKey("a very secret secret").parseClaimsJws(token).getBody();
     }
 }

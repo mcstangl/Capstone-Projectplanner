@@ -2,6 +2,7 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.AccessToken;
 import de.mcstangl.projectplanner.api.Credentials;
+import de.mcstangl.projectplanner.api.User;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.JwtService;
 import de.mcstangl.projectplanner.service.UserService;
@@ -11,11 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.*;
@@ -56,6 +56,11 @@ public class LoginController {
         } catch (AuthenticationException e) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @GetMapping("me")
+    public ResponseEntity<User> authMe(@AuthenticationPrincipal UserEntity authUser){
+        return ok(User.builder().loginName(authUser.getLoginName()).role(authUser.getRole()).build());
     }
 
     private boolean validateCredentials(Credentials credentials) {

@@ -1,27 +1,23 @@
 package de.mcstangl.projectplanner.model;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 
-@EntityScan
-@Table(name = "user")
+@Entity
+@Table(name = "pp_user")
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity {
 
     @Id
     @GeneratedValue
     @Column(name = "user_id", nullable = false, unique = true)
-    private long id;
+    private Long id;
 
     @Column(name = "login_name", nullable = false, unique = true)
     private String loginName;

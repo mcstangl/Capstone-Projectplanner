@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    username: "admin"
+    password: "12345"
+    url: jdbc:postgresql://localhost:5432/project_planner
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    generate-ddl: true
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false

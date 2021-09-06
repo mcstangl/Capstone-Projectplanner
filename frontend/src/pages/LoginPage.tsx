@@ -1,9 +1,10 @@
 import styled from 'styled-components/macro'
-import { ChangeEvent, FormEvent, useState } from 'react'
+import { ChangeEvent, FC, FormEvent, useContext, useState } from 'react'
 import { CredentialsDto } from '../dtos/CredentialsDto'
-import { getAccessToken } from '../service/api-service'
+import AuthContext from '../auth/AuthContext'
 
-export default function LoginPage() {
+const LoginPage: FC = () => {
+  const { onLogin, authUser } = useContext(AuthContext)
   const [formData, setFormData] = useState<CredentialsDto>({
     loginName: '',
     password: '',
@@ -15,7 +16,13 @@ export default function LoginPage() {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    getAccessToken(formData).then(console.log).catch(console.error)
+    if (onLogin) {
+      onLogin(formData)
+    }
+  }
+
+  if (authUser) {
+    console.log(authUser)
   }
 
   return (
@@ -30,7 +37,7 @@ export default function LoginPage() {
           onChange={handleInputChange}
         />
         <input
-          type="text"
+          type="password"
           name="password"
           placeholder="Password"
           value={formData.password}
@@ -41,6 +48,7 @@ export default function LoginPage() {
     </PageLayout>
   )
 }
+export default LoginPage
 
 const PageLayout = styled.section`
   position: fixed;

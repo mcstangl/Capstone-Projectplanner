@@ -6,8 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
-@ContextConfiguration(classes = SpringTestContextConfiguration.class)
-class ProjectPlannerApplicationTests {
+class ProjectPlannerApplicationTests extends SpringBootTests{
 
     @Test
     void contextLoads() {

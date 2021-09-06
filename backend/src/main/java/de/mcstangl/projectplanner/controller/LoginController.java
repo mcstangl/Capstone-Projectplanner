@@ -2,31 +2,37 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.AccessToken;
 import de.mcstangl.projectplanner.api.Credentials;
+import de.mcstangl.projectplanner.model.UserEntity;
+import de.mcstangl.projectplanner.service.JwtService;
+import de.mcstangl.projectplanner.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.http.ResponseEntity.badRequest;
-import static org.springframework.http.ResponseEntity.ok;
+import java.util.Optional;
+
+import static org.springframework.http.ResponseEntity.*;
 
 @RestController
 @RequestMapping("api/project-planner/auth")
 public class LoginController {
 
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
+    private final JwtService jwtService;
 
     @Autowired
-    public LoginController(AuthenticationManager authenticationManager) {
+    public LoginController(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService) {
         this.authenticationManager = authenticationManager;
+        this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("access_token")
@@ -40,7 +46,12 @@ public class LoginController {
         );
         try {
             authenticationManager.authenticate(authenticationToken);
-            return ok(AccessToken.builder().token("someToken").build());
+            Optional<UserEntity> userEntityOptional = userService.findByLoginName(credentials.getLoginName());
+            if(userEntityOptional.isEmpty()){
+                return notFound().build();
+            }
+            String token = jwtService.createToken(userEntityOptional.get());
+            return ok(AccessToken.builder().token(token).build());
 
         } catch (AuthenticationException e) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

@@ -1,12 +1,50 @@
 import styled from 'styled-components/macro'
+import { ChangeEvent, FormEvent, useState } from 'react'
+import { CredentialsDto } from '../dtos/CredentialsDto'
+import { getAccessToken } from '../service/api-service'
+
+interface Credentials {
+  loginName: string
+  password: string
+}
 
 export default function LoginPage() {
+  const [formData, setFormData] = useState<Credentials>({
+    loginName: '',
+    password: '',
+  })
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value })
+  }
+
+  const submitHandler = (event: FormEvent) => {
+    event.preventDefault()
+    const credentialsDto = new CredentialsDto(
+      formData.loginName,
+      formData.password
+    )
+    getAccessToken(credentialsDto).catch(console.error)
+  }
+
   return (
     <PageLayout>
       <header></header>
-      <LoginForm>
-        <input type="text" name="loginName" placeholder="Login Name" />
-        <input type="text" name="password" placeholder="Password" />
+      <LoginForm onSubmit={submitHandler}>
+        <input
+          type="text"
+          name="loginName"
+          placeholder="Login Name"
+          value={formData.loginName}
+          onChange={handleInputChange}
+        />
+        <input
+          type="text"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleInputChange}
+        />
         <Button>Login</Button>
       </LoginForm>
     </PageLayout>

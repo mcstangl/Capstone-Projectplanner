@@ -3,13 +3,8 @@ import { ChangeEvent, FormEvent, useState } from 'react'
 import { CredentialsDto } from '../dtos/CredentialsDto'
 import { getAccessToken } from '../service/api-service'
 
-interface Credentials {
-  loginName: string
-  password: string
-}
-
 export default function LoginPage() {
-  const [formData, setFormData] = useState<Credentials>({
+  const [formData, setFormData] = useState<CredentialsDto>({
     loginName: '',
     password: '',
   })
@@ -20,11 +15,7 @@ export default function LoginPage() {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    const credentialsDto = new CredentialsDto(
-      formData.loginName,
-      formData.password
-    )
-    getAccessToken(credentialsDto).catch(console.error)
+    getAccessToken(formData).then(console.log).catch(console.error)
   }
 
   return (

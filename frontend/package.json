@@ -46,6 +46,7 @@
     ]
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.5",
     "@types/styled-components": "^5.1.14",
     "prettier": "2.3.2"
   }

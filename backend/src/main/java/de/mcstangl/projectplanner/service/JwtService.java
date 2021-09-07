@@ -1,9 +1,11 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -15,6 +17,12 @@ import java.util.Map;
 @Service
 public class JwtService {
 
+    private final JwtConfig jwtConfig;
+
+    @Autowired
+    public JwtService(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
+    }
 
     public String createToken(UserEntity userEntity){
         Map<String, Object> claims = new HashMap<>();
@@ -28,11 +36,11 @@ public class JwtService {
                 .setSubject(userEntity.getLoginName())
                 .setIssuedAt(iat)
                 .setExpiration(exp)
-                .signWith(SignatureAlgorithm.HS256, "a very secret secret")
+                .signWith(SignatureAlgorithm.HS256, jwtConfig.getSecret())
                 .compact();
     }
 
     public Claims decodeJwtClaims(String token){
-        return Jwts.parser().setSigningKey("a very secret secret").parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(jwtConfig.getSecret()).parseClaimsJws(token).getBody();
     }
 }

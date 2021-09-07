@@ -7,9 +7,15 @@ import { AuthUser } from '../types/AuthUser'
 
 const AuthProvider: FC = ({ children }) => {
   const [authUser, setAuthUser] = useState<AuthUser>()
+  const [token, setToken] = useState<string>()
 
   const login = (credentialsDto: CredentialsDto) => {
-    return getAccessToken(credentialsDto).then(decodeJwtClaims)
+    return getAccessToken(credentialsDto)
+      .then(token => {
+        setToken(token)
+        return token
+      })
+      .then(decodeJwtClaims)
   }
 
   const logout = () => setAuthUser(undefined)
@@ -27,7 +33,7 @@ const AuthProvider: FC = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ authUser, login, logout }}>
+    <AuthContext.Provider value={{ authUser, login, logout, token }}>
       {children}
     </AuthContext.Provider>
   )

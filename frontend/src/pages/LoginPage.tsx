@@ -3,6 +3,8 @@ import { ChangeEvent, FC, FormEvent, useContext, useState } from 'react'
 import { CredentialsDto } from '../dtos/CredentialsDto'
 import AuthContext from '../auth/AuthContext'
 import Header from '../components/Header'
+import { PageLayout } from '../components/PageLayout'
+import { Redirect } from 'react-router-dom'
 
 const LoginPage: FC = () => {
   const { login, authUser } = useContext(AuthContext)
@@ -23,7 +25,7 @@ const LoginPage: FC = () => {
   }
 
   if (authUser) {
-    console.log(authUser)
+    return <Redirect to={'/new-project'} />
   }
 
   return (
@@ -51,15 +53,6 @@ const LoginPage: FC = () => {
 }
 export default LoginPage
 
-const PageLayout = styled.section`
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  display: grid;
-  grid-template-rows: 170px min-content;
-`
 const LoginForm = styled.form`
   display: grid;
   grid-gap: var(--size-l);

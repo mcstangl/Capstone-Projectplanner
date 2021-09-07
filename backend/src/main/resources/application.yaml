@@ -11,3 +11,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
+
+security:
+  jwt:
+    secret: "a very secret secret"

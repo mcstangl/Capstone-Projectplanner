@@ -2,9 +2,10 @@ import styled from 'styled-components/macro'
 import { ChangeEvent, FC, FormEvent, useContext, useState } from 'react'
 import { CredentialsDto } from '../dtos/CredentialsDto'
 import AuthContext from '../auth/AuthContext'
+import Header from '../components/Header'
 
 const LoginPage: FC = () => {
-  const { onLogin, authUser } = useContext(AuthContext)
+  const { login, authUser } = useContext(AuthContext)
   const [formData, setFormData] = useState<CredentialsDto>({
     loginName: '',
     password: '',
@@ -16,8 +17,8 @@ const LoginPage: FC = () => {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    if (onLogin) {
-      onLogin(formData)
+    if (login) {
+      login(formData).catch(console.error)
     }
   }
 
@@ -27,7 +28,7 @@ const LoginPage: FC = () => {
 
   return (
     <PageLayout>
-      <header></header>
+      <Header />
       <LoginForm onSubmit={submitHandler}>
         <input
           type="text"

@@ -1,17 +1,22 @@
-import { ChangeEvent, FC, FormEvent, useState } from 'react'
+import { ChangeEvent, FC, FormEvent, useContext, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
 import styled from 'styled-components/macro'
 import { NewProjectDto } from '../dtos/NewProjectDto'
+import { createNewProject } from '../service/api-service'
+import AuthContext from '../auth/AuthContext'
 
 const NewProjectPage: FC = () => {
+  const { token } = useContext(AuthContext)
   const [formData, setFormData] = useState<NewProjectDto>({
     customer: '',
     title: '',
   })
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    console.log(formData)
+    if (token) {
+      createNewProject(formData, token).catch(console.error)
+    }
   }
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {

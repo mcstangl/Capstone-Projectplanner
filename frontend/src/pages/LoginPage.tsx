@@ -4,6 +4,7 @@ import { CredentialsDto } from '../dtos/CredentialsDto'
 import AuthContext from '../auth/AuthContext'
 import Header from '../components/Header'
 import { PageLayout } from '../components/PageLayout'
+import { Redirect } from 'react-router-dom'
 
 const LoginPage: FC = () => {
   const { login, authUser } = useContext(AuthContext)
@@ -24,7 +25,7 @@ const LoginPage: FC = () => {
   }
 
   if (authUser) {
-    console.log(authUser)
+    return <Redirect to={'/new-project'} />
   }
 
   return (

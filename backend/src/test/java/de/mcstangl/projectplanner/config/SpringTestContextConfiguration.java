@@ -12,6 +12,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 @EnableAutoConfiguration
 @ComponentScan(basePackages = {"de.mcstangl.projectplanner"})
+@Import({JpaConfig.class})
 @TestConfiguration
 public class SpringTestContextConfiguration {
 

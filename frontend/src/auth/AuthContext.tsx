@@ -4,7 +4,8 @@ import { AuthUser } from '../types/AuthUser'
 
 interface AuthContext {
   authUser?: AuthUser
-  onLogin?: (credentialsDto: CredentialsDto) => void
+  login?: (credentialsDto: CredentialsDto) => Promise<void>
+  logout?: () => void
 }
 
 export default createContext<AuthContext>({})

@@ -163,7 +163,7 @@ class ProjectControllerTest extends SpringBootTests {
     }
 
     @Test
-    @DisplayName("Creating a new project with a null title should return HttpStatus.BAD_REQUEST")
+    @DisplayName("Creating a new project with a null customer should return HttpStatus.BAD_REQUEST")
     public void createProjectWithoutCustomer() {
         // Given
         Project project = Project.builder()

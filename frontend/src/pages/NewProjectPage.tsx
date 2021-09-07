@@ -2,11 +2,7 @@ import { ChangeEvent, FC, FormEvent, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
 import styled from 'styled-components/macro'
-
-interface NewProjectDto {
-  customer: string
-  title: string
-}
+import { NewProjectDto } from '../dtos/NewProjectDto'
 
 const NewProjectPage: FC = () => {
   const [formData, setFormData] = useState<NewProjectDto>({

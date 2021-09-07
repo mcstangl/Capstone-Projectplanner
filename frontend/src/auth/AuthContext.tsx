@@ -6,6 +6,7 @@ interface AuthContext {
   authUser?: AuthUser
   login?: (credentialsDto: CredentialsDto) => Promise<void>
   logout?: () => void
+  token?: String | undefined
 }
 
 export default createContext<AuthContext>({})

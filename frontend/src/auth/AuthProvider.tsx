@@ -8,9 +8,11 @@ import { AuthUser } from '../types/AuthUser'
 const AuthProvider: FC = ({ children }) => {
   const [authUser, setAuthUser] = useState<AuthUser>()
 
-  const onLogin = (credentialsDto: CredentialsDto) => {
-    getAccessToken(credentialsDto).then(decodeJwtClaims).catch(console.error)
+  const login = (credentialsDto: CredentialsDto) => {
+    return getAccessToken(credentialsDto).then(decodeJwtClaims)
   }
+
+  const logout = () => setAuthUser(undefined)
 
   const decodeJwtClaims = (token: string) => {
     const claims = jwt.decode(token)
@@ -25,7 +27,7 @@ const AuthProvider: FC = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ authUser, onLogin }}>
+    <AuthContext.Provider value={{ authUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

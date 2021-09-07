@@ -7,7 +7,7 @@ import { AuthUser } from '../types/AuthUser'
 
 const AuthProvider: FC = ({ children }) => {
   const [authUser, setAuthUser] = useState<AuthUser>()
-  const [token, setToken] = useState<String>()
+  const [token, setToken] = useState<string>()
 
   const login = (credentialsDto: CredentialsDto) => {
     return getAccessToken(credentialsDto)

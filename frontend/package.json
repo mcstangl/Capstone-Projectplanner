@@ -48,6 +48,7 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.5",
     "@types/react": "^17.0.20",
+    "@types/react-router-dom": "^5.1.8",
     "@types/styled-components": "^5.1.14",
     "prettier": "2.3.2"
   }

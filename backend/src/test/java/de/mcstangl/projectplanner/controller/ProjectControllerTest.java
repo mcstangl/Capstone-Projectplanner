@@ -5,7 +5,6 @@ import de.mcstangl.projectplanner.api.Project;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
-import de.mcstangl.projectplanner.service.ProjectService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.*;
@@ -17,6 +16,7 @@ import org.springframework.http.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -181,6 +181,26 @@ class ProjectControllerTest extends SpringBootTests {
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("Find all should return a list of all projects in DB")
+    public void findAll() {
+        // When
+        ResponseEntity<Project[]> response = testRestTemplate.exchange(
+                getUrl(),
+                HttpMethod.GET,
+                new HttpEntity<>(null,getAuthHeader("Hans", "ADMIN")),
+                Project[].class
+        );
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().length, is(1));
+        assertThat(Arrays.stream(response.getBody()).toList(), contains(Project.builder()
+                .title("Test")
+                .customer("Test").build()));
     }
 
 

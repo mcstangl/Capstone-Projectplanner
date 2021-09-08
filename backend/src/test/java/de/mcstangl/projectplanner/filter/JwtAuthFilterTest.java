@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.filter;
 
+import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.User;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
@@ -22,7 +23,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class JwtAuthFilterTest {
+class JwtAuthFilterTest extends SpringBootTests {
 
     @LocalServerPort
     private int port;

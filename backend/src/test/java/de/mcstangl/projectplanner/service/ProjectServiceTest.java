@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -69,6 +70,7 @@ class ProjectServiceTest {
                     .customer("Test")
                     .title("Test")
                     .build());
+            fail();
         } catch (EntityExistsException e) {
             assertThat(e.getClass(), is(EntityExistsException.class));
         }
@@ -87,6 +89,7 @@ class ProjectServiceTest {
                     .customer("Test")
                     .title("")
                     .build());
+            fail();
         } catch (IllegalArgumentException e) {
             assertThat(e.getClass(), is(IllegalArgumentException.class));
         }
@@ -104,6 +107,7 @@ class ProjectServiceTest {
                     .customer("")
                     .title("Test")
                     .build());
+            fail();
         } catch (IllegalArgumentException e) {
             assertThat(e.getClass(), is(IllegalArgumentException.class));
         }

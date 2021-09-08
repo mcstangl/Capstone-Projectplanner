@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.util.Assert.hasText;
@@ -36,5 +37,9 @@ public class ProjectService {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
         return projectRepository.save(projectEntity);
+    }
+
+    public List<ProjectEntity> findAll() {
+        return projectRepository.findAll();
     }
 }

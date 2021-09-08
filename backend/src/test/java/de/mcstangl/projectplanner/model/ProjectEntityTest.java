@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,6 +43,7 @@ class ProjectEntityTest extends SpringBootTests {
 
         // Then
         assertTrue(actualOptional.isPresent());
+        assertThat(actualOptional.get().getTitle(), is("Test"));
     }
 
     @Test
@@ -55,6 +57,7 @@ class ProjectEntityTest extends SpringBootTests {
         ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
 
         // Then
+        assertNotNull(actual.getId());
         assertThat(actual.getTitle(), is("Test2"));
         assertThat(actual.getCustomer(), is("Test2"));
     }
@@ -68,7 +71,7 @@ class ProjectEntityTest extends SpringBootTests {
                 .customer("Test").build();
         // When
         try{
-            ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
+            projectRepository.saveAndFlush(projectEntity);
             fail();
         }catch (DataIntegrityViolationException e){
             // Then
@@ -85,12 +88,27 @@ class ProjectEntityTest extends SpringBootTests {
                 .customer("Test").build();
         // When
         try{
-            ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
+            projectRepository.saveAndFlush(projectEntity);
             fail();
         }catch (DataIntegrityViolationException e){
             // Then
             assertEquals(DataIntegrityViolationException.class, e.getClass());
         }
+    }
+
+    @Test
+    @DisplayName("FindAll should return a list of all projects in DB")
+    public void findAll(){
+        // When
+        List<ProjectEntity> actual = projectRepository.findAll();
+
+        // Then
+        ProjectEntity expected = ProjectEntity.builder()
+                .title("Test")
+                .customer("Test").build();
+
+        assertThat(actual.size(),is(1));
+        assertThat(actual, contains(expected));
     }
 
 }

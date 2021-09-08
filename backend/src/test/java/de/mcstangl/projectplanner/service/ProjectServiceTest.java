@@ -6,16 +6,88 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import javax.persistence.EntityExistsException;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ProjectServiceTest {
+
+    @Test
+    @DisplayName("FindByName should return an optional project when the project is found")
+    public void findByTitle() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(
+              Optional.of(ProjectEntity.builder()
+                      .id(1L)
+                      .customer("Test")
+                      .title("Test")
+                      .build())
+        );
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        // When
+        Optional<ProjectEntity> actualOptional = projectService.findByTitle("Test");
+
+        // Then
+        assertTrue(actualOptional.isPresent());
+        assertThat(actualOptional.get(), is(ProjectEntity.builder()
+                .id(1L)
+                .customer("Test")
+                .title("Test")
+                .build()));
+
+    }
+
+    @Test
+    @DisplayName("FindByName should return an optional empty when the project is not found")
+    public void findByTitleUnknown() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(
+                Optional.empty()
+        );
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        // When
+        Optional<ProjectEntity> actualOptional = projectService.findByTitle("Unknown");
+
+        // Then
+        assertTrue(actualOptional.isEmpty());
+    }
+
+    @Test
+    @DisplayName("FindAll should return all projects in DB")
+    public void findAll() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        when(projectRepositoryMock.findAll()).thenReturn(
+                List.of(ProjectEntity.builder()
+                        .id(1L)
+                        .customer("Test")
+                        .title("Test")
+                        .build())
+        );
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        // When
+        List<ProjectEntity> actual = projectService.findAll();
+
+        // Then
+        assertThat(actual.size(), is(1));
+        assertThat(actual, contains(ProjectEntity.builder()
+                .id(1L)
+                .customer("Test")
+                .title("Test")
+                .build()));
+    }
 
     @Test
     @DisplayName("Creating a new project should return the newly created project")
@@ -45,6 +117,8 @@ class ProjectServiceTest {
                 .build()));
 
     }
+
+
 
     @Test
     @DisplayName("Creating a new project with a title that is already in DB should throw EntityExistsException")

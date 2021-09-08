@@ -7,10 +7,10 @@ import de.mcstangl.projectplanner.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -33,6 +33,14 @@ public class ProjectController {
         return ok(map(newProjectEntity));
     }
 
+    @GetMapping
+    public ResponseEntity<List<Project>> findAll(){
+
+        List<ProjectEntity> projectEntityList = projectService.findAll();
+
+        return ok(map(projectEntityList));
+    }
+
 
     private ProjectEntity map(Project project){
         return ProjectEntity.builder()
@@ -46,5 +54,14 @@ public class ProjectController {
                 .customer(projectEntity.getCustomer())
                 .title(projectEntity.getTitle())
                 .build();
+    }
+
+    private List<Project> map(List<ProjectEntity> projectEntityList){
+        List<Project> projectList = new LinkedList<>();
+        for (ProjectEntity projectEntity : projectEntityList) {
+            Project project = map(projectEntity);
+            projectList.add(project);
+        }
+        return projectList;
     }
 }

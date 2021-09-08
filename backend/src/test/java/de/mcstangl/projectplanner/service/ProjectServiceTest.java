@@ -2,6 +2,7 @@ package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import javax.persistence.EntityExistsException;
@@ -17,6 +18,7 @@ import static org.mockito.Mockito.when;
 class ProjectServiceTest {
 
     @Test
+    @DisplayName("Creating a new project should return the newly created project")
     public void createNewProject() {
         // Given
         ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
@@ -45,6 +47,7 @@ class ProjectServiceTest {
     }
 
     @Test
+    @DisplayName("Creating a new project with a title that is already in DB should throw EntityExistsException")
     public void createNewProjectWithTitleThatAlreadyExists() {
         // Given
         ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
@@ -78,6 +81,7 @@ class ProjectServiceTest {
 
 
     @Test
+    @DisplayName("Creating a new project with a blank title should throw IllegalArgumentException")
     public void createNewProjectWithBlankTitle() {
         // Given
         ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
@@ -96,6 +100,7 @@ class ProjectServiceTest {
     }
 
     @Test
+    @DisplayName("Creating a new project with a blank customer should throw IllegalArgumentException")
     public void createNewProjectWithBlankCustomer() {
         // Given
         ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
@@ -105,6 +110,44 @@ class ProjectServiceTest {
         try {
             projectService.createNewProject(ProjectEntity.builder()
                     .customer("")
+                    .title("Test")
+                    .build());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getClass(), is(IllegalArgumentException.class));
+        }
+    }
+
+    @Test
+    @DisplayName("Creating a new project with a null title should throw IllegalArgumentException")
+    public void createNewProjectWithNullTitle() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        // When
+        try {
+            projectService.createNewProject(ProjectEntity.builder()
+                    .customer("Test")
+                    .title(null)
+                    .build());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getClass(), is(IllegalArgumentException.class));
+        }
+    }
+
+    @Test
+    @DisplayName("Creating a new project with a null customer should return throw IllegalArgumentException")
+    public void createNewProjectWithNullCustomer() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        // When
+        try {
+            projectService.createNewProject(ProjectEntity.builder()
+                    .customer(null)
                     .title("Test")
                     .build());
             fail();

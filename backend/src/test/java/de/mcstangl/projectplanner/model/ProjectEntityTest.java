@@ -22,7 +22,7 @@ class ProjectEntityTest extends SpringBootTests {
 
     @BeforeEach
     public void setup(){
-        projectRepository.save(
+        projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .title("Test")
                         .customer("Test").build()
@@ -52,7 +52,7 @@ class ProjectEntityTest extends SpringBootTests {
                 .title("Test2")
                 .customer("Test2").build();
         // When
-        ProjectEntity actual = projectRepository.save(projectEntity);
+        ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
 
         // Then
         assertThat(actual.getTitle(), is("Test2"));
@@ -68,7 +68,7 @@ class ProjectEntityTest extends SpringBootTests {
                 .customer("Test").build();
         // When
         try{
-            ProjectEntity actual = projectRepository.save(projectEntity);
+            ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
             fail();
         }catch (DataIntegrityViolationException e){
             // Then
@@ -85,7 +85,7 @@ class ProjectEntityTest extends SpringBootTests {
                 .customer("Test").build();
         // When
         try{
-            ProjectEntity actual = projectRepository.save(projectEntity);
+            ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
             fail();
         }catch (DataIntegrityViolationException e){
             // Then

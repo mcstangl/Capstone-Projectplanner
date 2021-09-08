@@ -54,8 +54,8 @@ class LoginControllerTest extends SpringBootTests {
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("USER").build();
-        userRepository.save(admin);
-        userRepository.save(user);
+        userRepository.saveAndFlush(admin);
+        userRepository.saveAndFlush(user);
     }
 
     @AfterEach

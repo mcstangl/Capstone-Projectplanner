@@ -17,3 +17,12 @@ export const createNewProject = (newProject: NewProjectDto, token: string) =>
       },
     })
     .then(response => response.data)
+
+export const getAllProjects = (token: string) =>
+  axios
+    .get('api/project-planner/project', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    })
+    .then(response => response.data)

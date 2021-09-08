@@ -5,6 +5,7 @@ import styled from 'styled-components/macro'
 import { NewProjectDto } from '../dtos/NewProjectDto'
 import { createNewProject } from '../service/api-service'
 import AuthContext from '../auth/AuthContext'
+import { Link, useHistory } from 'react-router-dom'
 
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
@@ -12,10 +13,15 @@ const NewProjectPage: FC = () => {
     customer: '',
     title: '',
   })
+
+  const history = useHistory()
+
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
     if (token) {
-      createNewProject(formData, token).catch(console.error)
+      createNewProject(formData, token)
+        .then(() => history.push('/projects'))
+        .catch(console.error)
     }
   }
 
@@ -26,23 +32,26 @@ const NewProjectPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <ProjectForm onSubmit={submitHandler}>
-        <input
-          name="customer"
-          type="text"
-          placeholder="Kundenname"
-          value={formData.customer}
-          onChange={handleInputChange}
-        />
-        <input
-          name="title"
-          type="text"
-          placeholder="Projekt Titel"
-          value={formData.title}
-          onChange={handleInputChange}
-        />
-        <button>Speichern</button>
-      </ProjectForm>
+      <main>
+        <Link to="/projects">zurück zur Projektliste</Link>
+        <ProjectForm onSubmit={submitHandler}>
+          <input
+            name="customer"
+            type="text"
+            placeholder="Kundenname"
+            value={formData.customer}
+            onChange={handleInputChange}
+          />
+          <input
+            name="title"
+            type="text"
+            placeholder="Projekt Titel"
+            value={formData.title}
+            onChange={handleInputChange}
+          />
+          <button>Speichern</button>
+        </ProjectForm>
+      </main>
     </PageLayout>
   )
 }

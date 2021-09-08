@@ -25,7 +25,7 @@ const LoginPage: FC = () => {
   }
 
   if (authUser) {
-    return <Redirect to={'/new-project'} />
+    return <Redirect to={'/'} />
   }
 
   return (

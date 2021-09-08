@@ -210,7 +210,7 @@ class ProjectControllerTest extends SpringBootTests {
         claims.put("role", role);
 
         Date iat = Date.from(Instant.now());
-        Date exp = Date.from(Instant.now().plus(Duration.ofDays(1)));
+        Date exp = Date.from(Instant.now().plus(Duration.ofDays(jwtConfig.getExpiresAfterDays())));
 
         String token = Jwts.builder()
                 .setSubject(name)

@@ -29,7 +29,7 @@ public class JwtService {
         claims.put("role", userEntity.getRole());
 
         Date iat = Date.from(Instant.now());
-        Date exp = Date.from(Instant.now().plus(Duration.ofDays(3)));
+        Date exp = Date.from(Instant.now().plus(Duration.ofDays(jwtConfig.getExpiresAfterDays())));
 
         return Jwts.builder()
                 .setClaims(claims)

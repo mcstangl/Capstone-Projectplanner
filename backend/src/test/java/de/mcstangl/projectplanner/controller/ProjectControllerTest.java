@@ -42,7 +42,7 @@ class ProjectControllerTest extends SpringBootTests {
 
     @BeforeEach
     public void setup(){
-        projectRepository.save(
+        projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .title("Test")
                         .customer("Test").build()

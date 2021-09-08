@@ -3,6 +3,7 @@ package de.mcstangl.projectplanner.model;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name ="projects")
@@ -24,4 +25,17 @@ public class ProjectEntity {
     @Column(name="customer")
     private String customer;
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProjectEntity that = (ProjectEntity) o;
+        return Objects.equals(title, that.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title);
+    }
 }

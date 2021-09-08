@@ -15,3 +15,4 @@ spring:
 security:
   jwt:
     secret: "a very secret secret"
+    expiresAfterDays: 3

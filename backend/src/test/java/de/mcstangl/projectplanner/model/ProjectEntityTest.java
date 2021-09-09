@@ -113,12 +113,24 @@ class ProjectEntityTest extends SpringBootTests {
         List<ProjectEntity> actual = projectRepository.findAll();
 
         // Then
-        ProjectEntity expected = ProjectEntity.builder()
-                .title("Test")
-                .customer("Test").build();
-
         assertThat(actual.size(),is(1));
-        assertThat(actual, contains(expected));
+
     }
 
+    @Test
+    @DisplayName("Delete should delete project from DB")
+    public void delete(){
+        // Given
+        Optional<ProjectEntity> fetchedProjectEntityOpt = projectRepository.findByTitle("Test");
+        if(fetchedProjectEntityOpt.isEmpty()){
+            fail();
+        }
+
+        // When
+        projectRepository.delete(fetchedProjectEntityOpt.get());
+
+        // Then
+        List<ProjectEntity> actual = projectRepository.findAll();
+        assertThat(actual.size(), is(0));
+    }
 }

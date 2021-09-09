@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.api.UpdateProject;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -14,8 +15,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ProjectServiceTest {
 
@@ -25,11 +25,11 @@ class ProjectServiceTest {
         // Given
         ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
         when(projectRepositoryMock.findByTitle(any())).thenReturn(
-              Optional.of(ProjectEntity.builder()
-                      .id(1L)
-                      .customer("Test")
-                      .title("Test")
-                      .build())
+                Optional.of(ProjectEntity.builder()
+                        .id(1L)
+                        .customer("Test")
+                        .title("Test")
+                        .build())
         );
         ProjectService projectService = new ProjectService(projectRepositoryMock);
 
@@ -117,7 +117,6 @@ class ProjectServiceTest {
                 .build()));
 
     }
-
 
 
     @Test
@@ -228,5 +227,102 @@ class ProjectServiceTest {
         } catch (IllegalArgumentException e) {
             assertThat(e.getClass(), is(IllegalArgumentException.class));
         }
+    }
+
+    @Test
+    @DisplayName("Updating all project fields except title")
+    public void updateProject() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        when(projectRepositoryMock.findByTitle(any()))
+                .thenReturn(
+                        Optional.of(ProjectEntity.builder()
+                                .id(1L)
+                                .customer("Test")
+                                .title("Test")
+                                .build()));
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .customer("New Customer")
+                .title("Test")
+                .build();
+        // When
+        projectService.update(projectEntity, null);
+
+        // Then
+       verify(projectRepositoryMock, times(1)).save(ProjectEntity.builder()
+               .id(1L)
+               .title("Test")
+               .build());
+        verify(projectRepositoryMock, times(1)).findByTitle("Test");
+    }
+
+    @Test
+    @DisplayName("Updating all project fields except title")
+    public void updateProjectWhenNewTitleIsEqualToOldTitle() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        when(projectRepositoryMock.findByTitle(any()))
+                .thenReturn(
+                        Optional.of(ProjectEntity.builder()
+                                .id(1L)
+                                .customer("Test")
+                                .title("Test")
+                                .build()));
+
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .customer("New Customer")
+                .title("Test")
+                .build();
+        // When
+        projectService.update(projectEntity, "Test");
+
+        // Then
+        verify(projectRepositoryMock, times(1)).save(ProjectEntity.builder()
+                .id(1L)
+                .title("Test")
+                .build());
+        verify(projectRepositoryMock, times(1)).findByTitle("Test");
+    }
+
+    @Test
+    @DisplayName("Updating all project fields")
+    public void updateAllFieldsProject() {
+        // Given
+        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
+        when(projectRepositoryMock.findByTitle("Test"))
+                .thenReturn(
+                        Optional.of(ProjectEntity.builder()
+                                .id(1L)
+                                .customer("Test")
+                                .title("Test")
+                                .build()))
+                .thenReturn(Optional.empty());
+
+
+        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .customer("New Customer")
+                .title("Test")
+                .build();
+        // When
+        projectService.update(projectEntity, "new Title");
+
+        // Then
+        verify(projectRepositoryMock, times(1)).save(
+                ProjectEntity.builder()
+                        .title("new Title")
+                        .build());
+        verify(projectRepositoryMock, times(1)).delete(ProjectEntity.builder()
+                .id(1L)
+                .customer("Test")
+                .title("Test")
+                .build());
+        verify(projectRepositoryMock, times(1)).findByTitle("Test");
+        verify(projectRepositoryMock, times(1)).findByTitle("new Title");
     }
 }

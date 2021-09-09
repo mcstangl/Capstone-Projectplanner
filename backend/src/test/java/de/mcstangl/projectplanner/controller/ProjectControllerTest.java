@@ -79,6 +79,27 @@ class ProjectControllerTest extends SpringBootTests {
     }
 
     @Test
+    @DisplayName("Creating a new project as USER should return HttpStatus.UNAUTHORIZED")
+    public void createNewProjectAsUserShouldFail() {
+        // Given
+        Project project = Project.builder()
+                .title("Test Title")
+                .customer("Test Customer")
+                .build();
+
+        // When
+        ResponseEntity<Project> response = testRestTemplate.exchange(
+                getUrl(),
+                HttpMethod.POST,
+                new HttpEntity<>(project,getAuthHeader("Hans", "USER")),
+                Project.class
+        );
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
+
+    @Test
     @DisplayName("Creating a new project with a title that is already in DB should return HttpStatus.CONFLICT")
     public void createProjectWithTitleThatAlreadyExists() {
         // Given

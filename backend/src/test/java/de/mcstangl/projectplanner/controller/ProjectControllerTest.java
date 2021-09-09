@@ -224,6 +224,38 @@ class ProjectControllerTest extends SpringBootTests {
                 .customer("Test").build()));
     }
 
+    @Test
+    @DisplayName("Find by title should return project found")
+    public void findByTitle() {
+        // When
+        ResponseEntity<Project> response = testRestTemplate.exchange(
+                getUrl()+"/Test",
+                HttpMethod.GET,
+                new HttpEntity<>(null,getAuthHeader("Hans", "ADMIN")),
+                Project.class
+        );
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getTitle(), is("Test"));
+    }
+
+    @Test
+    @DisplayName("Find by title should return HttpStatus.NOT_FOUND if project is not in DB")
+    public void findByUnknownTitle() {
+        // When
+        ResponseEntity<Project> response = testRestTemplate.exchange(
+                getUrl()+"/Unknown",
+                HttpMethod.GET,
+                new HttpEntity<>(null,getAuthHeader("Hans", "ADMIN")),
+                Project.class
+        );
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
 
     private HttpHeaders getAuthHeader(String name, String role) {
 

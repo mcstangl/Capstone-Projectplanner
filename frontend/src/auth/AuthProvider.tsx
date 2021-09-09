@@ -2,7 +2,7 @@ import AuthContext from './AuthContext'
 import { FC, useState } from 'react'
 import { CredentialsDto } from '../dtos/CredentialsDto'
 import { getAccessToken } from '../service/api-service'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 import { AuthUser } from '../types/AuthUser'
 
 const AuthProvider: FC = ({ children }) => {
@@ -21,12 +21,12 @@ const AuthProvider: FC = ({ children }) => {
   const logout = () => setAuthUser(undefined)
 
   const decodeJwtClaims = (token: string) => {
-    const claims = jwt.decode(token)
+    const claims = jwt.decode(token) as JwtPayload
     if (claims !== null) {
       const loginName = claims.sub
       const authUser: AuthUser = {
         loginName: loginName,
-        role: 'ADMIN',
+        role: claims.role,
       }
       setAuthUser(authUser)
     }

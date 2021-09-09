@@ -7,7 +7,7 @@ import AuthContext from '../auth/AuthContext'
 import { Link } from 'react-router-dom'
 
 const ProjectListPage: FC = () => {
-  const { token } = useContext(AuthContext)
+  const { token, authUser } = useContext(AuthContext)
   const [projects, setProjects] = useState<ProjectDto[]>()
 
   useEffect(() => {
@@ -20,7 +20,9 @@ const ProjectListPage: FC = () => {
     <PageLayout>
       <Header />
       <main>
-        <Link to="/new-project">Neues Projekt erstellen</Link>
+        {authUser?.role === 'ADMIN' && (
+          <Link to="/new-project">Neues Projekt erstellen</Link>
+        )}
         <ul>
           {projects &&
             projects.length &&

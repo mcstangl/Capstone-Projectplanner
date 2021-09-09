@@ -5,24 +5,21 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 import NewProjectPage from './pages/NewProjectPage'
 import ProjectListPage from './pages/ProjectListPage'
 import Homepage from './pages/Homepage'
+import ProtectedRoute from './auth/ProtectedRoute'
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Switch>
-          <Route path={'/new-project'}>
-            <NewProjectPage />
-          </Route>
-          <Route path={'/projects'}>
-            <ProjectListPage />
-          </Route>
-          <Route path={'/login'}>
-            <LoginPage />
-          </Route>
-          <Route path={'/'}>
-            <Homepage />
-          </Route>
+          <Route path="/login" component={LoginPage} />
+          <ProtectedRoute
+            adminOnly={true}
+            path="/new-project"
+            component={NewProjectPage}
+          />
+          <ProtectedRoute path="/projects" component={ProjectListPage} />
+          <ProtectedRoute path="/" component={Homepage} />
         </Switch>
       </Router>
     </AuthProvider>

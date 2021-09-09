@@ -22,7 +22,7 @@ interface RouteParams {
 
 const ProjectDetailsPage: FC = () => {
   const { projectTitle } = useParams<RouteParams>()
-  const { token } = useContext(AuthContext)
+  const { token, authUser } = useContext(AuthContext)
 
   const [project, setProject] = useState<ProjectDto>()
   const [editMode, setEditMode] = useState<boolean>()
@@ -112,7 +112,9 @@ const ProjectDetailsPage: FC = () => {
           )}
           {editMode && <Button>Speichern</Button>}
         </ProjectDetails>
-        {editMode || <Button onClick={onClickHandler}>Edit</Button>}
+        {!editMode && authUser && authUser.role === 'ADMIN' && (
+          <Button onClick={onClickHandler}>Edit</Button>
+        )}
       </main>
     </PageLayout>
   )

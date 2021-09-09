@@ -6,6 +6,7 @@ import { NewProjectDto } from '../dtos/NewProjectDto'
 import { createNewProject } from '../service/api-service'
 import AuthContext from '../auth/AuthContext'
 import { Link, useHistory } from 'react-router-dom'
+import { Button } from '../components/Button'
 
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
@@ -34,6 +35,7 @@ const NewProjectPage: FC = () => {
       <Header />
       <main>
         <Link to="/projects">zurück zur Projektliste</Link>
+
         <ProjectForm onSubmit={submitHandler}>
           <input
             name="customer"
@@ -49,7 +51,7 @@ const NewProjectPage: FC = () => {
             value={formData.title}
             onChange={handleInputChange}
           />
-          <button>Speichern</button>
+          <Button>Speichern</Button>
         </ProjectForm>
       </main>
     </PageLayout>

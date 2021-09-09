@@ -5,6 +5,7 @@ import AuthContext from '../auth/AuthContext'
 import Header from '../components/Header'
 import { PageLayout } from '../components/PageLayout'
 import { Redirect } from 'react-router-dom'
+import { Button } from '../components/Button'
 
 const LoginPage: FC = () => {
   const { login, authUser } = useContext(AuthContext)
@@ -35,18 +36,18 @@ const LoginPage: FC = () => {
         <input
           type="text"
           name="loginName"
-          placeholder="Login Name"
+          placeholder="Benutzername"
           value={formData.loginName}
           onChange={handleInputChange}
         />
         <input
           type="password"
           name="password"
-          placeholder="Password"
+          placeholder="Passwort"
           value={formData.password}
           onChange={handleInputChange}
         />
-        <Button>Login</Button>
+        <Button>Anmelden</Button>
       </LoginForm>
     </PageLayout>
   )
@@ -58,5 +59,3 @@ const LoginForm = styled.form`
   grid-gap: var(--size-l);
   justify-items: center;
 `
-
-const Button = styled.button``

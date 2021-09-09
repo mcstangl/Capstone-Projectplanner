@@ -6,6 +6,7 @@ import NewProjectPage from './pages/NewProjectPage'
 import ProjectListPage from './pages/ProjectListPage'
 import Homepage from './pages/Homepage'
 import ProtectedRoute from './auth/ProtectedRoute'
+import ProjectDetailsPage from './pages/ProjectDetailsPage'
 
 function App() {
   return (
@@ -17,6 +18,10 @@ function App() {
             adminOnly={true}
             path="/new-project"
             component={NewProjectPage}
+          />
+          <ProtectedRoute
+            path="/projects/:projectTitle"
+            component={ProjectDetailsPage}
           />
           <ProtectedRoute path="/projects" component={ProjectListPage} />
           <ProtectedRoute path="/" component={Homepage} />

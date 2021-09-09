@@ -5,10 +5,14 @@ import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.persistence.EntityExistsException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -229,9 +233,10 @@ class ProjectServiceTest {
         }
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getArgumentsForUpdateProjectTest")
     @DisplayName("Updating all project fields except title")
-    public void updateProject() {
+    public void updateProject(String newTitle) {
         // Given
         ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
         when(projectRepositoryMock.findByTitle(any()))
@@ -248,7 +253,7 @@ class ProjectServiceTest {
                 .title("Test")
                 .build();
         // When
-        projectService.update(projectEntity, null);
+        projectService.update(projectEntity, newTitle);
 
         // Then
        verify(projectRepositoryMock, times(1)).save(ProjectEntity.builder()
@@ -257,35 +262,11 @@ class ProjectServiceTest {
                .build());
         verify(projectRepositoryMock, times(1)).findByTitle("Test");
     }
-
-    @Test
-    @DisplayName("Updating all project fields except title")
-    public void updateProjectWhenNewTitleIsEqualToOldTitle() {
-        // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.findByTitle(any()))
-                .thenReturn(
-                        Optional.of(ProjectEntity.builder()
-                                .id(1L)
-                                .customer("Test")
-                                .title("Test")
-                                .build()));
-
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
-
-        ProjectEntity projectEntity = ProjectEntity.builder()
-                .customer("New Customer")
-                .title("Test")
-                .build();
-        // When
-        projectService.update(projectEntity, "Test");
-
-        // Then
-        verify(projectRepositoryMock, times(1)).save(ProjectEntity.builder()
-                .id(1L)
-                .title("Test")
-                .build());
-        verify(projectRepositoryMock, times(1)).findByTitle("Test");
+    private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of("Test")
+        );
     }
 
     @Test

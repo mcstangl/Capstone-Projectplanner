@@ -2,7 +2,7 @@ import { FC, useContext, useEffect, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
 import { ProjectDto } from '../dtos/ProjectDto'
-import { getAllProjects } from '../service/api-service'
+import { findAllProjects } from '../service/api-service'
 import AuthContext from '../auth/AuthContext'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components/macro'
@@ -14,7 +14,7 @@ const ProjectListPage: FC = () => {
 
   useEffect(() => {
     if (token) {
-      getAllProjects(token).then(setProjects).catch(console.error)
+      findAllProjects(token).then(setProjects).catch(console.error)
     }
   }, [token])
 
@@ -35,7 +35,11 @@ const ProjectListPage: FC = () => {
           {projects &&
             projects.length &&
             projects.map(project => (
-              <ListItem key={project.title}>
+              <ListItem
+                id={project.title}
+                key={project.title}
+                to={'/projects/' + project.title}
+              >
                 <span>{project.customer}</span>
                 <span>{project.title}</span>
               </ListItem>
@@ -52,21 +56,18 @@ const List = styled.ul`
   padding: 0;
   margin: 0;
   display: grid;
-  grid-gap: var(--size-s);
+  grid-gap: 0 var(--size-s);
 `
-const ListItem = styled.li`
+const ListItem = styled(Link)`
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-column-gap: var(--size-s);
   padding: 0.5rem;
+  text-decoration: none;
+  color: black;
 
   &:hover {
     background-color: var(--gradient4);
-  }
-
-  div {
-    font-size: 120%;
-    font-weight: bold;
   }
 `
 

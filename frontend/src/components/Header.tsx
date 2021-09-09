@@ -1,29 +1,31 @@
-import { FC, useContext } from 'react'
-import AuthContext from '../auth/AuthContext'
+import { FC } from 'react'
 import styled from 'styled-components/macro'
+import Logout from './Logout'
+import Navbar from './Navbar'
+import Logo from './Logo'
 
 const Header: FC = () => {
-  const { authUser, logout } = useContext(AuthContext)
   return (
-    <header>
-      <h3>Project Planner</h3>
-      {authUser && logout && (
-        <section>
-          {'Sie sind eingeloggt als, '}
-          <span>{authUser.loginName}</span>
-          <Logout onClick={logout}> ausloggen</Logout>
-        </section>
-      )}
-    </header>
+    <HeaderStyle>
+      <Logo />
+      <Logout />
+      <h3>Projekt Planung</h3>
+      <Navbar />
+    </HeaderStyle>
   )
 }
 export default Header
 
-const Logout = styled.p`
-  color: cornflowerblue;
+const HeaderStyle = styled.header`
+  box-shadow: 1px 0 4px grey;
+  margin-bottom: var(--size-xxl);
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  grid-template-rows: 150px 1fr;
+  padding-bottom: var(--size-m);
 
-  &:hover {
-    color: lightblue;
-    cursor: pointer;
+  h3 {
+    color: var(--maincolor);
+    margin: 0;
   }
 `

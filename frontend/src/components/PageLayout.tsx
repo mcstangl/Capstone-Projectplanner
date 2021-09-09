@@ -7,5 +7,5 @@ export const PageLayout = styled.section`
   top: 0;
   left: 0;
   display: grid;
-  grid-template-rows: 170px min-content;
+  grid-template-rows: min-content min-content;
 `

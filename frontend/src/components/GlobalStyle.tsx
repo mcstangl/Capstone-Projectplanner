@@ -8,6 +8,12 @@ export default createGlobalStyle`
     --size-l: 16px;
     --size-xl: 24px;
     --size-xxl: 32px;
+
+    --maincolor: #006c5b;
+    --gradient4: #c7e4dc;
+    --accentcolor: #f39200;
+    --secondarycolor: #d1d0d0;
+    --darkgrey: #939393;
   }
 
   * {

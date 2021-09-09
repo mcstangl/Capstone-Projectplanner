@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
@@ -22,6 +23,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<RestException> handle400(Throwable e){
         return createRestException(e, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({
+            EntityNotFoundException.class
+    })
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<RestException> handle404(Throwable e) {
+        return createRestException(e, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({
@@ -42,7 +51,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Getter
     @AllArgsConstructor
-    private class RestException {
+    private static class RestException {
         private String message;
         private int status;
     }

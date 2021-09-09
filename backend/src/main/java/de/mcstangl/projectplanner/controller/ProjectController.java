@@ -10,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -43,6 +45,13 @@ public class ProjectController {
         return ok(map(projectEntityList));
     }
 
+    @GetMapping("{title}")
+    public ResponseEntity<Project> findByTitle(@PathVariable String title) {
+        ProjectEntity projectEntity = projectService.findByTitle(title)
+                .orElseThrow(()-> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", title)));
+        return ok(map(projectEntity));
+
+    }
 
     private ProjectEntity map(Project project) {
         return ProjectEntity.builder()

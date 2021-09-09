@@ -36,14 +36,24 @@ class ProjectEntityTest extends SpringBootTests {
     }
 
     @Test
-    @DisplayName("Find by login name should return found project")
-    public void findByLoginName(){
+    @DisplayName("Find by title should return found project")
+    public void findByTitle(){
         // When
         Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Test");
 
         // Then
         assertTrue(actualOptional.isPresent());
         assertThat(actualOptional.get().getTitle(), is("Test"));
+    }
+
+    @Test
+    @DisplayName("Find by title should return an empty optional if project is not in DB")
+    public void findByUnknownTitle(){
+        // When
+        Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Unkown");
+
+        // Then
+        assertTrue(actualOptional.isEmpty());
     }
 
     @Test

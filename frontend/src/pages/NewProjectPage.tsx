@@ -7,6 +7,7 @@ import { createNewProject } from '../service/api-service'
 import AuthContext from '../auth/AuthContext'
 import { Link, useHistory } from 'react-router-dom'
 import { Button } from '../components/Button'
+import { LinkGroup } from '../components/LinkGroup'
 
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
@@ -34,7 +35,9 @@ const NewProjectPage: FC = () => {
     <PageLayout>
       <Header />
       <main>
-        <Link to="/projects">zurück zur Projektliste</Link>
+        <LinkGroup>
+          <Link to="/projects">Zurück zur Liste</Link>
+        </LinkGroup>
 
         <ProjectForm onSubmit={submitHandler}>
           <input

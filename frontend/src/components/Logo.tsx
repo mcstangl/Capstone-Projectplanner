@@ -2,7 +2,7 @@ import { FC } from 'react'
 import styled from 'styled-components/macro'
 
 const Logo: FC = () => {
-  return <Wrapper></Wrapper>
+  return <Wrapper> </Wrapper>
 }
 export default Logo
 

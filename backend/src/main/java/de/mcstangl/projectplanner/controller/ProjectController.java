@@ -5,6 +5,7 @@ import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,15 +27,16 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<Project> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody Project newProject){
-
-        ProjectEntity newProjectEntity = projectService.createNewProject(map(newProject));
-
-        return ok(map(newProjectEntity));
+    public ResponseEntity<Project> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody Project newProject) {
+        if (authUser.getRole().equals("ADMIN")) {
+            ProjectEntity newProjectEntity = projectService.createNewProject(map(newProject));
+            return ok(map(newProjectEntity));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @GetMapping
-    public ResponseEntity<List<Project>> findAll(){
+    public ResponseEntity<List<Project>> findAll() {
 
         List<ProjectEntity> projectEntityList = projectService.findAll();
 
@@ -42,21 +44,21 @@ public class ProjectController {
     }
 
 
-    private ProjectEntity map(Project project){
+    private ProjectEntity map(Project project) {
         return ProjectEntity.builder()
                 .customer(project.getCustomer())
                 .title(project.getTitle())
                 .build();
     }
 
-    private Project map(ProjectEntity projectEntity){
+    private Project map(ProjectEntity projectEntity) {
         return Project.builder()
                 .customer(projectEntity.getCustomer())
                 .title(projectEntity.getTitle())
                 .build();
     }
 
-    private List<Project> map(List<ProjectEntity> projectEntityList){
+    private List<Project> map(List<ProjectEntity> projectEntityList) {
         List<Project> projectList = new LinkedList<>();
         for (ProjectEntity projectEntity : projectEntityList) {
             Project project = map(projectEntity);

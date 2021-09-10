@@ -23,8 +23,8 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
-    public Optional<ProjectEntity> findByTitle(String title){
-       return projectRepository.findByTitle(title);
+    public Optional<ProjectEntity> findByTitle(String title) {
+        return projectRepository.findByTitle(title);
     }
 
     public ProjectEntity createNewProject(ProjectEntity projectEntity) {
@@ -34,7 +34,7 @@ public class ProjectService {
 
         Optional<ProjectEntity> projectEntityOptional = findByTitle(projectEntity.getTitle());
 
-        if(projectEntityOptional.isPresent()){
+        if (projectEntityOptional.isPresent()) {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
         return projectRepository.save(projectEntity);
@@ -51,7 +51,7 @@ public class ProjectService {
 
         hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
 
-        if(newTitle == null || newTitle.equals(projectUpdateEntity.getTitle())){
+        if (newTitle == null || newTitle.equals(projectUpdateEntity.getTitle())) {
             fetchedProjectEntity
                     .setCustomer(projectUpdateEntity.getCustomer());
             return projectRepository.save(fetchedProjectEntity);
@@ -59,8 +59,12 @@ public class ProjectService {
 
         projectRepository.delete(fetchedProjectEntity);
 
-        projectUpdateEntity.setTitle(newTitle);
-        return createNewProject(projectUpdateEntity);
+        ProjectEntity projectEntityCopy = ProjectEntity.builder()
+                .customer(projectUpdateEntity.getCustomer())
+                .title(newTitle)
+                .owner(fetchedProjectEntity.getOwner()).build();
+
+        return createNewProject(projectEntityCopy);
     }
 
 }

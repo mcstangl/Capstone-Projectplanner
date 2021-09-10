@@ -5,7 +5,9 @@ import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
+import de.mcstangl.projectplanner.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.*;
@@ -45,12 +47,24 @@ class ProjectControllerTest extends SpringBootTests {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @BeforeEach
     public void setup() {
+        userRepository.saveAndFlush(UserEntity.builder()
+                .id(1L)
+                .loginName("Test")
+                .password("Test")
+                .role("ADMIN").build());
+
         projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .id(1L)
                         .title("Test")
+                        .owner(UserEntity.builder()
+                                .id(1L)
+                                .loginName("Test").build())
                         .customer("Test").build()
         );
     }
@@ -65,6 +79,7 @@ class ProjectControllerTest extends SpringBootTests {
     public void createNewProject() {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
+                .ownerName("Test")
                 .title("Test Title")
                 .customer("Test Customer")
                 .build();
@@ -111,6 +126,7 @@ class ProjectControllerTest extends SpringBootTests {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
+                .ownerName("Test")
                 .customer("Test")
                 .build();
 
@@ -133,6 +149,7 @@ class ProjectControllerTest extends SpringBootTests {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title(title)
+                .ownerName("Test")
                 .customer(customer)
                 .build();
 
@@ -211,7 +228,7 @@ class ProjectControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateProjectTest")
-    @DisplayName("Update ProjectDto should update all fields except title when there is no new title")
+    @DisplayName("Update Project should update all fields except title when there is no new title")
     public void updateProject(String newTitle, String expectedTitle) {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()

@@ -5,6 +5,7 @@ import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
+import de.mcstangl.projectplanner.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,22 +18,35 @@ import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
 
+@CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/project")
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final UserService userService;
 
     @Autowired
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, UserService userService) {
         this.projectService = projectService;
+        this.userService = userService;
     }
 
     @PostMapping
     public ResponseEntity<ProjectDto> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody ProjectDto newProject) {
         if (isAdmin(authUser)) {
-            ProjectEntity newProjectEntity = projectService.createNewProject(map(newProject));
-            return ok(map(newProjectEntity));
+
+            UserEntity ownerEntity = userService.findByLoginName(newProject.getOwnerName())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwnerName())));
+
+            ProjectEntity newProjectEntity = map(newProject);
+
+            newProjectEntity.setOwner(ownerEntity);
+
+            ProjectEntity createdProjectEntity = projectService.createNewProject(newProjectEntity);
+
+            return ok(map(createdProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
@@ -91,6 +105,7 @@ public class ProjectController {
     private ProjectDto map(ProjectEntity projectEntity) {
         return ProjectDto.builder()
                 .customer(projectEntity.getCustomer())
+                .ownerName(projectEntity.getOwner().getLoginName())
                 .title(projectEntity.getTitle())
                 .build();
     }
@@ -98,8 +113,7 @@ public class ProjectController {
     private List<ProjectDto> map(List<ProjectEntity> projectEntityList) {
         List<ProjectDto> projectDtoList = new LinkedList<>();
         for (ProjectEntity projectEntity : projectEntityList) {
-            ProjectDto projectDto = map(projectEntity);
-            projectDtoList.add(projectDto);
+            projectDtoList.add(map(projectEntity));
         }
         return projectDtoList;
     }

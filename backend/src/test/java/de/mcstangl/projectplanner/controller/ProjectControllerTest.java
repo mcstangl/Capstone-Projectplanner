@@ -49,6 +49,7 @@ class ProjectControllerTest extends SpringBootTests {
     public void setup() {
         projectRepository.saveAndFlush(
                 ProjectEntity.builder()
+                        .id(1L)
                         .title("Test")
                         .customer("Test").build()
         );
@@ -125,13 +126,14 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.CONFLICT));
     }
 
-    @Test
-    @DisplayName("Creating a new project with a blank title should return HttpStatus.BAD_REQUEST")
-    public void createProjectWithBlankTitle() {
+    @ParameterizedTest
+    @MethodSource("getArgumentsForBadRequestTest")
+    @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST")
+    public void createProjectWithBadRequest(String title, String customer) {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
-                .title("")
-                .customer("Test")
+                .title(title)
+                .customer(customer)
                 .build();
 
         // When
@@ -146,67 +148,13 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
-    @Test
-    @DisplayName("Creating a new project with a blank customer should return HttpStatus.BAD_REQUEST")
-    public void createProjectWithBlankCustomer() {
-        // Given
-        ProjectDto projectDto = ProjectDto.builder()
-                .title("Test")
-                .customer("")
-                .build();
-
-        // When
-        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
-                getUrl(),
-                HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
-                ProjectDto.class
+    private static Stream<Arguments> getArgumentsForBadRequestTest(){
+        return Stream.of(
+                Arguments.of("", "Test"),
+                Arguments.of("Test", ""),
+                Arguments.of("Test", null),
+                Arguments.of(null, "Test")
         );
-
-        // Then
-        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
-    }
-
-    @Test
-    @DisplayName("Creating a new project with a null title should return HttpStatus.BAD_REQUEST")
-    public void createProjectWithoutTitle() {
-        // Given
-        ProjectDto projectDto = ProjectDto.builder()
-                .title(null)
-                .customer("Test")
-                .build();
-
-        // When
-        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
-                getUrl(),
-                HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
-                ProjectDto.class
-        );
-
-        // Then
-        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
-    }
-
-    @Test
-    @DisplayName("Creating a new project with a null customer should return HttpStatus.BAD_REQUEST")
-    public void createProjectWithoutCustomer() {
-        // Given
-        ProjectDto projectDto = ProjectDto.builder()
-                .title("Test")
-                .customer(null)
-                .build();
-
-        // When
-        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
-                getUrl(),
-                HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
-                ProjectDto.class
-        );
-
-        // Then
-        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
     @Test

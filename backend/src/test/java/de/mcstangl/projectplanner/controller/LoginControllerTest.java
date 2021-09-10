@@ -13,6 +13,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -21,6 +24,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -46,11 +51,13 @@ class LoginControllerTest extends SpringBootTests {
     @BeforeEach
     public void setup() {
         UserEntity admin = UserEntity.builder()
+                .id(1L)
                 .loginName("Hans")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("ADMIN").build();
 
         UserEntity user = UserEntity.builder()
+                .id(2L)
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("USER").build();
@@ -67,10 +74,7 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with valid CredentialsDto should return a jwt token")
     public void loginWithCredentials() {
         // Given
-        CredentialsDto credentialsDto = CredentialsDto.builder()
-                .loginName("Hans")
-                .password("password")
-                .build();
+        CredentialsDto credentialsDto = getCredentialsDto("Hans", "password");
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
@@ -96,14 +100,12 @@ class LoginControllerTest extends SpringBootTests {
 
     }
 
-    @Test
-    @DisplayName("Login with wrong password should return HttpStatus.UNAUTHORIZED")
-    public void loginWithInvalidPassword() {
+    @ParameterizedTest
+    @MethodSource("getArgumentsForInvalidCredentialsTest")
+    @DisplayName("Login with invalid credentials should return HttpStatus.UNAUTHORIZED")
+    public void loginWithInvalidCredentials(String loginName, String password) {
         // Given
-        CredentialsDto credentialsDto = CredentialsDto.builder()
-                .loginName("Hans")
-                .password("invalidPassword")
-                .build();
+        CredentialsDto credentialsDto = getCredentialsDto(loginName,password);
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
@@ -118,36 +120,20 @@ class LoginControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
 
-    @Test
-    @DisplayName("Login with wrong loginName should return HttpStatus.UNAUTHORIZED")
-    public void loginWithInvalidLoginName() {
-        // Given
-        CredentialsDto credentialsDto = CredentialsDto.builder()
-                .loginName("Does-not-exist")
-                .password("password")
-                .build();
-        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
-
-        // When
-        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
-                getUrl() + "/access_token",
-                HttpMethod.POST,
-                httpEntity,
-                AccessTokenDto.class);
-
-
-        //Then
-        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    private static Stream<Arguments> getArgumentsForInvalidCredentialsTest(){
+        return Stream.of(
+                Arguments.of("Hans", "invalidPassword"),
+                Arguments.of("Does-not-exist", "password")
+        );
     }
 
-    @Test
-    @DisplayName("Login with no loginName should return HttpStatus.BAD_REQUEST")
-    public void loginWithBadCredentialsRequestLoginNameIsNull() {
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForBadCredentialsTest")
+    @DisplayName("Login bad Credentials should return HttpStatus.BAD_REQUEST")
+    public void loginWithBadCredentialsRequestLoginNameIsNull(String loginName, String password) {
         // Given
-        CredentialsDto credentialsDto = CredentialsDto.builder()
-                .loginName(null)
-                .password("password")
-                .build();
+        CredentialsDto credentialsDto = getCredentialsDto(loginName, password);
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
@@ -162,26 +148,19 @@ class LoginControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
-    @Test
-    @DisplayName("Login with no password should return HttpStatus.BAD_REQUEST")
-    public void loginWithBadCredentialsRequestPasswordIsNull() {
-        // Given
-        CredentialsDto credentialsDto = CredentialsDto.builder()
-                .loginName("Hans")
-                .password(null)
+    private static Stream<Arguments> getArgumentsForBadCredentialsTest(){
+        return Stream.of(
+                Arguments.of(null, "password"),
+                Arguments.of("Hans", null)
+        );
+    }
+
+
+    private CredentialsDto getCredentialsDto(String loginName, String password){
+        return CredentialsDto.builder()
+                .loginName(loginName)
+                .password(password)
                 .build();
-        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
-
-        // When
-        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
-                getUrl() + "/access_token",
-                HttpMethod.POST,
-                httpEntity,
-                AccessTokenDto.class);
-
-
-        //Then
-        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
     private String getUrl() {

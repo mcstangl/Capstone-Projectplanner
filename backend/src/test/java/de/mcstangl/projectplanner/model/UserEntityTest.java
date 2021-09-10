@@ -23,11 +23,13 @@ class UserEntityTest extends SpringBootTests {
     @BeforeEach
     public void setup(){
         UserEntity admin = UserEntity.builder()
+                .id(1L)
                 .loginName("Hans")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("ADMIN").build();
 
         UserEntity user = UserEntity.builder()
+                .id(2L)
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("USER").build();
@@ -45,5 +47,16 @@ class UserEntityTest extends SpringBootTests {
         //Then
         assertTrue(actualOptional.isPresent());
         assertThat(actualOptional.get().getLoginName(), is("Hans"));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Find user by unknown loginName should return an empty optional")
+    public void findUserByUnknownName(){
+        //When
+        Optional<UserEntity> actualOptional = userRepository.findByLoginName("Karl");
+
+        //Then
+        assertTrue(actualOptional.isEmpty());
     }
 }

@@ -82,7 +82,6 @@ class ProjectEntityTest extends SpringBootTests {
     }
 
     @ParameterizedTest
-    @Transactional
     @MethodSource("getArgumentsForInvalidProjectEntityTest")
     @DisplayName("Create a project with a title that already exists or an null title should fail")
     public void createProjectInvalidTitle(String title) {

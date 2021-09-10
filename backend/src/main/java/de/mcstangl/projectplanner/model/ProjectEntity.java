@@ -12,6 +12,7 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class ProjectEntity {
 
     @Id
@@ -25,6 +26,9 @@ public class ProjectEntity {
     @Column(name="customer")
     private String customer;
 
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name ="owner_id")
+    private UserEntity owner;
 
     @Override
     public boolean equals(Object o) {
@@ -38,4 +42,5 @@ public class ProjectEntity {
     public int hashCode() {
         return Objects.hash(id, title);
     }
+
 }

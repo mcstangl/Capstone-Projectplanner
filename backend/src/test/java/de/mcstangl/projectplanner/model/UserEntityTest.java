@@ -29,7 +29,7 @@ class UserEntityTest extends SpringBootTests {
                 .role("ADMIN").build();
 
         UserEntity user = UserEntity.builder()
-                .id(1L)
+                .id(2L)
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("USER").build();

@@ -1,15 +1,18 @@
 package de.mcstangl.projectplanner.api;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@AllArgsConstructor
+@SuperBuilder
 @NoArgsConstructor
-@Builder
-public class AccessToken {
-    private String token;
+@AllArgsConstructor
+public class ProjectDto {
+
+    private String customer;
+    private String title;
+
 }

@@ -1,7 +1,7 @@
 package de.mcstangl.projectplanner.filter;
 
 import de.mcstangl.projectplanner.SpringBootTests;
-import de.mcstangl.projectplanner.api.User;
+import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -37,11 +37,11 @@ class JwtAuthFilterTest extends SpringBootTests {
     @Test
     public void loginWithValidToken(){
         // When
-        ResponseEntity<User> response = testRestTemplate.exchange(
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
                 getHttpEntity("Hans", "ADMIN", false, false),
-                User.class);
+                UserDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -53,11 +53,11 @@ class JwtAuthFilterTest extends SpringBootTests {
     @Test
     public void loginWithWrongSignature(){
         // When
-        ResponseEntity<User> response = testRestTemplate.exchange(
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
                 getHttpEntity("Hans", "ADMIN", false, true),
-                User.class);
+                UserDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
@@ -66,11 +66,11 @@ class JwtAuthFilterTest extends SpringBootTests {
     @Test
     public void loginWithExpiredToken(){
         // When
-        ResponseEntity<User> response = testRestTemplate.exchange(
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
                 getHttpEntity("Hans", "ADMIN", true, false),
-                User.class);
+                UserDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
@@ -81,7 +81,7 @@ class JwtAuthFilterTest extends SpringBootTests {
         return String.format("http://localhost:%s/api/project-planner/auth/me", port);
     }
 
-    private HttpEntity getHttpEntity(String name, String role, boolean isExpired, boolean isSignedWrong){
+    private HttpEntity<HttpHeaders> getHttpEntity(String name, String role, boolean isExpired, boolean isSignedWrong){
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
 
@@ -109,6 +109,6 @@ class JwtAuthFilterTest extends SpringBootTests {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setBearerAuth(token);
 
-        return new HttpEntity(httpHeaders);
+        return new HttpEntity<>(httpHeaders);
     }
 }

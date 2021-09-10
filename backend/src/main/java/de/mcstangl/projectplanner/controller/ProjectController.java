@@ -1,7 +1,7 @@
 package de.mcstangl.projectplanner.controller;
 
-import de.mcstangl.projectplanner.api.Project;
-import de.mcstangl.projectplanner.api.UpdateProject;
+import de.mcstangl.projectplanner.api.ProjectDto;
+import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
@@ -12,7 +12,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import javax.security.auth.message.AuthException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<Project> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody Project newProject) {
+    public ResponseEntity<ProjectDto> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody ProjectDto newProject) {
         if (isAdmin(authUser)) {
             ProjectEntity newProjectEntity = projectService.createNewProject(map(newProject));
             return ok(map(newProjectEntity));
@@ -39,7 +38,7 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Project>> findAll() {
+    public ResponseEntity<List<ProjectDto>> findAll() {
 
         List<ProjectEntity> projectEntityList = projectService.findAll();
 
@@ -47,7 +46,7 @@ public class ProjectController {
     }
 
     @GetMapping("{title}")
-    public ResponseEntity<Project> findByTitle(@PathVariable String title) {
+    public ResponseEntity<ProjectDto> findByTitle(@PathVariable String title) {
         ProjectEntity projectEntity = projectService.findByTitle(title)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", title)));
         return ok(map(projectEntity));
@@ -55,17 +54,17 @@ public class ProjectController {
     }
 
     @PutMapping("{title}")
-    public ResponseEntity<Project> updateProject(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title, @RequestBody UpdateProject updateProject) {
+    public ResponseEntity<ProjectDto> updateProject(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title, @RequestBody UpdateProjectDto updateProjectDto) {
 
-        if (!title.equals(updateProject.getTitle())) {
+        if (!title.equals(updateProjectDto.getTitle())) {
             throw new IllegalArgumentException();
         }
 
         if (isAdmin(authUser)) {
 
-            String newTitle = updateProject.getNewTitle();
+            String newTitle = updateProjectDto.getNewTitle();
 
-            ProjectEntity projectEntity = projectService.update(map(updateProject), newTitle);
+            ProjectEntity projectEntity = projectService.update(map(updateProjectDto), newTitle);
             return ok(map(projectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -75,33 +74,33 @@ public class ProjectController {
         return authUser.getRole().equals("ADMIN");
     }
 
-    private ProjectEntity map(UpdateProject updateProject) {
+    private ProjectEntity map(UpdateProjectDto updateProjectDto) {
         return ProjectEntity.builder()
-                .customer(updateProject.getCustomer())
-                .title(updateProject.getTitle())
+                .customer(updateProjectDto.getCustomer())
+                .title(updateProjectDto.getTitle())
                 .build();
     }
 
-    private ProjectEntity map(Project project) {
+    private ProjectEntity map(ProjectDto projectDto) {
         return ProjectEntity.builder()
-                .customer(project.getCustomer())
-                .title(project.getTitle())
+                .customer(projectDto.getCustomer())
+                .title(projectDto.getTitle())
                 .build();
     }
 
-    private Project map(ProjectEntity projectEntity) {
-        return Project.builder()
+    private ProjectDto map(ProjectEntity projectEntity) {
+        return ProjectDto.builder()
                 .customer(projectEntity.getCustomer())
                 .title(projectEntity.getTitle())
                 .build();
     }
 
-    private List<Project> map(List<ProjectEntity> projectEntityList) {
-        List<Project> projectList = new LinkedList<>();
+    private List<ProjectDto> map(List<ProjectEntity> projectEntityList) {
+        List<ProjectDto> projectDtoList = new LinkedList<>();
         for (ProjectEntity projectEntity : projectEntityList) {
-            Project project = map(projectEntity);
-            projectList.add(project);
+            ProjectDto projectDto = map(projectEntity);
+            projectDtoList.add(projectDto);
         }
-        return projectList;
+        return projectDtoList;
     }
 }

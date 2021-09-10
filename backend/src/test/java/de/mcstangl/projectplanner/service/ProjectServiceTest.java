@@ -1,6 +1,5 @@
 package de.mcstangl.projectplanner.service;
 
-import de.mcstangl.projectplanner.api.UpdateProject;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.DisplayName;

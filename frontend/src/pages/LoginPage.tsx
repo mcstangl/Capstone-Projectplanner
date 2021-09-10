@@ -23,9 +23,8 @@ const LoginPage: FC = () => {
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
     setError(undefined)
-    let credentialsDto: CredentialsDto
     if (login && formData.loginName.trim() && formData.password.trim()) {
-      credentialsDto = {
+      const credentialsDto: CredentialsDto = {
         loginName: formData.loginName.trim(),
         password: formData.password.trim(),
       }

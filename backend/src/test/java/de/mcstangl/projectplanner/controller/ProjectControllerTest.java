@@ -2,12 +2,16 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.Project;
+import de.mcstangl.projectplanner.api.UpdateProject;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -20,6 +24,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -41,7 +46,7 @@ class ProjectControllerTest extends SpringBootTests {
     private ProjectRepository projectRepository;
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .title("Test")
@@ -50,7 +55,7 @@ class ProjectControllerTest extends SpringBootTests {
     }
 
     @AfterEach
-    public void clear(){
+    public void clear() {
         projectRepository.deleteAll();
     }
 
@@ -67,7 +72,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -91,7 +96,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "USER")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "USER")),
                 Project.class
         );
 
@@ -112,7 +117,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -133,7 +138,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -154,7 +159,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -175,7 +180,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -196,7 +201,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -211,7 +216,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<Project[]> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
-                new HttpEntity<>(null,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
                 Project[].class
         );
 
@@ -229,9 +234,9 @@ class ProjectControllerTest extends SpringBootTests {
     public void findByTitle() {
         // When
         ResponseEntity<Project> response = testRestTemplate.exchange(
-                getUrl()+"/Test",
+                getUrl() + "/Test",
                 HttpMethod.GET,
-                new HttpEntity<>(null,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
@@ -246,15 +251,91 @@ class ProjectControllerTest extends SpringBootTests {
     public void findByUnknownTitle() {
         // When
         ResponseEntity<Project> response = testRestTemplate.exchange(
-                getUrl()+"/Unknown",
+                getUrl() + "/Unknown",
                 HttpMethod.GET,
-                new HttpEntity<>(null,getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
                 Project.class
         );
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
     }
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForUpdateProjectTest")
+    @DisplayName("Update Project should update all fields except title when there is no new title")
+    public void updateProject(String newTitle, String expectedTitle) {
+        // Given
+        UpdateProject updateProject = UpdateProject.builder()
+                .customer("New Customer")
+                .title("Test")
+                .newTitle(newTitle)
+                .build();
+
+        // When
+        ResponseEntity<Project> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProject, getAuthHeader("Hans", "ADMIN")),
+                Project.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getTitle(),expectedTitle );
+        assertThat(response.getBody().getCustomer(), is("New Customer"));
+    }
+
+    private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
+        return Stream.of(
+                Arguments.of( null, "Test"),
+                Arguments.of("Test", "Test"),
+                Arguments.of("New Title", "New Title")
+        );
+    }
+
+    @Test
+    @DisplayName("Update Project should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
+    public void updateProjectWithNonMatchingPathVariable() {
+        // Given
+        UpdateProject updateProject = UpdateProject.builder()
+                .customer("New Customer")
+                .title("Test")
+                .newTitle("newTitle")
+                .build();
+
+        // When
+        ResponseEntity<Project> response = testRestTemplate.exchange(
+                getUrl() + "/DoesNotMatchTitle",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProject, getAuthHeader("Hans", "ADMIN")),
+                Project.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("Update Project should return HttpStatus.UNAUTHORIZED if user is not an admin")
+    public void updateProjectAsUserShouldFail() {
+        // Given
+        UpdateProject updateProject = UpdateProject.builder()
+                .customer("New Customer")
+                .title("Test")
+                .newTitle("newTitle")
+                .build();
+
+        // When
+        ResponseEntity<Project> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProject, getAuthHeader("Hans", "USER")),
+                Project.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
+
 
 
     private HttpHeaders getAuthHeader(String name, String role) {

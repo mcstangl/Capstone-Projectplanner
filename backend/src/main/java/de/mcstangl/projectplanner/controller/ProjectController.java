@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.Project;
+import de.mcstangl.projectplanner.api.UpdateProject;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
@@ -11,9 +12,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import javax.security.auth.message.AuthException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -30,7 +31,7 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<Project> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody Project newProject) {
-        if (authUser.getRole().equals("ADMIN")) {
+        if (isAdmin(authUser)) {
             ProjectEntity newProjectEntity = projectService.createNewProject(map(newProject));
             return ok(map(newProjectEntity));
         }
@@ -48,9 +49,37 @@ public class ProjectController {
     @GetMapping("{title}")
     public ResponseEntity<Project> findByTitle(@PathVariable String title) {
         ProjectEntity projectEntity = projectService.findByTitle(title)
-                .orElseThrow(()-> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", title)));
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", title)));
         return ok(map(projectEntity));
 
+    }
+
+    @PutMapping("{title}")
+    public ResponseEntity<Project> updateProject(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title, @RequestBody UpdateProject updateProject) {
+
+        if (!title.equals(updateProject.getTitle())) {
+            throw new IllegalArgumentException();
+        }
+
+        if (isAdmin(authUser)) {
+
+            String newTitle = updateProject.getNewTitle();
+
+            ProjectEntity projectEntity = projectService.update(map(updateProject), newTitle);
+            return ok(map(projectEntity));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    private boolean isAdmin(UserEntity authUser) {
+        return authUser.getRole().equals("ADMIN");
+    }
+
+    private ProjectEntity map(UpdateProject updateProject) {
+        return ProjectEntity.builder()
+                .customer(updateProject.getCustomer())
+                .title(updateProject.getTitle())
+                .build();
     }
 
     private ProjectEntity map(Project project) {

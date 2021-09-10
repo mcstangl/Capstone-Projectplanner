@@ -128,7 +128,7 @@ class ProjectControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForBadRequestTest")
-    @DisplayName("Creating a new project with a blank title should return HttpStatus.BAD_REQUEST")
+    @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST")
     public void createProjectWithBadRequest(String title, String customer) {
         // Given
         ProjectDto projectDto = ProjectDto.builder()

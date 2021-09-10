@@ -15,6 +15,7 @@ import AuthContext from '../auth/AuthContext'
 import { LinkGroup } from '../components/LinkGroup'
 import styled from 'styled-components/macro'
 import { Button } from '../components/Button'
+import { RestExceptionDto } from '../dtos/RestExceptionDto'
 
 interface RouteParams {
   projectTitle: string
@@ -26,6 +27,7 @@ const ProjectDetailsPage: FC = () => {
 
   const [project, setProject] = useState<ProjectDto>()
   const [editMode, setEditMode] = useState<boolean>()
+  const [error, setError] = useState<RestExceptionDto>()
 
   const [formData, setFormData] = useState<ProjectDto>({
     customer: '',
@@ -36,7 +38,7 @@ const ProjectDetailsPage: FC = () => {
     if (token) {
       findProjectByTitle(projectTitle, token)
         .then(setProject)
-        .catch(console.error)
+        .catch(error => setError(error.response.data))
     }
   }, [projectTitle, token])
 
@@ -48,16 +50,17 @@ const ProjectDetailsPage: FC = () => {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    if (project && token) {
+    setError(undefined)
+    if (project && token && formData.title.trim() && formData.customer.trim()) {
       const updateProjectDto = {
         title: project.title,
-        newTitle: formData.title,
-        customer: formData.customer,
+        newTitle: formData.title.trim(),
+        customer: formData.customer.trim(),
       }
       updateProject(updateProjectDto, token)
         .then(setProject)
-        .catch(console.error)
-        .finally(() => setEditMode(false))
+        .then(() => setEditMode(false))
+        .catch(error => setError(error.response.data))
     }
   }
 
@@ -110,11 +113,17 @@ const ProjectDetailsPage: FC = () => {
               Abbrechen
             </Button>
           )}
-          {editMode && <Button>Speichern</Button>}
+          {editMode &&
+            (formData.title.trim() && formData.customer.trim() ? (
+              <Button>Speichern</Button>
+            ) : (
+              <Button disabled>Speichern</Button>
+            ))}
         </ProjectDetails>
         {!editMode && authUser && authUser.role === 'ADMIN' && (
           <Button onClick={onClickHandler}>Edit</Button>
         )}
+        {error && <p>{error.message}</p>}
       </main>
     </PageLayout>
   )

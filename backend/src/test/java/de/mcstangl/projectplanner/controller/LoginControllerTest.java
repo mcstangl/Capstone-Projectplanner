@@ -102,8 +102,8 @@ class LoginControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForInvalidCredentialsTest")
-    @DisplayName("Login with wrong password should return HttpStatus.UNAUTHORIZED")
-    public void loginWithInvalidPassword(String loginName, String password) {
+    @DisplayName("Login with invalid credentials should return HttpStatus.UNAUTHORIZED")
+    public void loginWithInvalidCredentials(String loginName, String password) {
         // Given
         CredentialsDto credentialsDto = getCredentialsDto(loginName,password);
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
@@ -128,11 +128,12 @@ class LoginControllerTest extends SpringBootTests {
     }
 
 
-    @Test
-    @DisplayName("Login with no loginName should return HttpStatus.BAD_REQUEST")
-    public void loginWithBadCredentialsRequestLoginNameIsNull() {
+    @ParameterizedTest
+    @MethodSource("getArgumentsForBadCredentialsTest")
+    @DisplayName("Login bad Credentials should return HttpStatus.BAD_REQUEST")
+    public void loginWithBadCredentialsRequestLoginNameIsNull(String loginName, String password) {
         // Given
-        CredentialsDto credentialsDto = getCredentialsDto(null, "password");
+        CredentialsDto credentialsDto = getCredentialsDto(loginName, password);
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
@@ -147,24 +148,13 @@ class LoginControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
-    @Test
-    @DisplayName("Login with no password should return HttpStatus.BAD_REQUEST")
-    public void loginWithBadCredentialsRequestPasswordIsNull() {
-        // Given
-        CredentialsDto credentialsDto = getCredentialsDto("Hans", null);
-        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
-
-        // When
-        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
-                getUrl() + "/access_token",
-                HttpMethod.POST,
-                httpEntity,
-                AccessTokenDto.class);
-
-
-        //Then
-        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+    private static Stream<Arguments> getArgumentsForBadCredentialsTest(){
+        return Stream.of(
+                Arguments.of(null, "password"),
+                Arguments.of("Hans", null)
+        );
     }
+
 
     private CredentialsDto getCredentialsDto(String loginName, String password){
         return CredentialsDto.builder()

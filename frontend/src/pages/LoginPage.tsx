@@ -6,9 +6,11 @@ import Header from '../components/Header'
 import { PageLayout } from '../components/PageLayout'
 import { Redirect } from 'react-router-dom'
 import { Button } from '../components/Button'
+import { RestExceptionDto } from '../dtos/RestExceptionDto'
 
 const LoginPage: FC = () => {
   const { login, authUser } = useContext(AuthContext)
+  const [error, setError] = useState<RestExceptionDto>()
   const [formData, setFormData] = useState<CredentialsDto>({
     loginName: '',
     password: '',
@@ -20,8 +22,14 @@ const LoginPage: FC = () => {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    if (login) {
-      login(formData).catch(console.error)
+    setError(undefined)
+    let credentialsDto: CredentialsDto
+    if (login && formData.loginName.trim() && formData.password.trim()) {
+      credentialsDto = {
+        loginName: formData.loginName.trim(),
+        password: formData.password.trim(),
+      }
+      login(credentialsDto).catch(error => setError(error.response.data))
     }
   }
 
@@ -47,7 +55,13 @@ const LoginPage: FC = () => {
           value={formData.password}
           onChange={handleInputChange}
         />
-        <Button>Anmelden</Button>
+        {formData.loginName.trim() && formData.password.trim() ? (
+          <Button>Anmelden</Button>
+        ) : (
+          <Button disabled>Anmelden</Button>
+        )}
+
+        {error && <p>{error.message}</p>}
       </LoginForm>
     </PageLayout>
   )

@@ -6,6 +6,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -23,6 +25,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<RestException> handle400(Throwable e){
         return createRestException(e, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({
+            AuthenticationException.class
+    })
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<RestException> handle401() {
+        AuthenticationException authenticationException = new BadCredentialsException("Ihr Benutzername oder Ihr Passwort stimmen nicht");
+        return createRestException(authenticationException, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler({

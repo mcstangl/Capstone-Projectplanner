@@ -8,9 +8,11 @@ import AuthContext from '../auth/AuthContext'
 import { Link, useHistory } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { LinkGroup } from '../components/LinkGroup'
+import { RestExceptionDto } from '../dtos/RestExceptionDto'
 
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
+  const [error, setError] = useState<RestExceptionDto>()
   const [formData, setFormData] = useState<NewProjectDto>({
     customer: '',
     title: '',
@@ -20,10 +22,14 @@ const NewProjectPage: FC = () => {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
-    if (token) {
-      createNewProject(formData, token)
+    if (token && formData.customer.trim() && formData.title.trim()) {
+      const newProjectDto: NewProjectDto = {
+        customer: formData.customer.trim(),
+        title: formData.customer.trim(),
+      }
+      createNewProject(newProjectDto, token)
         .then(() => history.push('/projects'))
-        .catch(console.error)
+        .catch(error => setError(error.response.data))
     }
   }
 
@@ -54,7 +60,12 @@ const NewProjectPage: FC = () => {
             value={formData.title}
             onChange={handleInputChange}
           />
-          <Button>Speichern</Button>
+          {formData.customer.trim() && formData.title.trim() ? (
+            <Button>Speichern</Button>
+          ) : (
+            <Button disabled>Speichern</Button>
+          )}
+          {error && <p>{error.message}</p>}
         </ProjectForm>
       </main>
     </PageLayout>

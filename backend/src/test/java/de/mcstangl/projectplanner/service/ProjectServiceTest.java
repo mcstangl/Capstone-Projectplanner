@@ -2,11 +2,16 @@ package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import javax.persistence.EntityExistsException;
 import java.util.List;
@@ -15,26 +20,43 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ProjectServiceTest {
 
+    @Mock
+    private ProjectRepository projectRepository;
+
+    private AutoCloseable closeable;
+
+    @InjectMocks
+    private ProjectService projectService;
+
+    @BeforeEach
+    void initService() {
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void closeService() throws Exception {
+        closeable.close();
+    }
+
+
     @Test
     @DisplayName("FindByName should return an optional project when the project is found")
     public void findByTitle() {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.findByTitle(any())).thenReturn(
+        when(projectRepository.findByTitle(any())).thenReturn(
                 Optional.of(ProjectEntity.builder()
                         .id(1L)
                         .customer("Test")
                         .title("Test")
                         .build())
         );
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
+
 
         // When
         Optional<ProjectEntity> actualOptional = projectService.findByTitle("Test");
@@ -53,11 +75,9 @@ class ProjectServiceTest {
     @DisplayName("FindByName should return an optional empty when the project is not found")
     public void findByTitleUnknown() {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.findByTitle(any())).thenReturn(
+        when(projectRepository.findByTitle(any())).thenReturn(
                 Optional.empty()
         );
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
 
         // When
         Optional<ProjectEntity> actualOptional = projectService.findByTitle("Unknown");
@@ -70,15 +90,13 @@ class ProjectServiceTest {
     @DisplayName("FindAll should return all projects in DB")
     public void findAll() {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.findAll()).thenReturn(
+        when(projectRepository.findAll()).thenReturn(
                 List.of(ProjectEntity.builder()
                         .id(1L)
                         .customer("Test")
                         .title("Test")
                         .build())
         );
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
 
         // When
         List<ProjectEntity> actual = projectService.findAll();
@@ -96,15 +114,13 @@ class ProjectServiceTest {
     @DisplayName("Creating a new project should return the newly created project")
     public void createNewProject() {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.save(any())).thenReturn(
+        when(projectRepository.save(any())).thenReturn(
                 ProjectEntity.builder()
                         .id(1L)
                         .customer("Test")
                         .title("Test")
                         .build()
         );
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
 
         // When
         ProjectEntity newProject = projectService.createNewProject(ProjectEntity.builder()
@@ -126,110 +142,47 @@ class ProjectServiceTest {
     @DisplayName("Creating a new project with a title that is already in DB should throw EntityExistsException")
     public void createNewProjectWithTitleThatAlreadyExists() {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.save(any())).thenReturn(
+        when(projectRepository.save(any())).thenReturn(
                 ProjectEntity.builder()
                         .id(1L)
                         .customer("Test")
                         .title("Test")
                         .build()
         );
-        when(projectRepositoryMock.findByTitle(any())).thenReturn(
+        when(projectRepository.findByTitle(any())).thenReturn(
                 Optional.of(ProjectEntity.builder()
                         .id(1L)
                         .customer("Test")
                         .title("Test")
                         .build())
         );
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
 
         // When
-        try {
-            projectService.createNewProject(ProjectEntity.builder()
-                    .customer("Test")
-                    .title("Test")
-                    .build());
-            fail();
-        } catch (EntityExistsException e) {
-            assertThat(e.getClass(), is(EntityExistsException.class));
-        }
+        assertThrows(EntityExistsException.class, () -> projectService.createNewProject(ProjectEntity.builder()
+                .customer("Test")
+                .title("Test")
+                .build()));
     }
 
 
-    @Test
-    @DisplayName("Creating a new project with a blank title should throw IllegalArgumentException")
-    public void createNewProjectWithBlankTitle() {
-        // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
-
+    @ParameterizedTest
+    @MethodSource("getArgumentsForInvalidProjectTest")
+    @DisplayName("Creating a new project with an invalid project data should throw IllegalArgumentException")
+    public void createNewProjectInvalidProjectData(String title, String customer) {
         // When
-        try {
-            projectService.createNewProject(ProjectEntity.builder()
-                    .customer("Test")
-                    .title("")
-                    .build());
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getClass(), is(IllegalArgumentException.class));
-        }
+        assertThrows(IllegalArgumentException.class, () -> projectService.createNewProject(ProjectEntity.builder()
+                .customer(customer)
+                .title(title)
+                .build()));
     }
 
-    @Test
-    @DisplayName("Creating a new project with a blank customer should throw IllegalArgumentException")
-    public void createNewProjectWithBlankCustomer() {
-        // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
-
-        // When
-        try {
-            projectService.createNewProject(ProjectEntity.builder()
-                    .customer("")
-                    .title("Test")
-                    .build());
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getClass(), is(IllegalArgumentException.class));
-        }
-    }
-
-    @Test
-    @DisplayName("Creating a new project with a null title should throw IllegalArgumentException")
-    public void createNewProjectWithNullTitle() {
-        // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
-
-        // When
-        try {
-            projectService.createNewProject(ProjectEntity.builder()
-                    .customer("Test")
-                    .title(null)
-                    .build());
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getClass(), is(IllegalArgumentException.class));
-        }
-    }
-
-    @Test
-    @DisplayName("Creating a new project with a null customer should return throw IllegalArgumentException")
-    public void createNewProjectWithNullCustomer() {
-        // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
-
-        // When
-        try {
-            projectService.createNewProject(ProjectEntity.builder()
-                    .customer(null)
-                    .title("Test")
-                    .build());
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getClass(), is(IllegalArgumentException.class));
-        }
+    private static Stream<Arguments> getArgumentsForInvalidProjectTest(){
+        return Stream.of(
+                Arguments.of("Test", ""),
+                Arguments.of("", "Test"),
+                Arguments.of(null, "Test"),
+                Arguments.of("Test",null)
+        );
     }
 
     @ParameterizedTest
@@ -237,15 +190,13 @@ class ProjectServiceTest {
     @DisplayName("Updating all project fields except title")
     public void updateProject(String newTitle) {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.findByTitle(any()))
+        when(projectRepository.findByTitle(any()))
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
                                 .customer("Test")
                                 .title("Test")
                                 .build()));
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
 
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .customer("New Customer")
@@ -255,12 +206,13 @@ class ProjectServiceTest {
         projectService.update(projectEntity, newTitle);
 
         // Then
-       verify(projectRepositoryMock, times(1)).save(ProjectEntity.builder()
-               .id(1L)
-               .title("Test")
-               .build());
-        verify(projectRepositoryMock, times(1)).findByTitle("Test");
+        verify(projectRepository, times(1)).save(ProjectEntity.builder()
+                .id(1L)
+                .title("Test")
+                .build());
+        verify(projectRepository, times(1)).findByTitle("Test");
     }
+
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
         return Stream.of(
                 Arguments.of((Object) null),
@@ -272,8 +224,7 @@ class ProjectServiceTest {
     @DisplayName("Updating all project fields")
     public void updateAllFieldsProject() {
         // Given
-        ProjectRepository projectRepositoryMock = mock(ProjectRepository.class);
-        when(projectRepositoryMock.findByTitle("Test"))
+        when(projectRepository.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
@@ -283,8 +234,6 @@ class ProjectServiceTest {
                 .thenReturn(Optional.empty());
 
 
-        ProjectService projectService = new ProjectService(projectRepositoryMock);
-
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .customer("New Customer")
                 .title("Test")
@@ -293,16 +242,16 @@ class ProjectServiceTest {
         projectService.update(projectEntity, "new Title");
 
         // Then
-        verify(projectRepositoryMock, times(1)).save(
+        verify(projectRepository, times(1)).save(
                 ProjectEntity.builder()
                         .title("new Title")
                         .build());
-        verify(projectRepositoryMock, times(1)).delete(ProjectEntity.builder()
+        verify(projectRepository, times(1)).delete(ProjectEntity.builder()
                 .id(1L)
                 .customer("Test")
                 .title("Test")
                 .build());
-        verify(projectRepositoryMock, times(1)).findByTitle("Test");
-        verify(projectRepositoryMock, times(1)).findByTitle("new Title");
+        verify(projectRepository, times(1)).findByTitle("Test");
+        verify(projectRepository, times(1)).findByTitle("new Title");
     }
 }

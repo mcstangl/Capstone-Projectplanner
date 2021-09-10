@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { CredentialsDto } from '../dtos/CredentialsDto'
-import { AccessToken } from '../dtos/AccessToken'
+import { AccessTokenDto } from '../dtos/AccessTokenDto'
 import { NewProjectDto } from '../dtos/NewProjectDto'
 import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
 
@@ -8,7 +8,7 @@ export const getAccessToken = (credentials: CredentialsDto) =>
   axios
     .post('/api/project-planner/auth/access_token', credentials)
     .then(response => response.data)
-    .then((accessToken: AccessToken) => accessToken.token)
+    .then((accessToken: AccessTokenDto) => accessToken.token)
 
 export const createNewProject = (newProject: NewProjectDto, token: string) =>
   axios

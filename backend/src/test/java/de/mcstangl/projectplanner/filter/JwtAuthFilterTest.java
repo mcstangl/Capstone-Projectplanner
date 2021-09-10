@@ -5,7 +5,11 @@ import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -17,6 +21,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -35,12 +40,13 @@ class JwtAuthFilterTest extends SpringBootTests {
     private TestRestTemplate testRestTemplate;
 
     @Test
+    @DisplayName("Login with valid Token should return login user")
     public void loginWithValidToken(){
         // When
         ResponseEntity<UserDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
-                getHttpEntity("Hans", "ADMIN", false, false),
+                getHttpEntity( false, false),
                 UserDto.class);
 
         // Then
@@ -50,30 +56,26 @@ class JwtAuthFilterTest extends SpringBootTests {
         assertThat(response.getBody().getRole(), is("ADMIN"));
     }
 
-    @Test
-    public void loginWithWrongSignature(){
+    @ParameterizedTest
+    @MethodSource("getArgumentsForBadTokenTest")
+    @DisplayName("Login with a bad token should return HttpStatus.FORBIDDEN")
+    public void loginWithWrongSignature(Boolean isExpired, Boolean isSignedWrong){
         // When
         ResponseEntity<UserDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
-                getHttpEntity("Hans", "ADMIN", false, true),
+                getHttpEntity( isExpired, isSignedWrong),
                 UserDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
     }
 
-    @Test
-    public void loginWithExpiredToken(){
-        // When
-        ResponseEntity<UserDto> response = testRestTemplate.exchange(
-                getUrl(),
-                HttpMethod.GET,
-                getHttpEntity("Hans", "ADMIN", true, false),
-                UserDto.class);
-
-        // Then
-        assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+    private static Stream<Arguments> getArgumentsForBadTokenTest(){
+        return Stream.of(
+                Arguments.of(false, true),
+                Arguments.of(true, false)
+        );
     }
 
 
@@ -81,9 +83,9 @@ class JwtAuthFilterTest extends SpringBootTests {
         return String.format("http://localhost:%s/api/project-planner/auth/me", port);
     }
 
-    private HttpEntity<HttpHeaders> getHttpEntity(String name, String role, boolean isExpired, boolean isSignedWrong){
+    private HttpEntity<HttpHeaders> getHttpEntity(boolean isExpired, boolean isSignedWrong){
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
+        claims.put("role", "ADMIN");
 
         String secret = jwtConfig.getSecret();
         Date iat = Date.from(Instant.now());
@@ -101,7 +103,7 @@ class JwtAuthFilterTest extends SpringBootTests {
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setSubject(name)
+                .setSubject("Hans")
                 .setIssuedAt(iat)
                 .setExpiration(exp)
                 .signWith(SignatureAlgorithm.HS256, secret)

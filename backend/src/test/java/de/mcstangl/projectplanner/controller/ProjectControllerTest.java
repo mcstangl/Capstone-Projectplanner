@@ -1,8 +1,8 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.SpringBootTests;
-import de.mcstangl.projectplanner.api.Project;
-import de.mcstangl.projectplanner.api.UpdateProject;
+import de.mcstangl.projectplanner.api.ProjectDto;
+import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
@@ -63,17 +63,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project should persist and return the newly created project")
     public void createNewProject() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title("Test Title")
                 .customer("Test Customer")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class
         );
 
         // Then
@@ -87,17 +87,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project as USER should return HttpStatus.UNAUTHORIZED")
     public void createNewProjectAsUserShouldFail() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title("Test Title")
                 .customer("Test Customer")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "USER")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "USER")),
+                ProjectDto.class
         );
 
         // Then
@@ -108,17 +108,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a title that is already in DB should return HttpStatus.CONFLICT")
     public void createProjectWithTitleThatAlreadyExists() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
                 .customer("Test")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class
         );
 
         // Then
@@ -129,17 +129,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a blank title should return HttpStatus.BAD_REQUEST")
     public void createProjectWithBlankTitle() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title("")
                 .customer("Test")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class
         );
 
         // Then
@@ -150,17 +150,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a blank customer should return HttpStatus.BAD_REQUEST")
     public void createProjectWithBlankCustomer() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
                 .customer("")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class
         );
 
         // Then
@@ -171,17 +171,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a null title should return HttpStatus.BAD_REQUEST")
     public void createProjectWithoutTitle() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title(null)
                 .customer("Test")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class
         );
 
         // Then
@@ -192,17 +192,17 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a null customer should return HttpStatus.BAD_REQUEST")
     public void createProjectWithoutCustomer() {
         // Given
-        Project project = Project.builder()
+        ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
                 .customer(null)
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(project, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class
         );
 
         // Then
@@ -213,18 +213,18 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Find all should return a list of all projects in DB")
     public void findAll() {
         // When
-        ResponseEntity<Project[]> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto[]> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
                 new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
-                Project[].class
+                ProjectDto[].class
         );
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
         assertThat(response.getBody().length, is(1));
-        assertThat(Arrays.stream(response.getBody()).toList(), contains(Project.builder()
+        assertThat(Arrays.stream(response.getBody()).toList(), contains(ProjectDto.builder()
                 .title("Test")
                 .customer("Test").build()));
     }
@@ -233,11 +233,11 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Find by title should return project found")
     public void findByTitle() {
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.GET,
                 new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                ProjectDto.class
         );
 
         // Then
@@ -250,11 +250,11 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Find by title should return HttpStatus.NOT_FOUND if project is not in DB")
     public void findByUnknownTitle() {
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Unknown",
                 HttpMethod.GET,
                 new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
-                Project.class
+                ProjectDto.class
         );
 
         // Then
@@ -263,21 +263,21 @@ class ProjectControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateProjectTest")
-    @DisplayName("Update Project should update all fields except title when there is no new title")
+    @DisplayName("Update ProjectDto should update all fields except title when there is no new title")
     public void updateProject(String newTitle, String expectedTitle) {
         // Given
-        UpdateProject updateProject = UpdateProject.builder()
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .customer("New Customer")
                 .title("Test")
                 .newTitle(newTitle)
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProject, getAuthHeader("Hans", "ADMIN")),
-                Project.class);
+                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -295,42 +295,42 @@ class ProjectControllerTest extends SpringBootTests {
     }
 
     @Test
-    @DisplayName("Update Project should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
+    @DisplayName("Update ProjectDto should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
     public void updateProjectWithNonMatchingPathVariable() {
         // Given
-        UpdateProject updateProject = UpdateProject.builder()
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .customer("New Customer")
                 .title("Test")
                 .newTitle("newTitle")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/DoesNotMatchTitle",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProject, getAuthHeader("Hans", "ADMIN")),
-                Project.class);
+                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
     @Test
-    @DisplayName("Update Project should return HttpStatus.UNAUTHORIZED if user is not an admin")
+    @DisplayName("Update ProjectDto should return HttpStatus.UNAUTHORIZED if user is not an admin")
     public void updateProjectAsUserShouldFail() {
         // Given
-        UpdateProject updateProject = UpdateProject.builder()
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .customer("New Customer")
                 .title("Test")
                 .newTitle("newTitle")
                 .build();
 
         // When
-        ResponseEntity<Project> response = testRestTemplate.exchange(
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProject, getAuthHeader("Hans", "USER")),
-                Project.class);
+                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "USER")),
+                ProjectDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));

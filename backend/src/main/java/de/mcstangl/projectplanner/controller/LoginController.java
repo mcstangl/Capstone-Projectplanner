@@ -1,8 +1,8 @@
 package de.mcstangl.projectplanner.controller;
 
-import de.mcstangl.projectplanner.api.AccessToken;
-import de.mcstangl.projectplanner.api.Credentials;
-import de.mcstangl.projectplanner.api.User;
+import de.mcstangl.projectplanner.api.AccessTokenDto;
+import de.mcstangl.projectplanner.api.CredentialsDto;
+import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.JwtService;
 import de.mcstangl.projectplanner.service.UserService;
@@ -35,22 +35,22 @@ public class LoginController {
     }
 
     @PostMapping("access_token")
-    public ResponseEntity<AccessToken> getAccessToken(@RequestBody Credentials credentials) {
-        if (validateCredentials(credentials)) {
+    public ResponseEntity<AccessTokenDto> getAccessToken(@RequestBody CredentialsDto credentialsDto) {
+        if (validateCredentials(credentialsDto)) {
             return badRequest().build();
         }
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                credentials.getLoginName(),
-                credentials.getPassword()
+                credentialsDto.getLoginName(),
+                credentialsDto.getPassword()
         );
         try {
             authenticationManager.authenticate(authenticationToken);
-            Optional<UserEntity> userEntityOptional = userService.findByLoginName(credentials.getLoginName());
+            Optional<UserEntity> userEntityOptional = userService.findByLoginName(credentialsDto.getLoginName());
             if(userEntityOptional.isEmpty()){
                 return notFound().build();
             }
             String token = jwtService.createToken(userEntityOptional.get());
-            return ok(AccessToken.builder().token(token).build());
+            return ok(AccessTokenDto.builder().token(token).build());
 
         } catch (AuthenticationException e) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -58,15 +58,15 @@ public class LoginController {
     }
 
     @GetMapping("me")
-    public ResponseEntity<User> authMe(@AuthenticationPrincipal UserEntity authUser){
-        return ok(User.builder().loginName(authUser.getLoginName()).role(authUser.getRole()).build());
+    public ResponseEntity<UserDto> authMe(@AuthenticationPrincipal UserEntity authUser){
+        return ok(UserDto.builder().loginName(authUser.getLoginName()).role(authUser.getRole()).build());
     }
 
-    private boolean validateCredentials(Credentials credentials) {
-        return credentials == null ||
-                credentials.getLoginName() == null ||
-                credentials.getLoginName().isBlank() ||
-                credentials.getPassword() == null ||
-                credentials.getPassword().isBlank();
+    private boolean validateCredentials(CredentialsDto credentialsDto) {
+        return credentialsDto == null ||
+                credentialsDto.getLoginName() == null ||
+                credentialsDto.getLoginName().isBlank() ||
+                credentialsDto.getPassword() == null ||
+                credentialsDto.getPassword().isBlank();
     }
 }

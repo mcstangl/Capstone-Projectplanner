@@ -1,8 +1,8 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.SpringBootTests;
-import de.mcstangl.projectplanner.api.AccessToken;
-import de.mcstangl.projectplanner.api.Credentials;
+import de.mcstangl.projectplanner.api.AccessTokenDto;
+import de.mcstangl.projectplanner.api.CredentialsDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
@@ -64,21 +64,21 @@ class LoginControllerTest extends SpringBootTests {
     }
 
     @Test
-    @DisplayName("Login with valid Credentials should return a jwt token")
+    @DisplayName("Login with valid CredentialsDto should return a jwt token")
     public void loginWithCredentials() {
         // Given
-        Credentials credentials = Credentials.builder()
+        CredentialsDto credentialsDto = CredentialsDto.builder()
                 .loginName("Hans")
                 .password("password")
                 .build();
-        HttpEntity httpEntity = new HttpEntity(credentials);
+        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
-        ResponseEntity<AccessToken> response = testRestTemplate.exchange(
+        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
                 getUrl() + "/access_token",
                 HttpMethod.POST,
                 httpEntity,
-                AccessToken.class);
+                AccessTokenDto.class);
 
 
         //Then
@@ -100,18 +100,18 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with wrong password should return HttpStatus.UNAUTHORIZED")
     public void loginWithInvalidPassword() {
         // Given
-        Credentials credentials = Credentials.builder()
+        CredentialsDto credentialsDto = CredentialsDto.builder()
                 .loginName("Hans")
                 .password("invalidPassword")
                 .build();
-        HttpEntity httpEntity = new HttpEntity(credentials);
+        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
-        ResponseEntity<AccessToken> response = testRestTemplate.exchange(
+        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
                 getUrl() + "/access_token",
                 HttpMethod.POST,
                 httpEntity,
-                AccessToken.class);
+                AccessTokenDto.class);
 
 
         //Then
@@ -122,18 +122,18 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with wrong loginName should return HttpStatus.UNAUTHORIZED")
     public void loginWithInvalidLoginName() {
         // Given
-        Credentials credentials = Credentials.builder()
+        CredentialsDto credentialsDto = CredentialsDto.builder()
                 .loginName("Does-not-exist")
                 .password("password")
                 .build();
-        HttpEntity httpEntity = new HttpEntity(credentials);
+        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
-        ResponseEntity<AccessToken> response = testRestTemplate.exchange(
+        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
                 getUrl() + "/access_token",
                 HttpMethod.POST,
                 httpEntity,
-                AccessToken.class);
+                AccessTokenDto.class);
 
 
         //Then
@@ -144,18 +144,18 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with no loginName should return HttpStatus.BAD_REQUEST")
     public void loginWithBadCredentialsRequestLoginNameIsNull() {
         // Given
-        Credentials credentials = Credentials.builder()
+        CredentialsDto credentialsDto = CredentialsDto.builder()
                 .loginName(null)
                 .password("password")
                 .build();
-        HttpEntity httpEntity = new HttpEntity(credentials);
+        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
-        ResponseEntity<AccessToken> response = testRestTemplate.exchange(
+        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
                 getUrl() + "/access_token",
                 HttpMethod.POST,
                 httpEntity,
-                AccessToken.class);
+                AccessTokenDto.class);
 
 
         //Then
@@ -166,18 +166,18 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with no password should return HttpStatus.BAD_REQUEST")
     public void loginWithBadCredentialsRequestPasswordIsNull() {
         // Given
-        Credentials credentials = Credentials.builder()
+        CredentialsDto credentialsDto = CredentialsDto.builder()
                 .loginName("Hans")
                 .password(null)
                 .build();
-        HttpEntity httpEntity = new HttpEntity(credentials);
+        HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
-        ResponseEntity<AccessToken> response = testRestTemplate.exchange(
+        ResponseEntity<AccessTokenDto> response = testRestTemplate.exchange(
                 getUrl() + "/access_token",
                 HttpMethod.POST,
                 httpEntity,
-                AccessToken.class);
+                AccessTokenDto.class);
 
 
         //Then

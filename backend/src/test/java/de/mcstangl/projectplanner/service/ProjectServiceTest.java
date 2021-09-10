@@ -198,14 +198,25 @@ class ProjectServiceTest {
                                 .title("Test")
                                 .build()));
 
+        when(projectRepository.save(any()))
+                .thenReturn(
+                        ProjectEntity.builder()
+                                .id(1L)
+                                .customer("New Customer")
+                                .title("Test")
+                                .build());
+
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .customer("New Customer")
                 .title("Test")
                 .build();
         // When
-        projectService.update(projectEntity, newTitle);
+        ProjectEntity actual = projectService.update(projectEntity, newTitle);
 
         // Then
+        assertThat(actual.getTitle(), is("Test"));
+        assertThat(actual.getCustomer(), is("New Customer"));
+        assertNotNull(actual.getId());
         verify(projectRepository, times(1)).save(ProjectEntity.builder()
                 .id(1L)
                 .title("Test")
@@ -233,15 +244,25 @@ class ProjectServiceTest {
                                 .build()))
                 .thenReturn(Optional.empty());
 
+        when(projectRepository.save(any()))
+                .thenReturn(
+                        ProjectEntity.builder()
+                                .id(1L)
+                                .customer("New Customer")
+                                .title("new Title")
+                                .build());
 
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .customer("New Customer")
                 .title("Test")
                 .build();
         // When
-        projectService.update(projectEntity, "new Title");
+        ProjectEntity actual = projectService.update(projectEntity, "new Title");
 
         // Then
+        assertThat(actual.getTitle(), is("new Title"));
+        assertThat(actual.getCustomer(), is("New Customer"));
+        assertNotNull(actual.getId());
         verify(projectRepository, times(1)).save(
                 ProjectEntity.builder()
                         .title("new Title")

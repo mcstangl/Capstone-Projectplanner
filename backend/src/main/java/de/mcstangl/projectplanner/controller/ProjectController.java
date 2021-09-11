@@ -40,9 +40,7 @@ public class ProjectController {
         }
         if (isAdmin(authUser)) {
 
-            UserEntity ownerEntity = userService.findByLoginName(newProject.getOwner().getLoginName())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwner().getLoginName())));
+            UserEntity ownerEntity = getOwnerEntity(newProject);
 
             ProjectEntity newProjectEntity = map(newProject);
 
@@ -54,6 +52,7 @@ public class ProjectController {
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
+
 
     @GetMapping
     public ResponseEntity<List<ProjectDto>> findAll() {
@@ -75,15 +74,17 @@ public class ProjectController {
     public ResponseEntity<ProjectDto> updateProject(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title, @RequestBody UpdateProjectDto updateProjectDto) {
 
         if (!title.equals(updateProjectDto.getTitle())) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Fehler in der Anfrage: Pfadvariable und Titel stimmen nicht überein");
         }
 
         if (isAdmin(authUser)) {
 
             String newTitle = updateProjectDto.getNewTitle();
-
-            ProjectEntity projectEntity = projectService.update(map(updateProjectDto), newTitle);
-            return ok(map(projectEntity));
+            UserEntity ownerEntity = getOwnerEntity(updateProjectDto);
+            ProjectEntity projectUpdateEntity = map(updateProjectDto);
+            projectUpdateEntity.setOwner(ownerEntity);
+            ProjectEntity updatedProjectEntity = projectService.update(projectUpdateEntity, newTitle);
+            return ok(map(updatedProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
@@ -92,12 +93,24 @@ public class ProjectController {
         return authUser.getRole().equals("ADMIN");
     }
 
+    private UserEntity getOwnerEntity(ProjectDto newProject) {
+        return userService.findByLoginName(newProject.getOwner().getLoginName())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwner().getLoginName())));
+    }
+    private UserEntity getOwnerEntity(UpdateProjectDto updateProjectDto) {
+        return userService.findByLoginName(updateProjectDto.getOwner().getLoginName())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", updateProjectDto.getOwner().getLoginName())));
+    }
     private ProjectEntity map(UpdateProjectDto updateProjectDto) {
         return ProjectEntity.builder()
+                .owner(map(updateProjectDto.getOwner()))
                 .customer(updateProjectDto.getCustomer())
                 .title(updateProjectDto.getTitle())
                 .build();
     }
+
 
     private ProjectEntity map(ProjectDto projectDto) {
         return ProjectEntity.builder()
@@ -126,6 +139,12 @@ public class ProjectController {
         return UserDto.builder()
                 .loginName(userEntity.getLoginName())
                 .role(userEntity.getRole())
+                .build();
+    }
+    private UserEntity map(UserDto userDto) {
+        return UserEntity.builder()
+                .loginName(userDto.getLoginName())
+                .role(userDto.getRole())
                 .build();
     }
 }

@@ -22,8 +22,6 @@ interface NewProjectFormData {
   customer: string
   title: string
   owner?: UserDto
-  writer?: UserDto[]
-  motionDesign?: UserDto[]
 }
 
 const NewProjectPage: FC = () => {
@@ -55,9 +53,7 @@ const NewProjectPage: FC = () => {
       const newProjectDto: NewProjectDto = {
         owner: formData.owner,
         customer: formData.customer.trim(),
-        title: formData.customer.trim(),
-        writer: [],
-        motionDesign: [],
+        title: formData.title.trim(),
       }
       createNewProject(newProjectDto, token)
         .then(() => history.push('/projects'))

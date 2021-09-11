@@ -18,14 +18,21 @@ import { LinkGroup } from '../components/LinkGroup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import { UserDto } from '../dtos/UserDto'
 
+interface NewProjectFormData {
+  customer: string
+  title: string
+  owner?: UserDto
+  writer?: UserDto[]
+  motionDesign?: UserDto[]
+}
+
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
   const [error, setError] = useState<RestExceptionDto>()
   const [userList, setUserList] = useState<UserDto[]>()
-  const [formData, setFormData] = useState<NewProjectDto>({
+  const [formData, setFormData] = useState<NewProjectFormData>({
     customer: '',
     title: '',
-    ownerName: '',
   })
 
   const history = useHistory()
@@ -39,11 +46,18 @@ const NewProjectPage: FC = () => {
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
     setError(undefined)
-    if (token && formData.customer.trim() && formData.title.trim()) {
+    if (
+      token &&
+      formData.owner &&
+      formData.customer.trim() &&
+      formData.title.trim()
+    ) {
       const newProjectDto: NewProjectDto = {
-        ownerName: formData.ownerName,
+        owner: formData.owner,
         customer: formData.customer.trim(),
         title: formData.customer.trim(),
+        writer: [],
+        motionDesign: [],
       }
       createNewProject(newProjectDto, token)
         .then(() => history.push('/projects'))
@@ -51,7 +65,13 @@ const NewProjectPage: FC = () => {
     }
   }
   const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, ownerName: event.target.value })
+    const userToAdd = userList?.find(
+      user => user.loginName === event.target.value
+    )
+
+    if (userToAdd) {
+      setFormData({ ...formData, owner: userToAdd })
+    }
   }
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -81,8 +101,8 @@ const NewProjectPage: FC = () => {
             value={formData.title}
             onChange={handleInputChange}
           />
-          <select onChange={handleSelectChange}>
-            <option selected disabled>
+          <select onChange={handleSelectChange} defaultValue={'DEFAULT'}>
+            <option value="DEFAULT" disabled>
               ...bitte auswählen
             </option>
             {userList?.map(user => (
@@ -91,7 +111,9 @@ const NewProjectPage: FC = () => {
               </option>
             ))}
           </select>
-          {formData.customer.trim() && formData.title.trim() ? (
+          {formData.customer.trim() &&
+          formData.title.trim() &&
+          formData.owner ? (
             <Button>Speichern</Button>
           ) : (
             <Button disabled>Speichern</Button>

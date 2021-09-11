@@ -9,16 +9,29 @@ import {
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
 import { Link, useParams } from 'react-router-dom'
-import { findProjectByTitle, updateProject } from '../service/api-service'
+import {
+  findAllUser,
+  findProjectByTitle,
+  updateProject,
+} from '../service/api-service'
 import { ProjectDto } from '../dtos/ProjectDto'
 import AuthContext from '../auth/AuthContext'
 import { LinkGroup } from '../components/LinkGroup'
 import styled from 'styled-components/macro'
 import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
+import { UserDto } from '../dtos/UserDto'
 
 interface RouteParams {
   projectTitle: string
+}
+
+interface UpdateProjektFormData {
+  customer: string
+  title: string
+  owner?: UserDto
+  writer: UserDto[]
+  motionDesign: UserDto[]
 }
 
 const ProjectDetailsPage: FC = () => {
@@ -26,12 +39,15 @@ const ProjectDetailsPage: FC = () => {
   const { token, authUser } = useContext(AuthContext)
 
   const [project, setProject] = useState<ProjectDto>()
+  const [userList, setUserList] = useState<UserDto[]>()
   const [editMode, setEditMode] = useState<boolean>()
   const [error, setError] = useState<RestExceptionDto>()
 
-  const [formData, setFormData] = useState<ProjectDto>({
+  const [formData, setFormData] = useState<UpdateProjektFormData>({
     customer: '',
     title: '',
+    writer: [],
+    motionDesign: [],
   })
 
   useEffect(() => {
@@ -44,23 +60,55 @@ const ProjectDetailsPage: FC = () => {
 
   useEffect(() => {
     if (project) {
-      setFormData({ customer: project.customer, title: project.title })
+      setFormData({
+        customer: project.customer,
+        title: project.title,
+        motionDesign: project.motionDesign,
+        writer: project.writer,
+        owner: project.owner,
+      })
     }
   }, [project])
+
+  useEffect(() => {
+    if (editMode && token) {
+      findAllUser(token)
+        .then(setUserList)
+        .catch(error => setError(error.response.data))
+    }
+  }, [editMode, token])
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
     setError(undefined)
-    if (project && token && formData.title.trim() && formData.customer.trim()) {
+    if (
+      project &&
+      token &&
+      formData.title.trim() &&
+      formData.customer.trim() &&
+      formData.owner
+    ) {
       const updateProjectDto = {
         title: project.title,
         newTitle: formData.title.trim(),
         customer: formData.customer.trim(),
+        owner: formData.owner,
+        writer: formData.writer,
+        motionDesign: formData.motionDesign,
       }
       updateProject(updateProjectDto, token)
         .then(setProject)
         .then(() => setEditMode(false))
         .catch(error => setError(error.response.data))
+    }
+  }
+  const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const userToAdd = userList?.find(
+      user => user.loginName === event.target.value
+    )
+
+    if (userToAdd) {
+      setFormData({ ...formData, owner: userToAdd })
     }
   }
 
@@ -108,6 +156,22 @@ const ProjectDetailsPage: FC = () => {
           ) : (
             <span>{project?.title}</span>
           )}
+          <h4>Projektleitung</h4>
+          {editMode ? (
+            <select
+              onChange={handleSelectChange}
+              defaultValue={project?.owner.loginName}
+            >
+              {userList?.map(user => (
+                <option key={user.loginName} value={user.loginName}>
+                  {user.loginName}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span>{project?.owner.loginName}</span>
+          )}
+
           {editMode && (
             <Button type="button" onClick={onClickHandler}>
               Abbrechen

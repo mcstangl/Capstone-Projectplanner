@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -176,12 +177,12 @@ class ProjectServiceTest {
                 .build()));
     }
 
-    private static Stream<Arguments> getArgumentsForInvalidProjectTest(){
+    private static Stream<Arguments> getArgumentsForInvalidProjectTest() {
         return Stream.of(
                 Arguments.of("Test", ""),
                 Arguments.of("", "Test"),
                 Arguments.of(null, "Test"),
-                Arguments.of("Test",null)
+                Arguments.of("Test", null)
         );
     }
 
@@ -194,6 +195,11 @@ class ProjectServiceTest {
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
+                                .owner(UserEntity.builder()
+                                        .id(1L)
+                                        .loginName("Test")
+                                        .role("ADMIN")
+                                        .build())
                                 .customer("Test")
                                 .title("Test")
                                 .build()));
@@ -201,12 +207,22 @@ class ProjectServiceTest {
         when(projectRepository.save(any()))
                 .thenReturn(
                         ProjectEntity.builder()
+                                .owner(UserEntity.builder()
+                                        .id(2L)
+                                        .loginName("New User")
+                                        .role("ADMIN")
+                                        .build())
                                 .id(1L)
                                 .customer("New Customer")
                                 .title("Test")
                                 .build());
 
         ProjectEntity projectEntity = ProjectEntity.builder()
+                .owner(UserEntity.builder()
+                        .id(2L)
+                        .loginName("New User")
+                        .role("ADMIN")
+                        .build())
                 .customer("New Customer")
                 .title("Test")
                 .build();
@@ -216,9 +232,16 @@ class ProjectServiceTest {
         // Then
         assertThat(actual.getTitle(), is("Test"));
         assertThat(actual.getCustomer(), is("New Customer"));
+        assertNotNull(actual.getOwner());
+        assertThat(actual.getOwner().getLoginName(), is("New User"));
         assertNotNull(actual.getId());
         verify(projectRepository, times(1)).save(ProjectEntity.builder()
                 .id(1L)
+                .owner(UserEntity.builder()
+                        .id(2L)
+                        .loginName("New User")
+                        .role("ADMIN")
+                        .build())
                 .title("Test")
                 .build());
         verify(projectRepository, times(1)).findByTitle("Test");
@@ -239,6 +262,11 @@ class ProjectServiceTest {
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
+                                .owner(UserEntity.builder()
+                                        .id(1L)
+                                        .loginName("Test")
+                                        .role("ADMIN")
+                                        .build())
                                 .customer("Test")
                                 .title("Test")
                                 .build()))
@@ -248,11 +276,21 @@ class ProjectServiceTest {
                 .thenReturn(
                         ProjectEntity.builder()
                                 .id(1L)
+                                .owner(UserEntity.builder()
+                                        .id(2L)
+                                        .loginName("New User")
+                                        .role("ADMIN")
+                                        .build())
                                 .customer("New Customer")
                                 .title("new Title")
                                 .build());
 
         ProjectEntity projectEntity = ProjectEntity.builder()
+                .owner(UserEntity.builder()
+                        .id(2L)
+                        .loginName("New User")
+                        .role("ADMIN")
+                        .build())
                 .customer("New Customer")
                 .title("Test")
                 .build();
@@ -262,14 +300,22 @@ class ProjectServiceTest {
         // Then
         assertThat(actual.getTitle(), is("new Title"));
         assertThat(actual.getCustomer(), is("New Customer"));
+        assertNotNull(actual.getOwner());
+        assertThat(actual.getOwner().getLoginName(), is("New User"));
         assertNotNull(actual.getId());
         verify(projectRepository, times(1)).save(
                 ProjectEntity.builder()
+                        .owner(UserEntity.builder()
+                                .id(2L)
+                                .loginName("New User")
+                                .role("ADMIN")
+                                .build())
                         .title("new Title")
+                        .customer("New Customer")
                         .build());
         verify(projectRepository, times(1)).delete(ProjectEntity.builder()
                 .id(1L)
-                .customer("Test")
+
                 .title("Test")
                 .build());
         verify(projectRepository, times(1)).findByTitle("Test");

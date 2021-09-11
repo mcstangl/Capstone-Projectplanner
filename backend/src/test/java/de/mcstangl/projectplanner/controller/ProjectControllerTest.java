@@ -3,6 +3,7 @@ package de.mcstangl.projectplanner.controller;
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
+import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -79,7 +80,9 @@ class ProjectControllerTest extends SpringBootTests {
     public void createNewProject() {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
-                .ownerName("Test")
+                .owner(UserDto.builder()
+                        .loginName("Test")
+                        .role("ADMIN").build())
                 .title("Test Title")
                 .customer("Test Customer")
                 .build();
@@ -126,7 +129,9 @@ class ProjectControllerTest extends SpringBootTests {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
-                .ownerName("Test")
+                .owner(UserDto.builder()
+                        .loginName("Test")
+                        .role("ADMIN").build())
                 .customer("Test")
                 .build();
 
@@ -149,7 +154,9 @@ class ProjectControllerTest extends SpringBootTests {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title(title)
-                .ownerName("Test")
+                .owner(UserDto.builder()
+                        .loginName("Test")
+                        .role("ADMIN").build())
                 .customer(customer)
                 .build();
 
@@ -165,7 +172,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
-    private static Stream<Arguments> getArgumentsForBadRequestTest(){
+    private static Stream<Arguments> getArgumentsForBadRequestTest() {
         return Stream.of(
                 Arguments.of("", "Test"),
                 Arguments.of("Test", ""),
@@ -247,13 +254,13 @@ class ProjectControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getTitle(),expectedTitle );
+        assertNotNull(response.getBody().getTitle(), expectedTitle);
         assertThat(response.getBody().getCustomer(), is("New Customer"));
     }
 
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
         return Stream.of(
-                Arguments.of( null, "Test"),
+                Arguments.of(null, "Test"),
                 Arguments.of("Test", "Test"),
                 Arguments.of("New Title", "New Title")
         );
@@ -300,7 +307,6 @@ class ProjectControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
-
 
 
     private HttpHeaders getAuthHeader(String name, String role) {

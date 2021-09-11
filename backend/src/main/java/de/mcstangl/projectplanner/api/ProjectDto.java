@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -16,7 +17,9 @@ public class ProjectDto {
 
     private String customer;
     private String title;
-    private String ownerName;
+    private UserDto owner;
+    private List<UserDto> writer;
+    private List<UserDto> motionDesign;
 
     @Override
     public boolean equals(Object o) {

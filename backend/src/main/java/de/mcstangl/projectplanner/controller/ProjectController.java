@@ -2,6 +2,7 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
+import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
@@ -34,11 +35,14 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<ProjectDto> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody ProjectDto newProject) {
+        if(newProject.getOwner() == null){
+            throw new IllegalArgumentException("Ein Projekt muss eine*n Projektleiter*in haben");
+        }
         if (isAdmin(authUser)) {
 
-            UserEntity ownerEntity = userService.findByLoginName(newProject.getOwnerName())
+            UserEntity ownerEntity = userService.findByLoginName(newProject.getOwner().getLoginName())
                     .orElseThrow(() -> new EntityNotFoundException(
-                            String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwnerName())));
+                            String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwner().getLoginName())));
 
             ProjectEntity newProjectEntity = map(newProject);
 
@@ -105,7 +109,7 @@ public class ProjectController {
     private ProjectDto map(ProjectEntity projectEntity) {
         return ProjectDto.builder()
                 .customer(projectEntity.getCustomer())
-                .ownerName(projectEntity.getOwner().getLoginName())
+                .owner(map(projectEntity.getOwner()))
                 .title(projectEntity.getTitle())
                 .build();
     }
@@ -116,5 +120,12 @@ public class ProjectController {
             projectDtoList.add(map(projectEntity));
         }
         return projectDtoList;
+    }
+
+    private UserDto map(UserEntity userEntity){
+        return UserDto.builder()
+                .loginName(userEntity.getLoginName())
+                .role(userEntity.getRole())
+                .build();
     }
 }

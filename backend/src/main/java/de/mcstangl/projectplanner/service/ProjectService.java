@@ -49,22 +49,32 @@ public class ProjectService {
         ProjectEntity fetchedProjectEntity = findByTitle(projectUpdateEntity.getTitle())
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", projectUpdateEntity.getTitle())));
 
-        hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
+        ProjectEntity projectEntityCopy = copyProjectEntity(fetchedProjectEntity);
 
-        if (newTitle == null || newTitle.equals(projectUpdateEntity.getTitle())) {
-            fetchedProjectEntity
-                    .setCustomer(projectUpdateEntity.getCustomer());
-            return projectRepository.save(fetchedProjectEntity);
+        if (projectUpdateEntity.getCustomer() != null) {
+            hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
+            projectEntityCopy.setCustomer(projectUpdateEntity.getCustomer().trim());
         }
 
-        projectRepository.delete(fetchedProjectEntity);
+        if(projectUpdateEntity.getOwner() != null && !projectEntityCopy.getOwner().getLoginName().equals(projectUpdateEntity.getOwner().getLoginName()) ){
+            projectEntityCopy.setOwner(projectUpdateEntity.getOwner());
+        }
 
-        ProjectEntity projectEntityCopy = ProjectEntity.builder()
-                .customer(projectUpdateEntity.getCustomer())
-                .title(newTitle)
-                .owner(fetchedProjectEntity.getOwner()).build();
-
-        return createNewProject(projectEntityCopy);
+        if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
+            hasText(newTitle, "Projekttitel darf nicht leer sein");
+            projectEntityCopy.setTitle(newTitle.trim());
+            projectEntityCopy.setId(null);
+            projectRepository.delete(fetchedProjectEntity);
+            return createNewProject(projectEntityCopy);
+        }
+        return projectRepository.save(projectEntityCopy);
     }
 
+    private ProjectEntity copyProjectEntity(ProjectEntity fetchedProjectEntity) {
+        return ProjectEntity.builder()
+                .id(fetchedProjectEntity.getId())
+                .customer(fetchedProjectEntity.getCustomer())
+                .title(fetchedProjectEntity.getTitle())
+                .owner(fetchedProjectEntity.getOwner()).build();
+    }
 }

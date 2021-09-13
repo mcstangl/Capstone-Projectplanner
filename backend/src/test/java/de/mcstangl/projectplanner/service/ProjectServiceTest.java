@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +15,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.persistence.EntityExistsException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,6 +31,9 @@ class ProjectServiceTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private UserService userService;
 
     private AutoCloseable closeable;
 
@@ -176,12 +182,12 @@ class ProjectServiceTest {
                 .build()));
     }
 
-    private static Stream<Arguments> getArgumentsForInvalidProjectTest(){
+    private static Stream<Arguments> getArgumentsForInvalidProjectTest() {
         return Stream.of(
                 Arguments.of("Test", ""),
                 Arguments.of("", "Test"),
                 Arguments.of(null, "Test"),
-                Arguments.of("Test",null)
+                Arguments.of("Test", null)
         );
     }
 
@@ -194,6 +200,11 @@ class ProjectServiceTest {
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
+                                .owner(UserEntity.builder()
+                                        .id(1L)
+                                        .loginName("Test")
+                                        .role("ADMIN")
+                                        .build())
                                 .customer("Test")
                                 .title("Test")
                                 .build()));
@@ -201,12 +212,22 @@ class ProjectServiceTest {
         when(projectRepository.save(any()))
                 .thenReturn(
                         ProjectEntity.builder()
+                                .owner(UserEntity.builder()
+                                        .id(2L)
+                                        .loginName("New User")
+                                        .role("ADMIN")
+                                        .build())
                                 .id(1L)
                                 .customer("New Customer")
                                 .title("Test")
                                 .build());
 
         ProjectEntity projectEntity = ProjectEntity.builder()
+                .owner(UserEntity.builder()
+                        .id(2L)
+                        .loginName("New User")
+                        .role("ADMIN")
+                        .build())
                 .customer("New Customer")
                 .title("Test")
                 .build();
@@ -216,6 +237,8 @@ class ProjectServiceTest {
         // Then
         assertThat(actual.getTitle(), is("Test"));
         assertThat(actual.getCustomer(), is("New Customer"));
+        assertNotNull(actual.getOwner());
+        assertThat(actual.getOwner().getLoginName(), is("New User"));
         assertNotNull(actual.getId());
         verify(projectRepository, times(1)).save(ProjectEntity.builder()
                 .id(1L)
@@ -239,6 +262,11 @@ class ProjectServiceTest {
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
+                                .owner(UserEntity.builder()
+                                        .id(1L)
+                                        .loginName("Test")
+                                        .role("ADMIN")
+                                        .build())
                                 .customer("Test")
                                 .title("Test")
                                 .build()))
@@ -248,11 +276,21 @@ class ProjectServiceTest {
                 .thenReturn(
                         ProjectEntity.builder()
                                 .id(1L)
+                                .owner(UserEntity.builder()
+                                        .id(2L)
+                                        .loginName("New User")
+                                        .role("ADMIN")
+                                        .build())
                                 .customer("New Customer")
                                 .title("new Title")
                                 .build());
 
         ProjectEntity projectEntity = ProjectEntity.builder()
+                .owner(UserEntity.builder()
+                        .id(2L)
+                        .loginName("New User")
+                        .role("ADMIN")
+                        .build())
                 .customer("New Customer")
                 .title("Test")
                 .build();
@@ -262,17 +300,141 @@ class ProjectServiceTest {
         // Then
         assertThat(actual.getTitle(), is("new Title"));
         assertThat(actual.getCustomer(), is("New Customer"));
+        assertNotNull(actual.getOwner());
+        assertThat(actual.getOwner().getLoginName(), is("New User"));
         assertNotNull(actual.getId());
+
         verify(projectRepository, times(1)).save(
                 ProjectEntity.builder()
                         .title("new Title")
+                        .customer("New Customer")
                         .build());
         verify(projectRepository, times(1)).delete(ProjectEntity.builder()
                 .id(1L)
-                .customer("Test")
                 .title("Test")
                 .build());
         verify(projectRepository, times(1)).findByTitle("Test");
         verify(projectRepository, times(1)).findByTitle("new Title");
+    }
+
+    @Test
+    @DisplayName("Update should update writers")
+    public void updateWriters() {
+        // Given
+        UserEntity owner = UserEntity.builder()
+                .id(1L)
+                .loginName("Test")
+                .role("ADMIN")
+                .build();
+        UserEntity firstWriter = UserEntity.builder()
+                .id(2L)
+                .loginName("Test1")
+                .role("ADMIN")
+                .build();
+        UserEntity secondWriter = UserEntity.builder()
+                .id(3L)
+                .loginName("Test2")
+                .role("ADMIN")
+                .build();
+
+        Set<UserEntity> writerSet = new HashSet<>();
+        writerSet.add(firstWriter);
+        writerSet.add(secondWriter);
+
+        when(projectRepository.findByTitle("Test"))
+                .thenReturn(
+                        Optional.of(ProjectEntity.builder()
+                                .id(1L)
+                                .owner(owner)
+                                .customer("Test")
+                                .writers(new HashSet<>())
+                                .motionDesigners(new HashSet<>())
+                                .title("Test")
+                                .build()));
+
+
+        when(userService.findByLoginName(any()))
+                .thenReturn(
+                        Optional.of(firstWriter))
+                .thenReturn(
+                        Optional.of(secondWriter));
+
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .owner(owner)
+                .customer("Test")
+                .writers(writerSet)
+                .motionDesigners(new HashSet<>())
+                .title("Test")
+                .build();
+        // When
+        projectService.update(projectEntity, "Test");
+
+        // Then
+        verify(projectRepository, times(1)).save(
+                ProjectEntity.builder()
+                        .id(1L)
+                        .title("Test")
+                        .build());
+    }
+
+    @Test
+    @DisplayName("Update should update motion designers")
+    public void updateMotionDesigners() {
+        // Given
+        UserEntity owner = UserEntity.builder()
+                .id(1L)
+                .loginName("Test")
+                .role("ADMIN")
+                .build();
+        UserEntity firstMotionDesigner = UserEntity.builder()
+                .id(2L)
+                .loginName("Test1")
+                .role("ADMIN")
+                .build();
+        UserEntity secondMotionDesigner = UserEntity.builder()
+                .id(3L)
+                .loginName("Test2")
+                .role("ADMIN")
+                .build();
+
+        Set<UserEntity> motionDesigners = new HashSet<>();
+        motionDesigners.add(firstMotionDesigner);
+        motionDesigners.add(secondMotionDesigner);
+
+        when(projectRepository.findByTitle("Test"))
+                .thenReturn(
+                        Optional.of(ProjectEntity.builder()
+                                .id(1L)
+                                .owner(owner)
+                                .customer("Test")
+                                .writers(new HashSet<>())
+                                .motionDesigners(new HashSet<>())
+                                .title("Test")
+                                .build()));
+
+
+        when(userService.findByLoginName(any()))
+                .thenReturn(
+                        Optional.of(firstMotionDesigner))
+                .thenReturn(
+                        Optional.of(secondMotionDesigner));
+
+
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .owner(owner)
+                .customer("Test")
+                .writers(new HashSet<>())
+                .motionDesigners(motionDesigners)
+                .title("Test")
+                .build();
+        // When
+        projectService.update(projectEntity, "Test");
+
+        // Then
+        verify(projectRepository, times(1)).save(
+                ProjectEntity.builder()
+                        .id(1L)
+                        .title("Test")
+                        .build());
     }
 }

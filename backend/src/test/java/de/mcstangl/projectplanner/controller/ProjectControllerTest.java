@@ -3,9 +3,12 @@ package de.mcstangl.projectplanner.controller;
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
+import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
+import de.mcstangl.projectplanner.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.*;
@@ -20,10 +23,7 @@ import org.springframework.http.*;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,12 +45,29 @@ class ProjectControllerTest extends SpringBootTests {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @BeforeEach
     public void setup() {
+        userRepository.saveAndFlush(UserEntity.builder()
+                .id(1L)
+                .loginName("Test")
+                .password("Test")
+                .role("ADMIN").build());
+        userRepository.saveAndFlush(UserEntity.builder()
+                .id(2L)
+                .loginName("Other User")
+                .password("Test")
+                .role("ADMIN").build());
+
         projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .id(1L)
                         .title("Test")
+                        .owner(UserEntity.builder()
+                                .id(1L)
+                                .loginName("Test").build())
                         .customer("Test").build()
         );
     }
@@ -65,6 +82,9 @@ class ProjectControllerTest extends SpringBootTests {
     public void createNewProject() {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
+                .owner(UserDto.builder()
+                        .loginName("Test")
+                        .role("ADMIN").build())
                 .title("Test Title")
                 .customer("Test Customer")
                 .build();
@@ -90,6 +110,9 @@ class ProjectControllerTest extends SpringBootTests {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title("Test Title")
+                .owner(UserDto.builder()
+                        .loginName("Test")
+                        .role("ADMIN").build())
                 .customer("Test Customer")
                 .build();
 
@@ -111,6 +134,9 @@ class ProjectControllerTest extends SpringBootTests {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
+                .owner(UserDto.builder()
+                        .loginName("Test")
+                        .role("ADMIN").build())
                 .customer("Test")
                 .build();
 
@@ -129,10 +155,11 @@ class ProjectControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForBadRequestTest")
     @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST")
-    public void createProjectWithBadRequest(String title, String customer) {
+    public void createProjectWithBadRequest(String title, String customer, UserDto user, HttpStatus expected) {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title(title)
+                .owner(user)
                 .customer(customer)
                 .build();
 
@@ -145,15 +172,23 @@ class ProjectControllerTest extends SpringBootTests {
         );
 
         // Then
-        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+        assertThat(response.getStatusCode(), is(expected));
     }
 
-    private static Stream<Arguments> getArgumentsForBadRequestTest(){
+    private static Stream<Arguments> getArgumentsForBadRequestTest() {
+        UserDto userDto = UserDto.builder()
+                .loginName("Test")
+                .role("ADMIN").build();
+        UserDto unknownUser = UserDto.builder()
+                .loginName("Unknown")
+                .role("ADMIN").build();
         return Stream.of(
-                Arguments.of("", "Test"),
-                Arguments.of("Test", ""),
-                Arguments.of("Test", null),
-                Arguments.of(null, "Test")
+                Arguments.of("", "Test", userDto, HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "", userDto, HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", null,userDto, HttpStatus.BAD_REQUEST),
+                Arguments.of(null, "Test", userDto, HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "Test", null, HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "Test", unknownUser,HttpStatus.NOT_FOUND)
         );
     }
 
@@ -211,10 +246,11 @@ class ProjectControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateProjectTest")
-    @DisplayName("Update ProjectDto should update all fields except title when there is no new title")
+    @DisplayName("Update Project should update all fields except title when there is no new title")
     public void updateProject(String newTitle, String expectedTitle) {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
                 .title("Test")
                 .newTitle(newTitle)
@@ -230,20 +266,65 @@ class ProjectControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getTitle(),expectedTitle );
+        assertThat(response.getBody().getTitle(), is(expectedTitle));
+        assertThat(response.getBody().getOwner().getLoginName(), is("Other User"));
         assertThat(response.getBody().getCustomer(), is("New Customer"));
     }
 
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
         return Stream.of(
-                Arguments.of( null, "Test"),
+                Arguments.of(null, "Test"),
                 Arguments.of("Test", "Test"),
                 Arguments.of("New Title", "New Title")
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("getArgumentsForWritersOfProjectTest")
+    @DisplayName("Update Project should update the list of writers")
+    public void updateWritersOfProject(List<UserDto> writers, int expectedLength) {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
+                .customer("New Customer")
+                .title("Test")
+                .newTitle(null)
+                .writer(writers)
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getWriter());
+        assertThat(response.getBody().getWriter().size(), is(expectedLength));
+        //assertThat(response.getBody().getWriter(), contains(writers.get(0)));
+    }
+
+    private static Stream<Arguments> getArgumentsForWritersOfProjectTest() {
+        UserDto firstWriter = UserDto.builder()
+                .loginName("Test")
+                .role("ADMIN").build();
+        UserDto otherWriter =  UserDto.builder()
+                .loginName("Other User")
+                .role("ADMIN").build();
+        List<UserDto> writersToAdd = List.of(firstWriter, otherWriter);
+        List<UserDto> writersToAddWithDouble= List.of(firstWriter, firstWriter);
+
+        return Stream.of(
+                Arguments.of(writersToAdd, 2 ),
+                Arguments.of(writersToAddWithDouble, 1)
+        );
+    }
+
     @Test
-    @DisplayName("Update ProjectDto should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
+    @DisplayName("Update Project should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
     public void updateProjectWithNonMatchingPathVariable() {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
@@ -263,8 +344,41 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
+    @ParameterizedTest
+    @MethodSource("getArgumentsForUpdateProjectWithoutOwnerTest")
+    @DisplayName("Update Project without an owner should return HttpStatus.BAD_REQUEST")
+    public void updateProjectWithoutOwner(UserDto owner) {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .owner(owner)
+                .title("Test")
+                .newTitle("newTitle")
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/DoesNotMatchTitle",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+    }
+
+    private static Stream<Arguments> getArgumentsForUpdateProjectWithoutOwnerTest() {
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of(UserDto.builder()
+                        .loginName("Unknown")
+                        .role("ADMIN")
+                        .build())
+                );
+    }
+
+
     @Test
-    @DisplayName("Update ProjectDto should return HttpStatus.UNAUTHORIZED if user is not an admin")
+    @DisplayName("Update Project should return HttpStatus.UNAUTHORIZED if user is not an admin")
     public void updateProjectAsUserShouldFail() {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
@@ -283,7 +397,6 @@ class ProjectControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
-
 
 
     private HttpHeaders getAuthHeader(String name, String role) {

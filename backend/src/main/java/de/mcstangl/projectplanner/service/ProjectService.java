@@ -1,14 +1,17 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.util.Assert.hasText;
 
@@ -17,14 +20,16 @@ import static org.springframework.util.Assert.hasText;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final UserService userService;
 
     @Autowired
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, UserService userService) {
         this.projectRepository = projectRepository;
+        this.userService = userService;
     }
 
-    public Optional<ProjectEntity> findByTitle(String title){
-       return projectRepository.findByTitle(title);
+    public Optional<ProjectEntity> findByTitle(String title) {
+        return projectRepository.findByTitle(title);
     }
 
     public ProjectEntity createNewProject(ProjectEntity projectEntity) {
@@ -34,7 +39,7 @@ public class ProjectService {
 
         Optional<ProjectEntity> projectEntityOptional = findByTitle(projectEntity.getTitle());
 
-        if(projectEntityOptional.isPresent()){
+        if (projectEntityOptional.isPresent()) {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
         return projectRepository.save(projectEntity);
@@ -49,18 +54,55 @@ public class ProjectService {
         ProjectEntity fetchedProjectEntity = findByTitle(projectUpdateEntity.getTitle())
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", projectUpdateEntity.getTitle())));
 
-        hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
+        ProjectEntity projectEntityCopy = copyProjectEntity(fetchedProjectEntity);
 
-        if(newTitle == null || newTitle.equals(projectUpdateEntity.getTitle())){
-            fetchedProjectEntity
-                    .setCustomer(projectUpdateEntity.getCustomer());
-            return projectRepository.save(fetchedProjectEntity);
+        if (projectUpdateEntity.getCustomer() != null) {
+            hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
+            projectEntityCopy.setCustomer(projectUpdateEntity.getCustomer().trim());
         }
 
-        projectRepository.delete(fetchedProjectEntity);
+        if (projectUpdateEntity.getOwner() != null && !projectEntityCopy.getOwner().getLoginName().equals(projectUpdateEntity.getOwner().getLoginName())) {
+            projectEntityCopy.setOwner(projectUpdateEntity.getOwner());
+        }
 
-        projectUpdateEntity.setTitle(newTitle);
-        return createNewProject(projectUpdateEntity);
+        if (projectUpdateEntity.getWriters() != null) {
+            Set<UserEntity> writersToUpdate = projectUpdateEntity.getWriters();
+            projectEntityCopy.setWriters(new HashSet<>());
+            for (UserEntity writer : writersToUpdate) {
+                UserEntity writerToAdd = userService.findByLoginName(writer.getLoginName())
+                        .orElseThrow(() -> new EntityNotFoundException("Der Benutzer konnte nicht gefunden werden"));
+                projectEntityCopy.addWriter(writerToAdd);
+            }
+        }
+
+        if (projectUpdateEntity.getMotionDesigners() != null) {
+            Set<UserEntity> motionDesignersToUpdate = projectUpdateEntity.getMotionDesigners();
+            projectEntityCopy.setMotionDesigners(new HashSet<>());
+
+            for (UserEntity motionDesigner : motionDesignersToUpdate) {
+                UserEntity motionDesignerToAdd = userService.findByLoginName(motionDesigner.getLoginName())
+                        .orElseThrow(() -> new EntityNotFoundException("Der Benutzer konnte nicht gefunden werden"));
+                projectEntityCopy.addMotionDesigner(motionDesignerToAdd);
+            }
+        }
+
+        if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
+            hasText(newTitle, "Projekttitel darf nicht leer sein");
+            projectEntityCopy.setTitle(newTitle.trim());
+            projectEntityCopy.setId(null);
+            projectRepository.delete(fetchedProjectEntity);
+            return createNewProject(projectEntityCopy);
+        }
+        return projectRepository.save(projectEntityCopy);
     }
 
+    private ProjectEntity copyProjectEntity(ProjectEntity fetchedProjectEntity) {
+        return ProjectEntity.builder()
+                .id(fetchedProjectEntity.getId())
+                .customer(fetchedProjectEntity.getCustomer())
+                .title(fetchedProjectEntity.getTitle())
+                .writers(fetchedProjectEntity.getWriters())
+                .motionDesigners(fetchedProjectEntity.getMotionDesigners())
+                .owner(fetchedProjectEntity.getOwner()).build();
+    }
 }

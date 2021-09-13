@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name ="projects")
@@ -29,6 +30,16 @@ public class ProjectEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name ="owner_id")
     private UserEntity owner;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name ="writer_id")
+    private Set<UserEntity> writers;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name ="motionDesinger_id")
+    private Set<UserEntity> motionDesigners;
+
+
 
     @Override
     public boolean equals(Object o) {

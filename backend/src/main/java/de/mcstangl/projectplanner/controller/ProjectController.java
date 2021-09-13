@@ -133,6 +133,8 @@ public class ProjectController {
         return ProjectEntity.builder()
                 .customer(projectDto.getCustomer())
                 .title(projectDto.getTitle())
+                .writers(mapUserDto(projectDto.getWriter()))
+                .motionDesigners(mapUserDto(projectDto.getMotionDesign()))
                 .build();
     }
 

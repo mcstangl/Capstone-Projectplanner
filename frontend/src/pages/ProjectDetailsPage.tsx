@@ -157,7 +157,7 @@ const ProjectDetailsPage: FC = () => {
             <span>{project?.title}</span>
           )}
           <h4>Projektleitung</h4>
-          {editMode ? (
+          {editMode && userList ? (
             <select
               onChange={handleSelectChange}
               defaultValue={project?.owner.loginName}

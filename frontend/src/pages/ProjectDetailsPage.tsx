@@ -21,6 +21,7 @@ import styled from 'styled-components/macro'
 import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import { UserDto } from '../dtos/UserDto'
+import UserSelect from '../components/UserSelect'
 
 interface RouteParams {
   projectTitle: string
@@ -103,13 +104,22 @@ const ProjectDetailsPage: FC = () => {
     }
   }
   const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const fieldToChange = event.target.name
     const userToAdd = userList?.find(
       user => user.loginName === event.target.value
     )
 
-    if (userToAdd) {
-      setFormData({ ...formData, owner: userToAdd })
-    }
+    if (
+      userToAdd &&
+      (fieldToChange === 'writer' || fieldToChange === 'motionDesign')
+    ) {
+      setFormData({ ...formData, [fieldToChange]: [] })
+      const userArray = []
+      userArray.push(userToAdd)
+      setFormData({ ...formData, [fieldToChange]: userArray })
+    } else if (userToAdd) {
+      setFormData({ ...formData, [fieldToChange]: userToAdd })
+    } else setFormData({ ...formData, [fieldToChange]: [] })
   }
 
   const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -157,19 +167,43 @@ const ProjectDetailsPage: FC = () => {
             <span>{project?.title}</span>
           )}
           <h4>Projektleitung</h4>
-          {editMode ? (
-            <select
-              onChange={handleSelectChange}
-              defaultValue={project?.owner.loginName}
-            >
-              {userList?.map(user => (
-                <option key={user.loginName} value={user.loginName}>
-                  {user.loginName}
-                </option>
-              ))}
-            </select>
+          {editMode && userList ? (
+            <UserSelect
+              handleSelectChange={handleSelectChange}
+              userList={userList}
+              project={project}
+              name="owner"
+            />
           ) : (
             <span>{project?.owner.loginName}</span>
+          )}
+          <h4>Redaktion</h4>
+          {project && editMode && userList ? (
+            <UserSelect
+              handleSelectChange={handleSelectChange}
+              userList={userList}
+              project={project}
+              name="writer"
+            />
+          ) : (
+            <span>
+              {project?.writer[0] ? project?.writer[0].loginName : ''}
+            </span>
+          )}
+          <h4>Motion Design</h4>
+          {editMode && userList ? (
+            <UserSelect
+              handleSelectChange={handleSelectChange}
+              userList={userList}
+              project={project}
+              name="motionDesign"
+            />
+          ) : (
+            <span>
+              {project?.motionDesign[0]
+                ? project?.motionDesign[0].loginName
+                : ''}
+            </span>
           )}
 
           {editMode && (

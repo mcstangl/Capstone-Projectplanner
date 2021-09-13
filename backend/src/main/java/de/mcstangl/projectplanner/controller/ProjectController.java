@@ -14,8 +14,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -37,6 +39,12 @@ public class ProjectController {
     public ResponseEntity<ProjectDto> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody ProjectDto newProject) {
         if(newProject.getOwner() == null){
             throw new IllegalArgumentException("Ein Projekt muss eine*n Projektleiter*in haben");
+        }
+        if(newProject.getWriter() == null){
+            newProject.setWriter(List.of());
+        }
+        if(newProject.getMotionDesign() == null){
+            newProject.setMotionDesign(List.of());
         }
         if (isAdmin(authUser)) {
 
@@ -76,6 +84,13 @@ public class ProjectController {
         if (!title.equals(updateProjectDto.getTitle())) {
             throw new IllegalArgumentException("Fehler in der Anfrage: Pfadvariable und Titel stimmen nicht überein");
         }
+        if(updateProjectDto.getWriter() == null){
+            updateProjectDto.setWriter(List.of());
+        }
+        if(updateProjectDto.getMotionDesign() == null){
+            updateProjectDto.setMotionDesign(List.of());
+        }
+
 
         if (isAdmin(authUser)) {
 
@@ -107,6 +122,8 @@ public class ProjectController {
         return ProjectEntity.builder()
                 .owner(map(updateProjectDto.getOwner()))
                 .customer(updateProjectDto.getCustomer())
+                .writers(mapUserDto(updateProjectDto.getWriter()))
+                .motionDesigners(mapUserDto(updateProjectDto.getMotionDesign()))
                 .title(updateProjectDto.getTitle())
                 .build();
     }
@@ -116,6 +133,8 @@ public class ProjectController {
         return ProjectEntity.builder()
                 .customer(projectDto.getCustomer())
                 .title(projectDto.getTitle())
+                .writers(mapUserDto(projectDto.getWriter()))
+                .motionDesigners(mapUserDto(projectDto.getMotionDesign()))
                 .build();
     }
 
@@ -123,6 +142,8 @@ public class ProjectController {
         return ProjectDto.builder()
                 .customer(projectEntity.getCustomer())
                 .owner(map(projectEntity.getOwner()))
+                .writer(map(projectEntity.getWriters()))
+                .motionDesign(map(projectEntity.getMotionDesigners()))
                 .title(projectEntity.getTitle())
                 .build();
     }
@@ -146,5 +167,20 @@ public class ProjectController {
                 .loginName(userDto.getLoginName())
                 .role(userDto.getRole())
                 .build();
+    }
+
+    private List<UserDto> map(Set<UserEntity> userEntities){
+        List<UserDto> userDtoList = new LinkedList<>();
+        for (UserEntity userEntity : userEntities) {
+            userDtoList.add(map(userEntity));
+        }
+        return userDtoList;
+    }
+    private Set<UserEntity> mapUserDto(List<UserDto> userDtos){
+        Set<UserEntity> userEntitySet = new HashSet<>();
+        for (UserDto userDto : userDtos) {
+            userEntitySet.add(map(userDto));
+        }
+        return userEntitySet;
     }
 }

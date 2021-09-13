@@ -3,10 +3,12 @@ package de.mcstangl.projectplanner.model;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Table(name ="projects")
+@Table(name = "projects")
 @Getter
 @Setter
 @Builder
@@ -17,18 +19,34 @@ public class ProjectEntity {
 
     @Id
     @GeneratedValue
-    @Column(name="project_id", nullable = false, unique = true)
+    @Column(name = "project_id", nullable = false, unique = true)
     private Long id;
 
-    @Column(name="title", nullable = false, unique = true)
+    @Column(name = "title", nullable = false, unique = true)
     private String title;
 
-    @Column(name="customer")
+    @Column(name = "customer")
     private String customer;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name ="owner_id")
+    @JoinColumn(name = "owner_id")
     private UserEntity owner;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "writer_id")
+    private Set<UserEntity> writers = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "motionDesinger_id")
+    private Set<UserEntity> motionDesigners = new HashSet<>();
+
+    public void addWriter(UserEntity userEntity) {
+        writers.add(userEntity);
+    }
+
+    public void addMotionDesigner(UserEntity userEntity) {
+        motionDesigners.add(userEntity);
+    }
 
     @Override
     public boolean equals(Object o) {

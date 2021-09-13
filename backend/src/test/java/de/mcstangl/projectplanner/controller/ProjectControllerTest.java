@@ -23,10 +23,7 @@ import org.springframework.http.*;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -282,8 +279,52 @@ class ProjectControllerTest extends SpringBootTests {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("getArgumentsForWritersOfProjectTest")
+    @DisplayName("Update Project should update the list of writers")
+    public void updateWritersOfProject(List<UserDto> writers, int expectedLength) {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
+                .customer("New Customer")
+                .title("Test")
+                .newTitle(null)
+                .writer(writers)
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getWriter());
+        assertThat(response.getBody().getWriter().size(), is(expectedLength));
+        //assertThat(response.getBody().getWriter(), contains(writers.get(0)));
+    }
+
+    private static Stream<Arguments> getArgumentsForWritersOfProjectTest() {
+        UserDto firstWriter = UserDto.builder()
+                .loginName("Test")
+                .role("ADMIN").build();
+        UserDto otherWriter =  UserDto.builder()
+                .loginName("Other User")
+                .role("ADMIN").build();
+        List<UserDto> writersToAdd = List.of(firstWriter, otherWriter);
+        List<UserDto> writersToAddWithDouble= List.of(firstWriter, firstWriter);
+
+        return Stream.of(
+                Arguments.of(writersToAdd, 2 ),
+                Arguments.of(writersToAddWithDouble, 1)
+        );
+    }
+
     @Test
-    @DisplayName("Update ProjectDto should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
+    @DisplayName("Update Project should return HttpStatus.BAD_REQUEST if path variable and project title don't match")
     public void updateProjectWithNonMatchingPathVariable() {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
@@ -337,7 +378,7 @@ class ProjectControllerTest extends SpringBootTests {
 
 
     @Test
-    @DisplayName("Update ProjectDto should return HttpStatus.UNAUTHORIZED if user is not an admin")
+    @DisplayName("Update Project should return HttpStatus.UNAUTHORIZED if user is not an admin")
     public void updateProjectAsUserShouldFail() {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()

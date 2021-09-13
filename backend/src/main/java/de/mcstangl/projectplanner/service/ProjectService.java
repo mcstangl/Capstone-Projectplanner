@@ -1,14 +1,17 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.util.Assert.hasText;
 
@@ -17,10 +20,12 @@ import static org.springframework.util.Assert.hasText;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final UserService userService;
 
     @Autowired
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, UserService userService) {
         this.projectRepository = projectRepository;
+        this.userService = userService;
     }
 
     public Optional<ProjectEntity> findByTitle(String title) {
@@ -56,8 +61,36 @@ public class ProjectService {
             projectEntityCopy.setCustomer(projectUpdateEntity.getCustomer().trim());
         }
 
-        if(projectUpdateEntity.getOwner() != null && !projectEntityCopy.getOwner().getLoginName().equals(projectUpdateEntity.getOwner().getLoginName()) ){
+        if (projectUpdateEntity.getOwner() != null && !projectEntityCopy.getOwner().getLoginName().equals(projectUpdateEntity.getOwner().getLoginName())) {
             projectEntityCopy.setOwner(projectUpdateEntity.getOwner());
+        }
+
+        if (projectUpdateEntity.getWriters() != null) {
+            Set<UserEntity> writersToUpdate = projectUpdateEntity.getWriters();
+            Set<UserEntity> updatedWriters = projectEntityCopy.getWriters();
+            if(updatedWriters == null){
+                updatedWriters = new HashSet<>();
+            }
+            for (UserEntity writer : writersToUpdate) {
+                UserEntity writerToAdd = userService.findByLoginName(writer.getLoginName())
+                        .orElseThrow(() -> new EntityNotFoundException("Der Benutzer konnte nicht gefunden werden"));
+                updatedWriters.add(writerToAdd);
+            }
+            projectEntityCopy.setWriters(updatedWriters);
+        }
+
+        if (projectUpdateEntity.getMotionDesigners() != null) {
+            Set<UserEntity> motionDesignersToUpdate = projectUpdateEntity.getMotionDesigners();
+            Set<UserEntity> updatedMotionDesigners = projectEntityCopy.getMotionDesigners();
+            if(updatedMotionDesigners == null){
+                updatedMotionDesigners = new HashSet<>();
+            }
+            for (UserEntity motionDesigner : motionDesignersToUpdate) {
+                UserEntity motionDesignerToAdd = userService.findByLoginName(motionDesigner.getLoginName())
+                        .orElseThrow(() -> new EntityNotFoundException("Der Benutzer konnte nicht gefunden werden"));
+                updatedMotionDesigners.add(motionDesignerToAdd);
+            }
+            projectEntityCopy.setMotionDesigners(updatedMotionDesigners);
         }
 
         if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {

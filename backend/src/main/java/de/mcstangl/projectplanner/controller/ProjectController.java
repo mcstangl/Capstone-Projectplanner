@@ -2,9 +2,11 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
+import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
+import de.mcstangl.projectplanner.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,25 +19,40 @@ import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
 
+@CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/project")
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final UserService userService;
 
     @Autowired
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, UserService userService) {
         this.projectService = projectService;
+        this.userService = userService;
     }
 
     @PostMapping
     public ResponseEntity<ProjectDto> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody ProjectDto newProject) {
+        if(newProject.getOwner() == null){
+            throw new IllegalArgumentException("Ein Projekt muss eine*n Projektleiter*in haben");
+        }
         if (isAdmin(authUser)) {
-            ProjectEntity newProjectEntity = projectService.createNewProject(map(newProject));
-            return ok(map(newProjectEntity));
+
+            UserEntity ownerEntity = getOwnerEntity(newProject);
+
+            ProjectEntity newProjectEntity = map(newProject);
+
+            newProjectEntity.setOwner(ownerEntity);
+
+            ProjectEntity createdProjectEntity = projectService.createNewProject(newProjectEntity);
+
+            return ok(map(createdProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
+
 
     @GetMapping
     public ResponseEntity<List<ProjectDto>> findAll() {
@@ -57,15 +74,17 @@ public class ProjectController {
     public ResponseEntity<ProjectDto> updateProject(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title, @RequestBody UpdateProjectDto updateProjectDto) {
 
         if (!title.equals(updateProjectDto.getTitle())) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Fehler in der Anfrage: Pfadvariable und Titel stimmen nicht überein");
         }
 
         if (isAdmin(authUser)) {
 
             String newTitle = updateProjectDto.getNewTitle();
-
-            ProjectEntity projectEntity = projectService.update(map(updateProjectDto), newTitle);
-            return ok(map(projectEntity));
+            UserEntity ownerEntity = getOwnerEntity(updateProjectDto);
+            ProjectEntity projectUpdateEntity = map(updateProjectDto);
+            projectUpdateEntity.setOwner(ownerEntity);
+            ProjectEntity updatedProjectEntity = projectService.update(projectUpdateEntity, newTitle);
+            return ok(map(updatedProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
@@ -74,12 +93,24 @@ public class ProjectController {
         return authUser.getRole().equals("ADMIN");
     }
 
+    private UserEntity getOwnerEntity(ProjectDto newProject) {
+        return userService.findByLoginName(newProject.getOwner().getLoginName())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwner().getLoginName())));
+    }
+    private UserEntity getOwnerEntity(UpdateProjectDto updateProjectDto) {
+        return userService.findByLoginName(updateProjectDto.getOwner().getLoginName())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", updateProjectDto.getOwner().getLoginName())));
+    }
     private ProjectEntity map(UpdateProjectDto updateProjectDto) {
         return ProjectEntity.builder()
+                .owner(map(updateProjectDto.getOwner()))
                 .customer(updateProjectDto.getCustomer())
                 .title(updateProjectDto.getTitle())
                 .build();
     }
+
 
     private ProjectEntity map(ProjectDto projectDto) {
         return ProjectEntity.builder()
@@ -91,6 +122,7 @@ public class ProjectController {
     private ProjectDto map(ProjectEntity projectEntity) {
         return ProjectDto.builder()
                 .customer(projectEntity.getCustomer())
+                .owner(map(projectEntity.getOwner()))
                 .title(projectEntity.getTitle())
                 .build();
     }
@@ -98,9 +130,21 @@ public class ProjectController {
     private List<ProjectDto> map(List<ProjectEntity> projectEntityList) {
         List<ProjectDto> projectDtoList = new LinkedList<>();
         for (ProjectEntity projectEntity : projectEntityList) {
-            ProjectDto projectDto = map(projectEntity);
-            projectDtoList.add(projectDto);
+            projectDtoList.add(map(projectEntity));
         }
         return projectDtoList;
+    }
+
+    private UserDto map(UserEntity userEntity){
+        return UserDto.builder()
+                .loginName(userEntity.getLoginName())
+                .role(userEntity.getRole())
+                .build();
+    }
+    private UserEntity map(UserDto userDto) {
+        return UserEntity.builder()
+                .loginName(userDto.getLoginName())
+                .role(userDto.getRole())
+                .build();
     }
 }

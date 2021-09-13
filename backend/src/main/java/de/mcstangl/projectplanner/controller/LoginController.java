@@ -18,6 +18,7 @@ import javax.persistence.EntityNotFoundException;
 import static org.springframework.http.ResponseEntity.*;
 import static org.springframework.util.Assert.hasText;
 
+@CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/auth")
 public class LoginController {

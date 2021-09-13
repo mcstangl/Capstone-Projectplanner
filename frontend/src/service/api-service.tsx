@@ -34,6 +34,11 @@ export const findProjectByTitle = (title: string, token: string) =>
     .get('/api/project-planner/project/' + title, getAuthHeaders(token))
     .then(response => response.data)
 
+export const findAllUser = (token: string) =>
+  axios
+    .get('/api/project-planner/user', getAuthHeaders(token))
+    .then(response => response.data)
+
 const getAuthHeaders = (token: string) => {
   return {
     headers: {

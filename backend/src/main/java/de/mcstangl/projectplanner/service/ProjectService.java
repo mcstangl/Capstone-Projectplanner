@@ -23,8 +23,8 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
-    public Optional<ProjectEntity> findByTitle(String title){
-       return projectRepository.findByTitle(title);
+    public Optional<ProjectEntity> findByTitle(String title) {
+        return projectRepository.findByTitle(title);
     }
 
     public ProjectEntity createNewProject(ProjectEntity projectEntity) {
@@ -34,7 +34,7 @@ public class ProjectService {
 
         Optional<ProjectEntity> projectEntityOptional = findByTitle(projectEntity.getTitle());
 
-        if(projectEntityOptional.isPresent()){
+        if (projectEntityOptional.isPresent()) {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
         return projectRepository.save(projectEntity);
@@ -49,18 +49,32 @@ public class ProjectService {
         ProjectEntity fetchedProjectEntity = findByTitle(projectUpdateEntity.getTitle())
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", projectUpdateEntity.getTitle())));
 
-        hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
+        ProjectEntity projectEntityCopy = copyProjectEntity(fetchedProjectEntity);
 
-        if(newTitle == null || newTitle.equals(projectUpdateEntity.getTitle())){
-            fetchedProjectEntity
-                    .setCustomer(projectUpdateEntity.getCustomer());
-            return projectRepository.save(fetchedProjectEntity);
+        if (projectUpdateEntity.getCustomer() != null) {
+            hasText(projectUpdateEntity.getCustomer(), "Kundenname darf nicht leer sein");
+            projectEntityCopy.setCustomer(projectUpdateEntity.getCustomer().trim());
         }
 
-        projectRepository.delete(fetchedProjectEntity);
+        if(projectUpdateEntity.getOwner() != null && !projectEntityCopy.getOwner().getLoginName().equals(projectUpdateEntity.getOwner().getLoginName()) ){
+            projectEntityCopy.setOwner(projectUpdateEntity.getOwner());
+        }
 
-        projectUpdateEntity.setTitle(newTitle);
-        return createNewProject(projectUpdateEntity);
+        if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
+            hasText(newTitle, "Projekttitel darf nicht leer sein");
+            projectEntityCopy.setTitle(newTitle.trim());
+            projectEntityCopy.setId(null);
+            projectRepository.delete(fetchedProjectEntity);
+            return createNewProject(projectEntityCopy);
+        }
+        return projectRepository.save(projectEntityCopy);
     }
 
+    private ProjectEntity copyProjectEntity(ProjectEntity fetchedProjectEntity) {
+        return ProjectEntity.builder()
+                .id(fetchedProjectEntity.getId())
+                .customer(fetchedProjectEntity.getCustomer())
+                .title(fetchedProjectEntity.getTitle())
+                .owner(fetchedProjectEntity.getOwner()).build();
+    }
 }

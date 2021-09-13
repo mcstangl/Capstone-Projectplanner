@@ -67,30 +67,23 @@ public class ProjectService {
 
         if (projectUpdateEntity.getWriters() != null) {
             Set<UserEntity> writersToUpdate = projectUpdateEntity.getWriters();
-            Set<UserEntity> updatedWriters = projectEntityCopy.getWriters();
-            if(updatedWriters == null){
-                updatedWriters = new HashSet<>();
-            }
+            projectEntityCopy.setWriters(new HashSet<>());
             for (UserEntity writer : writersToUpdate) {
                 UserEntity writerToAdd = userService.findByLoginName(writer.getLoginName())
                         .orElseThrow(() -> new EntityNotFoundException("Der Benutzer konnte nicht gefunden werden"));
-                updatedWriters.add(writerToAdd);
+                projectEntityCopy.addWriter(writerToAdd);
             }
-            projectEntityCopy.setWriters(updatedWriters);
         }
 
         if (projectUpdateEntity.getMotionDesigners() != null) {
             Set<UserEntity> motionDesignersToUpdate = projectUpdateEntity.getMotionDesigners();
-            Set<UserEntity> updatedMotionDesigners = projectEntityCopy.getMotionDesigners();
-            if(updatedMotionDesigners == null){
-                updatedMotionDesigners = new HashSet<>();
-            }
+            projectEntityCopy.setMotionDesigners(new HashSet<>());
+
             for (UserEntity motionDesigner : motionDesignersToUpdate) {
                 UserEntity motionDesignerToAdd = userService.findByLoginName(motionDesigner.getLoginName())
                         .orElseThrow(() -> new EntityNotFoundException("Der Benutzer konnte nicht gefunden werden"));
-                updatedMotionDesigners.add(motionDesignerToAdd);
+                projectEntityCopy.addMotionDesigner(motionDesignerToAdd);
             }
-            projectEntityCopy.setMotionDesigners(updatedMotionDesigners);
         }
 
         if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
@@ -108,6 +101,8 @@ public class ProjectService {
                 .id(fetchedProjectEntity.getId())
                 .customer(fetchedProjectEntity.getCustomer())
                 .title(fetchedProjectEntity.getTitle())
+                .writers(fetchedProjectEntity.getWriters())
+                .motionDesigners(fetchedProjectEntity.getMotionDesigners())
                 .owner(fetchedProjectEntity.getOwner()).build();
     }
 }

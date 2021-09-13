@@ -282,7 +282,7 @@ class ProjectControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForWritersOfProjectTest")
     @DisplayName("Update Project should update the list of writers")
-    public void updateWritersOfProject(List<UserDto> writers) {
+    public void updateWritersOfProject(List<UserDto> writers, int expectedLength) {
         // Given
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
@@ -303,18 +303,23 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getWriter());
-        assertThat(response.getBody().getWriter().size(), is(2));
+        assertThat(response.getBody().getWriter().size(), is(expectedLength));
+        //assertThat(response.getBody().getWriter(), contains(writers.get(0)));
     }
 
     private static Stream<Arguments> getArgumentsForWritersOfProjectTest() {
         UserDto firstWriter = UserDto.builder()
-                .loginName("Test").build();
+                .loginName("Test")
+                .role("ADMIN").build();
         UserDto otherWriter =  UserDto.builder()
-                .loginName("Other User").build();
+                .loginName("Other User")
+                .role("ADMIN").build();
         List<UserDto> writersToAdd = List.of(firstWriter, otherWriter);
+        List<UserDto> writersToAddWithDouble= List.of(firstWriter, firstWriter);
 
         return Stream.of(
-                Arguments.of(writersToAdd)
+                Arguments.of(writersToAdd, 2 ),
+                Arguments.of(writersToAddWithDouble, 1)
         );
     }
 

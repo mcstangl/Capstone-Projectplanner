@@ -134,4 +134,5 @@ public class ProjectService {
                 .motionDesigners(fetchedProjectEntity.getMotionDesigners())
                 .owner(fetchedProjectEntity.getOwner()).build();
     }
+
 }

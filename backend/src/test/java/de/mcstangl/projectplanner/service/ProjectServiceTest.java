@@ -88,6 +88,7 @@ class ProjectServiceTest {
                 Optional.of(testProject)
         );
 
+
         // When
         Optional<ProjectEntity> actualOptional = projectService.findByTitle("Test");
 

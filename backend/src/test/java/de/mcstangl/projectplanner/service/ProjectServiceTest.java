@@ -10,9 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
 import java.util.HashSet;
@@ -35,14 +33,45 @@ class ProjectServiceTest {
     @Mock
     private UserService userService;
 
+    @Captor
+    private ArgumentCaptor<ProjectEntity> projectEntityCaptor;
+
     private AutoCloseable closeable;
 
     @InjectMocks
     private ProjectService projectService;
 
+    private ProjectEntity testProject;
+    private UserEntity testUser1;
+    private UserEntity testUser2;
+    private UserEntity testUser3;
+
     @BeforeEach
     void initService() {
+
         closeable = MockitoAnnotations.openMocks(this);
+        testUser1 = UserEntity.builder()
+                .id(1L)
+                .loginName("Test1")
+                .role("ADMIN")
+                .build();
+        testUser2 = UserEntity.builder()
+                .id(2L)
+                .loginName("Test2")
+                .role("ADMIN")
+                .build();
+        testUser3 = UserEntity.builder()
+                .id(3L)
+                .loginName("Test3")
+                .role("ADMIN")
+                .build();
+        testProject = ProjectEntity.builder()
+                .id(1L)
+                .customer("Test")
+                .title("Test")
+                .owner(testUser1)
+                .build();
+
     }
 
     @AfterEach
@@ -56,11 +85,7 @@ class ProjectServiceTest {
     public void findByTitle() {
         // Given
         when(projectRepository.findByTitle(any())).thenReturn(
-                Optional.of(ProjectEntity.builder()
-                        .id(1L)
-                        .customer("Test")
-                        .title("Test")
-                        .build())
+                Optional.of(testProject)
         );
 
 
@@ -69,11 +94,7 @@ class ProjectServiceTest {
 
         // Then
         assertTrue(actualOptional.isPresent());
-        assertThat(actualOptional.get(), is(ProjectEntity.builder()
-                .id(1L)
-                .customer("Test")
-                .title("Test")
-                .build()));
+        assertThat(actualOptional.get(), is(testProject));
 
     }
 
@@ -97,11 +118,7 @@ class ProjectServiceTest {
     public void findAll() {
         // Given
         when(projectRepository.findAll()).thenReturn(
-                List.of(ProjectEntity.builder()
-                        .id(1L)
-                        .customer("Test")
-                        .title("Test")
-                        .build())
+                List.of(testProject)
         );
 
         // When
@@ -109,11 +126,7 @@ class ProjectServiceTest {
 
         // Then
         assertThat(actual.size(), is(1));
-        assertThat(actual, contains(ProjectEntity.builder()
-                .id(1L)
-                .customer("Test")
-                .title("Test")
-                .build()));
+        assertThat(actual, contains(testProject));
     }
 
     @Test
@@ -121,11 +134,7 @@ class ProjectServiceTest {
     public void createNewProject() {
         // Given
         when(projectRepository.save(any())).thenReturn(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .customer("Test")
-                        .title("Test")
-                        .build()
+                testProject
         );
 
         // When
@@ -135,11 +144,7 @@ class ProjectServiceTest {
                 .build());
 
         // Then
-        assertThat(newProject, is(ProjectEntity.builder()
-                .id(1L)
-                .customer("Test")
-                .title("Test")
-                .build()));
+        assertThat(newProject, is(testProject));
 
     }
 
@@ -148,19 +153,10 @@ class ProjectServiceTest {
     @DisplayName("Creating a new project with a title that is already in DB should throw EntityExistsException")
     public void createNewProjectWithTitleThatAlreadyExists() {
         // Given
-        when(projectRepository.save(any())).thenReturn(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .customer("Test")
-                        .title("Test")
-                        .build()
-        );
+        when(projectRepository.save(any())).thenReturn(testProject);
+
         when(projectRepository.findByTitle(any())).thenReturn(
-                Optional.of(ProjectEntity.builder()
-                        .id(1L)
-                        .customer("Test")
-                        .title("Test")
-                        .build())
+                Optional.of(testProject)
         );
 
         // When
@@ -198,53 +194,24 @@ class ProjectServiceTest {
         // Given
         when(projectRepository.findByTitle(any()))
                 .thenReturn(
-                        Optional.of(ProjectEntity.builder()
-                                .id(1L)
-                                .owner(UserEntity.builder()
-                                        .id(1L)
-                                        .loginName("Test")
-                                        .role("ADMIN")
-                                        .build())
-                                .customer("Test")
-                                .title("Test")
-                                .build()));
-
-        when(projectRepository.save(any()))
-                .thenReturn(
-                        ProjectEntity.builder()
-                                .owner(UserEntity.builder()
-                                        .id(2L)
-                                        .loginName("New User")
-                                        .role("ADMIN")
-                                        .build())
-                                .id(1L)
-                                .customer("New Customer")
-                                .title("Test")
-                                .build());
+                        Optional.of(testProject));
 
         ProjectEntity projectEntity = ProjectEntity.builder()
-                .owner(UserEntity.builder()
-                        .id(2L)
-                        .loginName("New User")
-                        .role("ADMIN")
-                        .build())
+                .owner(testUser2)
                 .customer("New Customer")
                 .title("Test")
                 .build();
         // When
-        ProjectEntity actual = projectService.update(projectEntity, newTitle);
+        projectService.update(projectEntity, newTitle);
+        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        ProjectEntity actual = projectEntityCaptor.getValue();
 
         // Then
         assertThat(actual.getTitle(), is("Test"));
         assertThat(actual.getCustomer(), is("New Customer"));
         assertNotNull(actual.getOwner());
-        assertThat(actual.getOwner().getLoginName(), is("New User"));
+        assertThat(actual.getOwner().getLoginName(), is("Test2"));
         assertNotNull(actual.getId());
-        verify(projectRepository, times(1)).save(ProjectEntity.builder()
-                .id(1L)
-                .title("Test")
-                .build());
-        verify(projectRepository, times(1)).findByTitle("Test");
     }
 
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
@@ -260,92 +227,45 @@ class ProjectServiceTest {
         // Given
         when(projectRepository.findByTitle("Test"))
                 .thenReturn(
-                        Optional.of(ProjectEntity.builder()
-                                .id(1L)
-                                .owner(UserEntity.builder()
-                                        .id(1L)
-                                        .loginName("Test")
-                                        .role("ADMIN")
-                                        .build())
-                                .customer("Test")
-                                .title("Test")
-                                .build()))
+                        Optional.of(testProject))
                 .thenReturn(Optional.empty());
 
-        when(projectRepository.save(any()))
-                .thenReturn(
-                        ProjectEntity.builder()
-                                .id(1L)
-                                .owner(UserEntity.builder()
-                                        .id(2L)
-                                        .loginName("New User")
-                                        .role("ADMIN")
-                                        .build())
-                                .customer("New Customer")
-                                .title("new Title")
-                                .build());
-
         ProjectEntity projectEntity = ProjectEntity.builder()
-                .owner(UserEntity.builder()
-                        .id(2L)
-                        .loginName("New User")
-                        .role("ADMIN")
-                        .build())
+                .owner(testUser2)
                 .customer("New Customer")
                 .title("Test")
                 .build();
         // When
-        ProjectEntity actual = projectService.update(projectEntity, "new Title");
+        projectService.update(projectEntity, "new Title");
+
+        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        ProjectEntity actualSaved = projectEntityCaptor.getValue();
+
+        verify(projectRepository, times(1)).delete(projectEntityCaptor.capture());
+        String actualDeleted = projectEntityCaptor.getValue().getTitle();
 
         // Then
-        assertThat(actual.getTitle(), is("new Title"));
-        assertThat(actual.getCustomer(), is("New Customer"));
-        assertNotNull(actual.getOwner());
-        assertThat(actual.getOwner().getLoginName(), is("New User"));
-        assertNotNull(actual.getId());
+        assertThat(actualSaved.getTitle(), is("new Title"));
+        assertThat(actualSaved.getCustomer(), is("New Customer"));
+        assertNotNull(actualSaved.getOwner());
+        assertThat(actualSaved.getOwner().getLoginName(), is("Test2"));
 
-        verify(projectRepository, times(1)).save(
-                ProjectEntity.builder()
-                        .title("new Title")
-                        .customer("New Customer")
-                        .build());
-        verify(projectRepository, times(1)).delete(ProjectEntity.builder()
-                .id(1L)
-                .title("Test")
-                .build());
-        verify(projectRepository, times(1)).findByTitle("Test");
-        verify(projectRepository, times(1)).findByTitle("new Title");
+        assertThat(actualDeleted, is("Test"));
     }
 
     @Test
     @DisplayName("Update should update writers")
     public void updateWriters() {
         // Given
-        UserEntity owner = UserEntity.builder()
-                .id(1L)
-                .loginName("Test")
-                .role("ADMIN")
-                .build();
-        UserEntity firstWriter = UserEntity.builder()
-                .id(2L)
-                .loginName("Test1")
-                .role("ADMIN")
-                .build();
-        UserEntity secondWriter = UserEntity.builder()
-                .id(3L)
-                .loginName("Test2")
-                .role("ADMIN")
-                .build();
-
         Set<UserEntity> writerSet = new HashSet<>();
-        writerSet.add(firstWriter);
-        writerSet.add(secondWriter);
+        writerSet.add(testUser1);
+        writerSet.add(testUser2);
 
         when(projectRepository.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
-                                .owner(owner)
+                                .owner(testUser3)
                                 .customer("Test")
                                 .writers(new HashSet<>())
                                 .motionDesigners(new HashSet<>())
@@ -355,12 +275,12 @@ class ProjectServiceTest {
 
         when(userService.findByLoginName(any()))
                 .thenReturn(
-                        Optional.of(firstWriter))
+                        Optional.of(testUser1))
                 .thenReturn(
-                        Optional.of(secondWriter));
+                        Optional.of(testUser2));
 
         ProjectEntity projectEntity = ProjectEntity.builder()
-                .owner(owner)
+                .owner(testUser3)
                 .customer("Test")
                 .writers(writerSet)
                 .motionDesigners(new HashSet<>())
@@ -368,44 +288,26 @@ class ProjectServiceTest {
                 .build();
         // When
         projectService.update(projectEntity, "Test");
+        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        Set<UserEntity> actual = projectEntityCaptor.getValue().getWriters();
 
         // Then
-        verify(projectRepository, times(1)).save(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .title("Test")
-                        .build());
+        assertThat(actual, containsInAnyOrder(testUser1, testUser2));
     }
 
     @Test
     @DisplayName("Update should update motion designers")
     public void updateMotionDesigners() {
         // Given
-        UserEntity owner = UserEntity.builder()
-                .id(1L)
-                .loginName("Test")
-                .role("ADMIN")
-                .build();
-        UserEntity firstMotionDesigner = UserEntity.builder()
-                .id(2L)
-                .loginName("Test1")
-                .role("ADMIN")
-                .build();
-        UserEntity secondMotionDesigner = UserEntity.builder()
-                .id(3L)
-                .loginName("Test2")
-                .role("ADMIN")
-                .build();
-
         Set<UserEntity> motionDesigners = new HashSet<>();
-        motionDesigners.add(firstMotionDesigner);
-        motionDesigners.add(secondMotionDesigner);
+        motionDesigners.add(testUser1);
+        motionDesigners.add(testUser2);
 
         when(projectRepository.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
-                                .owner(owner)
+                                .owner(testUser3)
                                 .customer("Test")
                                 .writers(new HashSet<>())
                                 .motionDesigners(new HashSet<>())
@@ -415,26 +317,25 @@ class ProjectServiceTest {
 
         when(userService.findByLoginName(any()))
                 .thenReturn(
-                        Optional.of(firstMotionDesigner))
+                        Optional.of(testUser1))
                 .thenReturn(
-                        Optional.of(secondMotionDesigner));
+                        Optional.of(testUser2));
 
 
         ProjectEntity projectEntity = ProjectEntity.builder()
-                .owner(owner)
+                .owner(testUser3)
                 .customer("Test")
                 .writers(new HashSet<>())
                 .motionDesigners(motionDesigners)
                 .title("Test")
                 .build();
+
         // When
         projectService.update(projectEntity, "Test");
 
         // Then
-        verify(projectRepository, times(1)).save(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .title("Test")
-                        .build());
+        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        Set<UserEntity> actual = projectEntityCaptor.getValue().getMotionDesigners();
+        assertThat(actual, containsInAnyOrder(testUser1, testUser2));
     }
 }

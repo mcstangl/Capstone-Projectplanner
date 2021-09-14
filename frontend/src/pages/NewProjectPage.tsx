@@ -22,6 +22,7 @@ interface NewProjectFormData {
   customer: string
   title: string
   owner?: UserDto
+  dateOfReceipt?: string
 }
 
 const NewProjectPage: FC = () => {
@@ -48,12 +49,14 @@ const NewProjectPage: FC = () => {
       token &&
       formData.owner &&
       formData.customer.trim() &&
-      formData.title.trim()
+      formData.title.trim() &&
+      formData.dateOfReceipt
     ) {
       const newProjectDto: NewProjectDto = {
         owner: formData.owner,
         customer: formData.customer.trim(),
         title: formData.title.trim(),
+        dateOfReceipt: formData.dateOfReceipt,
       }
       createNewProject(newProjectDto, token)
         .then(() => history.push('/projects'))
@@ -72,6 +75,10 @@ const NewProjectPage: FC = () => {
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [event.target.name]: event.target.value })
+  }
+
+  const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, dateOfReceipt: event.target.value })
   }
 
   return (
@@ -107,6 +114,14 @@ const NewProjectPage: FC = () => {
               </option>
             ))}
           </select>
+
+          <input
+            type="date"
+            defaultValue={formData.dateOfReceipt}
+            value={formData.dateOfReceipt}
+            onChange={handleDateChange}
+          />
+
           {formData.customer.trim() &&
           formData.title.trim() &&
           formData.owner ? (

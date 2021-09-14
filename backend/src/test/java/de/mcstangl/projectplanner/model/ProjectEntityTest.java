@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,6 +33,7 @@ class ProjectEntityTest extends SpringBootTests {
                 ProjectEntity.builder()
                         .id(1L)
                         .title("Test")
+                        .dateOfReceipt(Date.valueOf("2021-09-13"))
                         .customer("Test").build()
         );
     }
@@ -71,7 +73,8 @@ class ProjectEntityTest extends SpringBootTests {
         //Given
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .title("Test2")
-                .customer("Test2").build();
+                .customer("Test2")
+                .dateOfReceipt(Date.valueOf("2021-09-13")).build();
         // When
         ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
 
@@ -79,6 +82,7 @@ class ProjectEntityTest extends SpringBootTests {
         assertNotNull(actual.getId());
         assertThat(actual.getTitle(), is("Test2"));
         assertThat(actual.getCustomer(), is("Test2"));
+        assertThat(actual.getDateOfReceipt().toString(), is("2021-09-13"));
     }
 
     @ParameterizedTest

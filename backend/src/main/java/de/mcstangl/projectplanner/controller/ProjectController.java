@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.sql.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class ProjectController {
             newProject.setMotionDesign(List.of());
         }
         if (isAdmin(authUser)) {
+
 
             UserEntity ownerEntity = getOwnerEntity(newProject);
 
@@ -122,6 +124,7 @@ public class ProjectController {
         return ProjectEntity.builder()
                 .owner(map(updateProjectDto.getOwner()))
                 .customer(updateProjectDto.getCustomer())
+                .dateOfReceipt(Date.valueOf(updateProjectDto.getDateOfReceipt()))
                 .writers(mapUserDto(updateProjectDto.getWriter()))
                 .motionDesigners(mapUserDto(updateProjectDto.getMotionDesign()))
                 .title(updateProjectDto.getTitle())
@@ -133,6 +136,7 @@ public class ProjectController {
         return ProjectEntity.builder()
                 .customer(projectDto.getCustomer())
                 .title(projectDto.getTitle())
+                .dateOfReceipt(Date.valueOf(projectDto.getDateOfReceipt()))
                 .writers(mapUserDto(projectDto.getWriter()))
                 .motionDesigners(mapUserDto(projectDto.getMotionDesign()))
                 .build();
@@ -142,6 +146,7 @@ public class ProjectController {
         return ProjectDto.builder()
                 .customer(projectEntity.getCustomer())
                 .owner(map(projectEntity.getOwner()))
+                .dateOfReceipt(projectEntity.getDateOfReceipt().toString())
                 .writer(map(projectEntity.getWriters()))
                 .motionDesign(map(projectEntity.getMotionDesigners()))
                 .title(projectEntity.getTitle())

@@ -65,10 +65,12 @@ class ProjectControllerTest extends SpringBootTests {
                 ProjectEntity.builder()
                         .id(1L)
                         .title("Test")
+                        .dateOfReceipt(java.sql.Date.valueOf("2012-03-21"))
                         .owner(UserEntity.builder()
                                 .id(1L)
                                 .loginName("Test").build())
                         .customer("Test").build()
+
         );
     }
 
@@ -87,6 +89,7 @@ class ProjectControllerTest extends SpringBootTests {
                         .role("ADMIN").build())
                 .title("Test Title")
                 .customer("Test Customer")
+                .dateOfReceipt("2021-09-13")
                 .build();
 
         // When
@@ -102,6 +105,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertNotNull(response.getBody());
         assertThat(response.getBody().getTitle(), is("Test Title"));
         assertThat(response.getBody().getCustomer(), is("Test Customer"));
+        assertThat(response.getBody().getDateOfReceipt(), is("2021-09-13"));
     }
 
     @Test
@@ -138,6 +142,7 @@ class ProjectControllerTest extends SpringBootTests {
                         .loginName("Test")
                         .role("ADMIN").build())
                 .customer("Test")
+                .dateOfReceipt("2021-09-12")
                 .build();
 
         // When
@@ -253,6 +258,7 @@ class ProjectControllerTest extends SpringBootTests {
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
                 .title("Test")
+                .dateOfReceipt("2021-09-13")
                 .newTitle(newTitle)
                 .build();
 
@@ -269,6 +275,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getBody().getTitle(), is(expectedTitle));
         assertThat(response.getBody().getOwner().getLoginName(), is("Other User"));
         assertThat(response.getBody().getCustomer(), is("New Customer"));
+        assertThat(response.getBody().getDateOfReceipt(), is("2021-09-13"));
     }
 
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
@@ -289,6 +296,7 @@ class ProjectControllerTest extends SpringBootTests {
                 .customer("New Customer")
                 .title("Test")
                 .newTitle(null)
+                .dateOfReceipt("2021-09-13")
                 .writer(writers)
                 .build();
 

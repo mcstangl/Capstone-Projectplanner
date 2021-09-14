@@ -14,6 +14,7 @@ import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import { ProjectDto } from '../dtos/ProjectDto'
 import AuthContext from '../auth/AuthContext'
 import { UserDto } from '../dtos/UserDto'
+import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
 
 interface ProjectDetailsEditProps {
   project?: ProjectDto
@@ -26,6 +27,7 @@ interface UpdateProjektFormData {
   customer: string
   title: string
   owner?: UserDto
+  dateOfReceipt: string
   writer: UserDto[]
   motionDesign: UserDto[]
 }
@@ -42,6 +44,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
   const [formData, setFormData] = useState<UpdateProjektFormData>({
     customer: '',
     title: '',
+    dateOfReceipt: '',
     writer: [],
     motionDesign: [],
   })
@@ -59,6 +62,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
       setFormData({
         customer: project.customer,
         title: project.title,
+        dateOfReceipt: project.dateOfReceipt,
         motionDesign: project.motionDesign,
         writer: project.writer,
         owner: project.owner,
@@ -76,10 +80,11 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
       formData.customer.trim() &&
       formData.owner
     ) {
-      const updateProjectDto = {
+      const updateProjectDto: UpdateProjectDto = {
         title: project.title,
         newTitle: formData.title.trim(),
         customer: formData.customer.trim(),
+        dateOfReceipt: formData.dateOfReceipt,
         owner: formData.owner,
         writer: formData.writer,
         motionDesign: formData.motionDesign,
@@ -120,6 +125,17 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 
   return (
     <ProjectDetails onSubmit={submitHandler}>
+      <h4>Eingangsdatum</h4>
+
+      <input
+        type="date"
+        name="dateOfReceipt"
+        defaultValue={project?.dateOfReceipt}
+        value={formData.dateOfReceipt}
+        placeholder={project?.dateOfReceipt}
+        onChange={onChangeHandler}
+      />
+
       <h4>Kunde</h4>
 
       <input

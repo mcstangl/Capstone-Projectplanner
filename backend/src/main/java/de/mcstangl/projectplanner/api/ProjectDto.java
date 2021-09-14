@@ -18,6 +18,7 @@ public class ProjectDto {
     private String customer;
     private String title;
     private UserDto owner;
+    private String dateOfReceipt;
     private List<UserDto> writer;
     private List<UserDto> motionDesign;
 

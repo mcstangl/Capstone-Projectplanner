@@ -29,8 +29,12 @@ const ProjectListPage: FC = () => {
         )}
         <List>
           <ListHeader>
+            <h4>Eingangsdatum</h4>
             <h4>Kunde</h4>
             <h4>Titel</h4>
+            <h4>Projektleitung</h4>
+            <h4>Redaktion</h4>
+            <h4>Motion Design</h4>
           </ListHeader>
           {projects &&
             projects.length &&
@@ -40,8 +44,16 @@ const ProjectListPage: FC = () => {
                 key={project.title}
                 to={'/projects/' + project.title}
               >
+                <span>{project.dateOfReceipt}</span>
                 <span>{project.customer}</span>
                 <span>{project.title}</span>
+                <span>{project.owner.loginName}</span>
+                {project.writer.map(writer => (
+                  <span>{writer.loginName}</span>
+                ))}
+                {project.motionDesign.map(motionDesigner => (
+                  <span>{motionDesigner.loginName}</span>
+                ))}
               </ListItem>
             ))}
         </List>
@@ -60,7 +72,7 @@ const List = styled.ul`
 `
 const ListItem = styled(Link)`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-column-gap: var(--size-s);
   padding: 0.5rem;
   text-decoration: none;
@@ -73,7 +85,7 @@ const ListItem = styled(Link)`
 
 const ListHeader = styled.li`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-column-gap: var(--size-s);
   padding: 0.5rem;
   border-bottom: solid 1px var(--secondarycolor);

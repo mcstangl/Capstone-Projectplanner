@@ -1,55 +1,28 @@
-import {
-  ChangeEvent,
-  FC,
-  FormEvent,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
+import { FC, useContext, useEffect, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
 import { Link, useParams } from 'react-router-dom'
-import {
-  findAllUser,
-  findProjectByTitle,
-  updateProject,
-} from '../service/api-service'
+import { findProjectByTitle } from '../service/api-service'
 import { ProjectDto } from '../dtos/ProjectDto'
 import AuthContext from '../auth/AuthContext'
 import { LinkGroup } from '../components/LinkGroup'
-import styled from 'styled-components/macro'
 import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
-import { UserDto } from '../dtos/UserDto'
-import UserSelect from '../components/UserSelect'
+import ProjectDetailsEdit from '../components/ProjectDetailsEdit'
+import ProjectDetails from '../components/ProjectDetails'
 
 interface RouteParams {
   projectTitle: string
 }
 
-interface UpdateProjektFormData {
-  customer: string
-  title: string
-  owner?: UserDto
-  writer: UserDto[]
-  motionDesign: UserDto[]
-}
-
 const ProjectDetailsPage: FC = () => {
   const { projectTitle } = useParams<RouteParams>()
   const { token, authUser } = useContext(AuthContext)
-
-  const [project, setProject] = useState<ProjectDto>()
-  const [userList, setUserList] = useState<UserDto[]>()
-  const [editMode, setEditMode] = useState<boolean>()
   const [error, setError] = useState<RestExceptionDto>()
 
-  const [formData, setFormData] = useState<UpdateProjektFormData>({
-    customer: '',
-    title: '',
-    writer: [],
-    motionDesign: [],
-  })
+  const [project, setProject] = useState<ProjectDto>()
+
+  const [editMode, setEditMode] = useState<boolean>()
 
   useEffect(() => {
     if (token) {
@@ -59,79 +32,23 @@ const ProjectDetailsPage: FC = () => {
     }
   }, [projectTitle, token])
 
-  useEffect(() => {
-    if (project) {
-      setFormData({
-        customer: project.customer,
-        title: project.title,
-        motionDesign: project.motionDesign,
-        writer: project.writer,
-        owner: project.owner,
-      })
-    }
-  }, [project])
-
-  useEffect(() => {
-    if (editMode && token) {
-      findAllUser(token)
-        .then(setUserList)
-        .catch(error => setError(error.response.data))
-    }
-  }, [editMode, token])
-
-  const submitHandler = (event: FormEvent) => {
-    event.preventDefault()
-    setError(undefined)
-    if (
-      project &&
-      token &&
-      formData.title.trim() &&
-      formData.customer.trim() &&
-      formData.owner
-    ) {
-      const updateProjectDto = {
-        title: project.title,
-        newTitle: formData.title.trim(),
-        customer: formData.customer.trim(),
-        owner: formData.owner,
-        writer: formData.writer,
-        motionDesign: formData.motionDesign,
-      }
-      updateProject(updateProjectDto, token)
-        .then(setProject)
-        .then(() => setEditMode(false))
-        .catch(error => setError(error.response.data))
-    }
-  }
-  const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const fieldToChange = event.target.name
-    const userToAdd = userList?.find(
-      user => user.loginName === event.target.value
-    )
-
-    if (
-      userToAdd &&
-      (fieldToChange === 'writer' || fieldToChange === 'motionDesign')
-    ) {
-      setFormData({ ...formData, [fieldToChange]: [] })
-      const userArray = []
-      userArray.push(userToAdd)
-      setFormData({ ...formData, [fieldToChange]: userArray })
-    } else if (userToAdd) {
-      setFormData({ ...formData, [fieldToChange]: userToAdd })
-    } else setFormData({ ...formData, [fieldToChange]: [] })
-  }
-
-  const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value })
-  }
-
-  const onClickHandler = () => {
+  const switchEditMode = () => {
     if (editMode) {
       setEditMode(false)
     } else {
       setEditMode(true)
     }
+  }
+
+  const updateProjectState = (projectDto: ProjectDto) => {
+    setProject(projectDto)
+  }
+  const updateErrorState = (restExceptionDto: RestExceptionDto | undefined) => {
+    setError(restExceptionDto)
+  }
+
+  const onClickHandler = () => {
+    switchEditMode()
   }
 
   return (
@@ -141,83 +58,15 @@ const ProjectDetailsPage: FC = () => {
         <LinkGroup>
           <Link to="/projects">Zurück zur Liste</Link>
         </LinkGroup>
-        <ProjectDetails onSubmit={submitHandler}>
-          <h4>Kunde</h4>
-          {editMode ? (
-            <input
-              name="customer"
-              type="text"
-              value={formData.customer}
-              placeholder={project?.customer}
-              onChange={onChangeHandler}
-            />
-          ) : (
-            <span>{project?.customer}</span>
-          )}
-          <h4>Title</h4>
-          {editMode ? (
-            <input
-              name="title"
-              type="text"
-              value={formData.title}
-              placeholder={project?.title}
-              onChange={onChangeHandler}
-            />
-          ) : (
-            <span>{project?.title}</span>
-          )}
-          <h4>Projektleitung</h4>
-          {editMode && userList ? (
-            <UserSelect
-              handleSelectChange={handleSelectChange}
-              userList={userList}
-              project={project}
-              name="owner"
-            />
-          ) : (
-            <span>{project?.owner.loginName}</span>
-          )}
-          <h4>Redaktion</h4>
-          {project && editMode && userList ? (
-            <UserSelect
-              handleSelectChange={handleSelectChange}
-              userList={userList}
-              project={project}
-              name="writer"
-            />
-          ) : (
-            <span>
-              {project?.writer[0] ? project?.writer[0].loginName : ''}
-            </span>
-          )}
-          <h4>Motion Design</h4>
-          {editMode && userList ? (
-            <UserSelect
-              handleSelectChange={handleSelectChange}
-              userList={userList}
-              project={project}
-              name="motionDesign"
-            />
-          ) : (
-            <span>
-              {project?.motionDesign[0]
-                ? project?.motionDesign[0].loginName
-                : ''}
-            </span>
-          )}
-
-          {editMode && (
-            <Button type="button" onClick={onClickHandler}>
-              Abbrechen
-            </Button>
-          )}
-          {editMode &&
-            (formData.title.trim() && formData.customer.trim() ? (
-              <Button>Speichern</Button>
-            ) : (
-              <Button disabled>Speichern</Button>
-            ))}
-        </ProjectDetails>
+        {!editMode && <ProjectDetails project={project} />}
+        {editMode && (
+          <ProjectDetailsEdit
+            updateErrorState={updateErrorState}
+            project={project}
+            switchEditMode={switchEditMode}
+            updateProjectState={updateProjectState}
+          />
+        )}
         {!editMode && authUser && authUser.role === 'ADMIN' && (
           <Button onClick={onClickHandler}>Edit</Button>
         )}
@@ -227,15 +76,3 @@ const ProjectDetailsPage: FC = () => {
   )
 }
 export default ProjectDetailsPage
-
-const ProjectDetails = styled.form`
-  max-width: 300px;
-  display: grid;
-  grid-template-columns: min-content 1fr;
-  grid-gap: var(--size-s);
-
-  h4 {
-    margin: 0;
-    padding: 0;
-  }
-`

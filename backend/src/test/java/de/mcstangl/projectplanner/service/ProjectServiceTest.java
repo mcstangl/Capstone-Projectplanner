@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
+import java.sql.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,7 @@ class ProjectServiceTest {
     private UserEntity testUser3;
 
     @BeforeEach
-    void initService() {
+    void setup() {
 
         closeable = MockitoAnnotations.openMocks(this);
         testUser1 = UserEntity.builder()
@@ -69,13 +70,14 @@ class ProjectServiceTest {
                 .id(1L)
                 .customer("Test")
                 .title("Test")
+                .dateOfReceipt(Date.valueOf("2021-09-12"))
                 .owner(testUser1)
                 .build();
 
     }
 
     @AfterEach
-    void closeService() throws Exception {
+    void tearDown() throws Exception {
         closeable.close();
     }
 
@@ -141,6 +143,7 @@ class ProjectServiceTest {
         ProjectEntity newProject = projectService.createNewProject(ProjectEntity.builder()
                 .customer("Test")
                 .title("Test")
+                .dateOfReceipt(Date.valueOf("2021-09-12"))
                 .build());
 
         // Then
@@ -162,6 +165,7 @@ class ProjectServiceTest {
         // When
         assertThrows(EntityExistsException.class, () -> projectService.createNewProject(ProjectEntity.builder()
                 .customer("Test")
+                .dateOfReceipt(Date.valueOf("2021-09-12"))
                 .title("Test")
                 .build()));
     }
@@ -169,7 +173,7 @@ class ProjectServiceTest {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForInvalidProjectTest")
-    @DisplayName("Creating a new project with an invalid project data should throw IllegalArgumentException")
+    @DisplayName("Creating a new project with an invalid title or customer should throw IllegalArgumentException")
     public void createNewProjectInvalidProjectData(String title, String customer) {
         // When
         assertThrows(IllegalArgumentException.class, () -> projectService.createNewProject(ProjectEntity.builder()
@@ -199,6 +203,7 @@ class ProjectServiceTest {
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .owner(testUser2)
                 .customer("New Customer")
+                .dateOfReceipt(Date.valueOf("1999-01-01"))
                 .title("Test")
                 .build();
         // When
@@ -211,6 +216,7 @@ class ProjectServiceTest {
         assertThat(actual.getCustomer(), is("New Customer"));
         assertNotNull(actual.getOwner());
         assertThat(actual.getOwner().getLoginName(), is("Test2"));
+        assertThat(actual.getDateOfReceipt().toString(), is("1999-01-01"));
         assertNotNull(actual.getId());
     }
 
@@ -233,6 +239,7 @@ class ProjectServiceTest {
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .owner(testUser2)
                 .customer("New Customer")
+                .dateOfReceipt(Date.valueOf("1999-01-01"))
                 .title("Test")
                 .build();
         // When
@@ -249,6 +256,7 @@ class ProjectServiceTest {
         assertThat(actualSaved.getCustomer(), is("New Customer"));
         assertNotNull(actualSaved.getOwner());
         assertThat(actualSaved.getOwner().getLoginName(), is("Test2"));
+        assertThat(actualSaved.getDateOfReceipt().toString(), is("1999-01-01"));
 
         assertThat(actualDeleted, is("Test"));
     }

@@ -96,7 +96,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(projectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -124,7 +124,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "USER")),
+                new HttpEntity<>(projectDto, getAuthHeader("USER")),
                 ProjectDto.class
         );
 
@@ -149,7 +149,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(projectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -160,11 +160,12 @@ class ProjectControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForBadRequestTest")
     @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST")
-    public void createProjectWithBadRequest(String title, String customer, UserDto user, HttpStatus expected) {
+    public void createProjectWithBadRequest(String title, String customer, UserDto user, String date, HttpStatus expected) {
         // Given
         ProjectDto projectDto = ProjectDto.builder()
                 .title(title)
                 .owner(user)
+                .dateOfReceipt(date)
                 .customer(customer)
                 .build();
 
@@ -172,7 +173,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(projectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -188,12 +189,14 @@ class ProjectControllerTest extends SpringBootTests {
                 .loginName("Unknown")
                 .role("ADMIN").build();
         return Stream.of(
-                Arguments.of("", "Test", userDto, HttpStatus.BAD_REQUEST),
-                Arguments.of("Test", "", userDto, HttpStatus.BAD_REQUEST),
-                Arguments.of("Test", null,userDto, HttpStatus.BAD_REQUEST),
-                Arguments.of(null, "Test", userDto, HttpStatus.BAD_REQUEST),
-                Arguments.of("Test", "Test", null, HttpStatus.BAD_REQUEST),
-                Arguments.of("Test", "Test", unknownUser,HttpStatus.NOT_FOUND)
+                Arguments.of("", "Test", userDto, "1999-01-01", HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "", userDto, "1999-01-01", HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", null, userDto, "1999-01-01", HttpStatus.BAD_REQUEST),
+                Arguments.of(null, "Test", userDto, "1999-01-01", HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "Test", null, "1999-01-01", HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "Test", userDto, "1999-1", HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "Test", userDto, null, HttpStatus.BAD_REQUEST),
+                Arguments.of("Test", "Test", unknownUser, "1999-01-01", HttpStatus.NOT_FOUND)
         );
     }
 
@@ -204,7 +207,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto[]> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
-                new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(null, getAuthHeader("ADMIN")),
                 ProjectDto[].class
         );
 
@@ -214,7 +217,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getBody().length, is(1));
         assertThat(Arrays.stream(response.getBody()).toList(), contains(ProjectDto.builder()
                 .title("Test")
-                .customer("Test").build()));
+                .build()));
     }
 
     @Test
@@ -224,7 +227,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.GET,
-                new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(null, getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -241,7 +244,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Unknown",
                 HttpMethod.GET,
-                new HttpEntity<>(null, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(null, getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -266,7 +269,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -304,7 +307,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -312,22 +315,69 @@ class ProjectControllerTest extends SpringBootTests {
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getWriter());
         assertThat(response.getBody().getWriter().size(), is(expectedLength));
-        //assertThat(response.getBody().getWriter(), contains(writers.get(0)));
+        assertThat(response.getBody().getWriter(), containsInRelativeOrder(writers.get(0)));
     }
 
     private static Stream<Arguments> getArgumentsForWritersOfProjectTest() {
         UserDto firstWriter = UserDto.builder()
                 .loginName("Test")
                 .role("ADMIN").build();
-        UserDto otherWriter =  UserDto.builder()
+        UserDto otherWriter = UserDto.builder()
                 .loginName("Other User")
                 .role("ADMIN").build();
         List<UserDto> writersToAdd = List.of(firstWriter, otherWriter);
-        List<UserDto> writersToAddWithDouble= List.of(firstWriter, firstWriter);
+        List<UserDto> writersToAddWithDouble = List.of(firstWriter, firstWriter);
 
         return Stream.of(
-                Arguments.of(writersToAdd, 2 ),
+                Arguments.of(writersToAdd, 2),
                 Arguments.of(writersToAddWithDouble, 1)
+        );
+    }
+
+
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForMotionDesignerOfProjectTest")
+    @DisplayName("Update Project should update the list of writers")
+    public void updateMotionDesignersOfProject(List<UserDto> motionDesigners, int expectedLength) {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
+                .customer("New Customer")
+                .title("Test")
+                .newTitle(null)
+                .dateOfReceipt("2021-09-13")
+                .motionDesign(motionDesigners)
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getMotionDesign());
+        assertThat(response.getBody().getMotionDesign().size(), is(expectedLength));
+        assertThat(response.getBody().getMotionDesign(), containsInRelativeOrder(motionDesigners.get(0)));
+    }
+
+    private static Stream<Arguments> getArgumentsForMotionDesignerOfProjectTest() {
+        UserDto firstMotionDesigner = UserDto.builder()
+                .loginName("Test")
+                .role("ADMIN").build();
+        UserDto secondMotionDesigner = UserDto.builder()
+                .loginName("Other User")
+                .role("ADMIN").build();
+        List<UserDto> motionDesignerToAdd = List.of(firstMotionDesigner, secondMotionDesigner);
+        List<UserDto> motionDesignerToAddWithDouble = List.of(firstMotionDesigner, firstMotionDesigner);
+
+        return Stream.of(
+                Arguments.of(motionDesignerToAdd, 2),
+                Arguments.of(motionDesignerToAddWithDouble, 1)
         );
     }
 
@@ -345,7 +395,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/DoesNotMatchTitle",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -360,6 +410,7 @@ class ProjectControllerTest extends SpringBootTests {
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .owner(owner)
                 .title("Test")
+                .dateOfReceipt("1999-01-01")
                 .newTitle("newTitle")
                 .build();
 
@@ -367,7 +418,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/DoesNotMatchTitle",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "ADMIN")),
+                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -381,7 +432,7 @@ class ProjectControllerTest extends SpringBootTests {
                         .loginName("Unknown")
                         .role("ADMIN")
                         .build())
-                );
+        );
     }
 
 
@@ -392,6 +443,7 @@ class ProjectControllerTest extends SpringBootTests {
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .customer("New Customer")
                 .title("Test")
+                .dateOfReceipt("1999-01-01")
                 .newTitle("newTitle")
                 .build();
 
@@ -399,7 +451,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("Hans", "USER")),
+                new HttpEntity<>(updateProjectDto, getAuthHeader("USER")),
                 ProjectDto.class);
 
         // Then
@@ -407,7 +459,7 @@ class ProjectControllerTest extends SpringBootTests {
     }
 
 
-    private HttpHeaders getAuthHeader(String name, String role) {
+    private HttpHeaders getAuthHeader(String role) {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -416,7 +468,7 @@ class ProjectControllerTest extends SpringBootTests {
         Date exp = Date.from(Instant.now().plus(Duration.ofDays(jwtConfig.getExpiresAfterDays())));
 
         String token = Jwts.builder()
-                .setSubject(name)
+                .setSubject("Hans")
                 .setClaims(claims)
                 .setIssuedAt(iat)
                 .setExpiration(exp)

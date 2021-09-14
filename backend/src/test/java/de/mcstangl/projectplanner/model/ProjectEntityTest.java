@@ -74,7 +74,8 @@ class ProjectEntityTest extends SpringBootTests {
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .title("Test2")
                 .customer("Test2")
-                .dateOfReceipt(Date.valueOf("2021-09-13")).build();
+                .dateOfReceipt(Date.valueOf("2021-09-13"))
+                .build();
         // When
         ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
 
@@ -92,6 +93,7 @@ class ProjectEntityTest extends SpringBootTests {
         //Given
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .title(title)
+                .dateOfReceipt(Date.valueOf("2021-03-13"))
                 .customer("Test").build();
         // When
         assertThrows(DataIntegrityViolationException.class, () -> projectRepository.saveAndFlush(projectEntity));
@@ -104,6 +106,16 @@ class ProjectEntityTest extends SpringBootTests {
         );
     }
 
+    @Test
+    @DisplayName("Create a project without a date of receipt should fail")
+    public void createProjectWithoutDateOfReceipt(){
+        //Given
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .title("New Title")
+                .customer("Test").build();
+        // When
+        assertThrows(DataIntegrityViolationException.class, () -> projectRepository.saveAndFlush(projectEntity));
+    }
 
     @Test
     @Transactional

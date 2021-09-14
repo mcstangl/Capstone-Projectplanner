@@ -315,7 +315,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getWriter());
         assertThat(response.getBody().getWriter().size(), is(expectedLength));
-        //assertThat(response.getBody().getWriter(), contains(writers.get(0)));
+        assertThat(response.getBody().getWriter(), containsInRelativeOrder(writers.get(0)));
     }
 
     private static Stream<Arguments> getArgumentsForWritersOfProjectTest() {
@@ -327,6 +327,53 @@ class ProjectControllerTest extends SpringBootTests {
                 .role("ADMIN").build();
         List<UserDto> writersToAdd = List.of(firstWriter, otherWriter);
         List<UserDto> writersToAddWithDouble = List.of(firstWriter, firstWriter);
+
+        return Stream.of(
+                Arguments.of(writersToAdd, 2),
+                Arguments.of(writersToAddWithDouble, 1)
+        );
+    }
+
+
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForMotionDesignerOfProjectTest")
+    @DisplayName("Update Project should update the list of writers")
+    public void updateMotionDesignersOfProject(List<UserDto> motionDesigners, int expectedLength) {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
+                .customer("New Customer")
+                .title("Test")
+                .newTitle(null)
+                .dateOfReceipt("2021-09-13")
+                .motionDesign(motionDesigners)
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getMotionDesign());
+        assertThat(response.getBody().getMotionDesign().size(), is(expectedLength));
+        assertThat(response.getBody().getMotionDesign(), containsInRelativeOrder(motionDesigners.get(0)));
+    }
+
+    private static Stream<Arguments> getArgumentsForMotionDesignerOfProjectTest() {
+        UserDto firstMotionDesigner = UserDto.builder()
+                .loginName("Test")
+                .role("ADMIN").build();
+        UserDto secondMotionDesigner = UserDto.builder()
+                .loginName("Other User")
+                .role("ADMIN").build();
+        List<UserDto> writersToAdd = List.of(firstMotionDesigner, secondMotionDesigner);
+        List<UserDto> writersToAddWithDouble = List.of(firstMotionDesigner, firstMotionDesigner);
 
         return Stream.of(
                 Arguments.of(writersToAdd, 2),

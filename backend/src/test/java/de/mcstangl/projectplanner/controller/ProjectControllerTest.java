@@ -372,12 +372,12 @@ class ProjectControllerTest extends SpringBootTests {
         UserDto secondMotionDesigner = UserDto.builder()
                 .loginName("Other User")
                 .role("ADMIN").build();
-        List<UserDto> writersToAdd = List.of(firstMotionDesigner, secondMotionDesigner);
-        List<UserDto> writersToAddWithDouble = List.of(firstMotionDesigner, firstMotionDesigner);
+        List<UserDto> motionDesignerToAdd = List.of(firstMotionDesigner, secondMotionDesigner);
+        List<UserDto> motionDesignerToAddWithDouble = List.of(firstMotionDesigner, firstMotionDesigner);
 
         return Stream.of(
-                Arguments.of(writersToAdd, 2),
-                Arguments.of(writersToAddWithDouble, 1)
+                Arguments.of(motionDesignerToAdd, 2),
+                Arguments.of(motionDesignerToAddWithDouble, 1)
         );
     }
 

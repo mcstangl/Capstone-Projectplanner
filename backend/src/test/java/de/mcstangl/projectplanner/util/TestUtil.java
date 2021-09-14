@@ -3,9 +3,11 @@ package de.mcstangl.projectplanner.util;
 import de.mcstangl.projectplanner.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,12 +15,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Service
 public class TestUtil {
 
 
     private final JwtConfig jwtConfig;
 
+    @Autowired
     public TestUtil(JwtConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
     }

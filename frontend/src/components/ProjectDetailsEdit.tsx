@@ -125,6 +125,17 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 
   return (
     <ProjectDetails onSubmit={submitHandler}>
+      <h4>Eingangsdatum</h4>
+
+      <input
+        type="date"
+        name="dateOfReceipt"
+        defaultValue={project?.dateOfReceipt}
+        value={formData.dateOfReceipt}
+        placeholder={project?.dateOfReceipt}
+        onChange={onChangeHandler}
+      />
+
       <h4>Kunde</h4>
 
       <input

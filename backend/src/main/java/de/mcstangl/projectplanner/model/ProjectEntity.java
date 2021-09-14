@@ -3,6 +3,7 @@ package de.mcstangl.projectplanner.model;
 import lombok.*;
 
 import javax.persistence.*;
+import java.sql.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +28,9 @@ public class ProjectEntity {
 
     @Column(name = "customer")
     private String customer;
+
+    @Column(name = "date_of_receipt", nullable = false)
+    private Date dateOfReceipt;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id")

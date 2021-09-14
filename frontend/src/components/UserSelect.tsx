@@ -14,7 +14,6 @@ const UserSelect: FC<UserSelectProps> = ({
   project,
   userList,
   name,
-  ...props
 }) => {
   let defaultValue: string
   if (project && name === 'owner') {
@@ -31,7 +30,7 @@ const UserSelect: FC<UserSelectProps> = ({
       defaultValue={defaultValue}
       name={name}
     >
-      {defaultValue !== 'owner' && (
+      {name !== 'owner' && (
         <option key="none" value={undefined}>
           kein
         </option>

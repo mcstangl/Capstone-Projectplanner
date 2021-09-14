@@ -63,6 +63,10 @@ public class ProjectService {
             projectEntityCopy.setOwner(projectUpdateData.getOwner());
         }
 
+        if(projectUpdateData.getDateOfReceipt() != null){
+            projectEntityCopy.setDateOfReceipt(projectUpdateData.getDateOfReceipt());
+        }
+
         if (projectUpdateData.getWriters() != null) {
             updateWriters(projectUpdateData, projectEntityCopy);
         }
@@ -129,6 +133,7 @@ public class ProjectService {
         return ProjectEntity.builder()
                 .id(fetchedProjectEntity.getId())
                 .customer(fetchedProjectEntity.getCustomer())
+                .dateOfReceipt(fetchedProjectEntity.getDateOfReceipt())
                 .title(fetchedProjectEntity.getTitle())
                 .writers(fetchedProjectEntity.getWriters())
                 .motionDesigners(fetchedProjectEntity.getMotionDesigners())

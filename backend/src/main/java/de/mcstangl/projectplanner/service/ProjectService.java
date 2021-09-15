@@ -76,8 +76,7 @@ public class ProjectService {
         }
 
         if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
-            updateTitle(newTitle, fetchedProjectEntity, projectEntityCopy);
-            return createNewProject(projectEntityCopy);
+            projectEntityCopy.setTitle(newTitle);
         }
         return projectRepository.save(projectEntityCopy);
     }
@@ -120,14 +119,6 @@ public class ProjectService {
             projectEntityCopy.addMotionDesigner(motionDesignerToAdd);
         }
     }
-
-    private void updateTitle(String newTitle, ProjectEntity fetchedProjectEntity, ProjectEntity projectEntityCopy) {
-        hasText(newTitle, "Projekttitel darf nicht leer sein");
-        projectEntityCopy.setTitle(newTitle.trim());
-        projectEntityCopy.setId(null);
-        projectRepository.delete(fetchedProjectEntity);
-    }
-
 
     private ProjectEntity copyProjectEntity(ProjectEntity fetchedProjectEntity) {
         return ProjectEntity.builder()

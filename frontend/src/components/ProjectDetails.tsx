@@ -9,6 +9,10 @@ interface ProjectDetailsProps {
 const ProjectDetails: FC<ProjectDetailsProps> = ({ project }) => {
   return (
     <ProjectDetailsStyle>
+      <h4>Eingangsdatum</h4>
+
+      <span>{project?.dateOfReceipt}</span>
+
       <h4>Kunde</h4>
 
       <span>{project?.customer}</span>

@@ -4,4 +4,5 @@ export interface NewProjectDto {
   customer: string
   title: string
   owner: UserDto
+  dateOfReceipt: string
 }

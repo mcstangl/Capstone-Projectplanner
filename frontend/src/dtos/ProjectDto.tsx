@@ -1,4 +1,5 @@
 import { UserDto } from './UserDto'
+import { MilestoneDto } from './MilestoneDto'
 
 export interface ProjectDto {
   customer: string
@@ -7,4 +8,5 @@ export interface ProjectDto {
   dateOfReceipt: string
   writer: UserDto[]
   motionDesign: UserDto[]
+  milestones?: MilestoneDto[]
 }

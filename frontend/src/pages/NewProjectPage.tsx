@@ -32,6 +32,7 @@ const NewProjectPage: FC = () => {
   const [formData, setFormData] = useState<NewProjectFormData>({
     customer: '',
     title: '',
+    dateOfReceipt: '',
   })
 
   const history = useHistory()
@@ -117,14 +118,14 @@ const NewProjectPage: FC = () => {
 
           <input
             type="date"
-            defaultValue={formData.dateOfReceipt}
             value={formData.dateOfReceipt}
             onChange={handleDateChange}
           />
 
           {formData.customer.trim() &&
           formData.title.trim() &&
-          formData.owner ? (
+          formData.owner &&
+          formData.dateOfReceipt ? (
             <Button>Speichern</Button>
           ) : (
             <Button disabled>Speichern</Button>

@@ -10,6 +10,8 @@ import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import ProjectDetailsEdit from '../components/ProjectDetailsEdit'
 import ProjectDetails from '../components/ProjectDetails'
+import Milestone from '../components/Milestone'
+import styled from 'styled-components/macro'
 
 interface RouteParams {
   projectTitle: string
@@ -58,21 +60,33 @@ const ProjectDetailsPage: FC = () => {
         <LinkGroup>
           <Link to="/projects">Zurück zur Liste</Link>
         </LinkGroup>
-        {!editMode && <ProjectDetails project={project} />}
-        {editMode && (
-          <ProjectDetailsEdit
-            updateErrorState={updateErrorState}
-            project={project}
-            switchEditMode={switchEditMode}
-            updateProjectState={updateProjectState}
-          />
-        )}
-        {!editMode && authUser && authUser.role === 'ADMIN' && (
-          <Button onClick={onClickHandler}>Edit</Button>
-        )}
-        {error && <p>{error.message}</p>}
+
+        <ProjectDetailsStyle>
+          <section>
+            {!editMode && <ProjectDetails project={project} />}
+            {editMode && (
+              <ProjectDetailsEdit
+                updateErrorState={updateErrorState}
+                project={project}
+                switchEditMode={switchEditMode}
+                updateProjectState={updateProjectState}
+              />
+            )}
+            {!editMode && authUser && authUser.role === 'ADMIN' && (
+              <Button onClick={onClickHandler}>Edit</Button>
+            )}
+            {error && <p>{error.message}</p>}
+          </section>
+
+          {project && <Milestone project={project} />}
+        </ProjectDetailsStyle>
       </main>
     </PageLayout>
   )
 }
 export default ProjectDetailsPage
+
+const ProjectDetailsStyle = styled.section`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+`

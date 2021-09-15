@@ -20,7 +20,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/user")
-public class UserController {
+public class UserController extends Mapper {
 
     private final UserService userService;
 
@@ -35,26 +35,13 @@ public class UserController {
         if(isAdmin(authUser)){
         List<UserEntity> userEntityList = userService.findAll();
 
-        return ok(map(userEntityList));
+        return ok(mapUser(userEntityList));
 
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    private UserDto map(UserEntity userEntity) {
-        return UserDto.builder()
-                .loginName(userEntity.getLoginName())
-                .role(userEntity.getRole())
-                .build();
-    }
 
-    private List<UserDto> map(List<UserEntity> userEntityList){
-        List<UserDto> userDtoList = new LinkedList<>();
-        for (UserEntity userEntity : userEntityList) {
-            userDtoList.add(map(userEntity));
-        }
-        return userDtoList;
-    }
 
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals("ADMIN");

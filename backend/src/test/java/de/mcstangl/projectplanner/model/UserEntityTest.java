@@ -2,6 +2,7 @@ package de.mcstangl.projectplanner.model;
 
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,11 @@ class UserEntityTest extends SpringBootTests {
                 .role("USER").build();
         userRepository.saveAndFlush(admin);
         userRepository.saveAndFlush(user);
+    }
+
+    @AfterEach
+    public void tearDown(){
+        userRepository.deleteAll();
     }
 
     @Test

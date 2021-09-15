@@ -2,7 +2,6 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
-import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
@@ -14,18 +13,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import java.sql.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import static org.springframework.http.ResponseEntity.ok;
 
 @CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/project")
-public class ProjectController {
+public class ProjectController extends Mapper{
 
     private final ProjectService projectService;
     private final UserService userService;
@@ -52,13 +47,13 @@ public class ProjectController {
 
             UserEntity ownerEntity = getOwnerEntity(newProject);
 
-            ProjectEntity newProjectEntity = map(newProject);
+            ProjectEntity newProjectEntity = mapProject(newProject);
 
             newProjectEntity.setOwner(ownerEntity);
 
             ProjectEntity createdProjectEntity = projectService.createNewProject(newProjectEntity);
 
-            return ok(map(createdProjectEntity));
+            return ok(mapProject(createdProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
@@ -69,14 +64,14 @@ public class ProjectController {
 
         List<ProjectEntity> projectEntityList = projectService.findAll();
 
-        return ok(map(projectEntityList));
+        return ok(mapProject(projectEntityList));
     }
 
     @GetMapping("{title}")
     public ResponseEntity<ProjectDto> findByTitle(@PathVariable String title) {
         ProjectEntity projectEntity = projectService.findByTitle(title)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", title)));
-        return ok(map(projectEntity));
+        return ok(mapProject(projectEntity));
 
     }
 
@@ -93,15 +88,14 @@ public class ProjectController {
             updateProjectDto.setMotionDesign(List.of());
         }
 
-
         if (isAdmin(authUser)) {
 
             String newTitle = updateProjectDto.getNewTitle();
             UserEntity ownerEntity = getOwnerEntity(updateProjectDto);
-            ProjectEntity projectUpdateEntity = map(updateProjectDto);
+            ProjectEntity projectUpdateEntity = mapProject(updateProjectDto);
             projectUpdateEntity.setOwner(ownerEntity);
             ProjectEntity updatedProjectEntity = projectService.update(projectUpdateEntity, newTitle);
-            return ok(map(updatedProjectEntity));
+            return ok(mapProject(updatedProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
@@ -120,72 +114,5 @@ public class ProjectController {
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", updateProjectDto.getOwner().getLoginName())));
     }
-    private ProjectEntity map(UpdateProjectDto updateProjectDto) {
-        return ProjectEntity.builder()
-                .owner(map(updateProjectDto.getOwner()))
-                .customer(updateProjectDto.getCustomer())
-                .dateOfReceipt(Date.valueOf(updateProjectDto.getDateOfReceipt()))
-                .writers(mapUserDto(updateProjectDto.getWriter()))
-                .motionDesigners(mapUserDto(updateProjectDto.getMotionDesign()))
-                .title(updateProjectDto.getTitle())
-                .build();
-    }
 
-
-    private ProjectEntity map(ProjectDto projectDto) {
-        return ProjectEntity.builder()
-                .customer(projectDto.getCustomer())
-                .title(projectDto.getTitle())
-                .dateOfReceipt(Date.valueOf(projectDto.getDateOfReceipt()))
-                .writers(mapUserDto(projectDto.getWriter()))
-                .motionDesigners(mapUserDto(projectDto.getMotionDesign()))
-                .build();
-    }
-
-    private ProjectDto map(ProjectEntity projectEntity) {
-        return ProjectDto.builder()
-                .customer(projectEntity.getCustomer())
-                .owner(map(projectEntity.getOwner()))
-                .dateOfReceipt(projectEntity.getDateOfReceipt().toString())
-                .writer(map(projectEntity.getWriters()))
-                .motionDesign(map(projectEntity.getMotionDesigners()))
-                .title(projectEntity.getTitle())
-                .build();
-    }
-
-    private List<ProjectDto> map(List<ProjectEntity> projectEntityList) {
-        List<ProjectDto> projectDtoList = new LinkedList<>();
-        for (ProjectEntity projectEntity : projectEntityList) {
-            projectDtoList.add(map(projectEntity));
-        }
-        return projectDtoList;
-    }
-
-    private UserDto map(UserEntity userEntity){
-        return UserDto.builder()
-                .loginName(userEntity.getLoginName())
-                .role(userEntity.getRole())
-                .build();
-    }
-    private UserEntity map(UserDto userDto) {
-        return UserEntity.builder()
-                .loginName(userDto.getLoginName())
-                .role(userDto.getRole())
-                .build();
-    }
-
-    private List<UserDto> map(Set<UserEntity> userEntities){
-        List<UserDto> userDtoList = new LinkedList<>();
-        for (UserEntity userEntity : userEntities) {
-            userDtoList.add(map(userEntity));
-        }
-        return userDtoList;
-    }
-    private Set<UserEntity> mapUserDto(List<UserDto> userDtos){
-        Set<UserEntity> userEntitySet = new HashSet<>();
-        for (UserDto userDto : userDtos) {
-            userEntitySet.add(map(userDto));
-        }
-        return userEntitySet;
-    }
 }

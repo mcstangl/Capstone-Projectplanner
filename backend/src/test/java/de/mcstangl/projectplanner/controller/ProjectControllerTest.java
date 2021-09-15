@@ -48,9 +48,13 @@ class ProjectControllerTest extends SpringBootTests {
     @Autowired
     private UserRepository userRepository;
 
+
+
     @BeforeEach
     public void setup() {
-        userRepository.saveAndFlush(UserEntity.builder()
+
+
+        UserEntity testUser1 = userRepository.saveAndFlush(UserEntity.builder()
                 .id(1L)
                 .loginName("Test")
                 .password("Test")
@@ -66,9 +70,7 @@ class ProjectControllerTest extends SpringBootTests {
                         .id(1L)
                         .title("Test")
                         .dateOfReceipt(java.sql.Date.valueOf("2012-03-21"))
-                        .owner(UserEntity.builder()
-                                .id(1L)
-                                .loginName("Test").build())
+                        .owner(testUser1)
                         .customer("Test").build()
 
         );
@@ -77,6 +79,7 @@ class ProjectControllerTest extends SpringBootTests {
     @AfterEach
     public void clear() {
         projectRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test

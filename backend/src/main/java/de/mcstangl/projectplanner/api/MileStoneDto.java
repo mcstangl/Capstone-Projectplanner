@@ -16,5 +16,6 @@ public class MileStoneDto {
     private String title;
     private String dateFinished;
     private String dueDate;
+    private String projectTitle;
 
 }

@@ -1,7 +1,7 @@
 package de.mcstangl.projectplanner.model;
 
 import de.mcstangl.projectplanner.SpringBootTests;
-import de.mcstangl.projectplanner.repository.MileStoneRepository;
+import de.mcstangl.projectplanner.repository.MilestoneRepository;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,18 +23,18 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-class MileStoneEntityTest extends SpringBootTests {
+class MilestoneEntityTest extends SpringBootTests {
 
 
     @Autowired
-    private MileStoneRepository mileStoneRepository;
+    private MilestoneRepository milestoneRepository;
 
     @Autowired
     private ProjectRepository projectRepository;
 
-    private MileStoneEntity testMilestone1;
-    private MileStoneEntity testMilestone2;
-    private MileStoneEntity testMilestone3;
+    private MilestoneEntity testMilestone1;
+    private MilestoneEntity testMilestone2;
+    private MilestoneEntity testMilestone3;
     private ProjectEntity testProject1;
     private ProjectEntity testProject2;
 
@@ -58,8 +58,8 @@ class MileStoneEntityTest extends SpringBootTests {
                         .build()
         );
 
-        testMilestone1 = mileStoneRepository.save(
-                MileStoneEntity.builder()
+        testMilestone1 = milestoneRepository.save(
+                MilestoneEntity.builder()
                         .id(1L)
                         .projectEntity(testProject1)
                         .dateFinished(Date.valueOf("2021-12-12"))
@@ -67,8 +67,8 @@ class MileStoneEntityTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone2 = mileStoneRepository.saveAndFlush(
-                MileStoneEntity.builder()
+        testMilestone2 = milestoneRepository.saveAndFlush(
+                MilestoneEntity.builder()
                         .id(2L)
                         .projectEntity(testProject1)
                         .dateFinished(Date.valueOf("2021-12-12"))
@@ -76,7 +76,7 @@ class MileStoneEntityTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone3 = MileStoneEntity.builder()
+        testMilestone3 = MilestoneEntity.builder()
                 .projectEntity(testProject2)
                 .dateFinished(Date.valueOf("2021-12-12"))
                 .dueDate(Date.valueOf("2021-03-13"))
@@ -88,7 +88,7 @@ class MileStoneEntityTest extends SpringBootTests {
 
     @AfterEach
     public void tearDown(){
-        mileStoneRepository.deleteAll();
+        milestoneRepository.deleteAll();
         projectRepository.deleteAll();
     }
 
@@ -97,7 +97,7 @@ class MileStoneEntityTest extends SpringBootTests {
     @DisplayName("Find by project should return the milestone found")
     public void findByProject() {
         // When
-        List<MileStoneEntity> actual = mileStoneRepository.findAllByProjectEntity(testProject1);
+        List<MilestoneEntity> actual = milestoneRepository.findAllByProjectEntity(testProject1);
 
         // Then
         assertThat(actual.size(), is(2));
@@ -109,7 +109,7 @@ class MileStoneEntityTest extends SpringBootTests {
     @DisplayName("Save should persist the milestone to DB")
     public void save() {
         // When
-        MileStoneEntity actual = mileStoneRepository.save(testMilestone3);
+        MilestoneEntity actual = milestoneRepository.save(testMilestone3);
 
         // Then
         assertThat(actual.getTitle(), is("Test3"));
@@ -122,13 +122,13 @@ class MileStoneEntityTest extends SpringBootTests {
     @DisplayName("Save milestone without title or project should fail")
     public void saveWithoutTitleAndProject(String title, ProjectEntity project){
         // Given
-        MileStoneEntity testMilestone = MileStoneEntity.builder()
+        MilestoneEntity testMilestone = MilestoneEntity.builder()
                 .title(title)
                 .projectEntity(project)
                 .build();
 
         // When
-        assertThrows(DataIntegrityViolationException.class, ()->mileStoneRepository.save(testMilestone));
+        assertThrows(DataIntegrityViolationException.class, ()-> milestoneRepository.save(testMilestone));
     }
 
 

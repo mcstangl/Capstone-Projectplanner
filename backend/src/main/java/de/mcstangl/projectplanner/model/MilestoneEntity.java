@@ -14,7 +14,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class MileStoneEntity {
+public class MilestoneEntity {
 
     @Id
     @GeneratedValue
@@ -38,7 +38,7 @@ public class MileStoneEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MileStoneEntity that = (MileStoneEntity) o;
+        MilestoneEntity that = (MilestoneEntity) o;
         return Objects.equals(id, that.id) && Objects.equals(title, that.title);
     }
 

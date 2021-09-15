@@ -1,9 +1,8 @@
 package de.mcstangl.projectplanner.service;
 
-import de.mcstangl.projectplanner.model.MileStoneEntity;
+import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
-import de.mcstangl.projectplanner.repository.MileStoneRepository;
-import de.mcstangl.projectplanner.repository.ProjectRepository;
+import de.mcstangl.projectplanner.repository.MilestoneRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,19 +14,18 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class MileStoneServiceTest {
+class MilestoneServiceTest {
 
     @Mock
-    private MileStoneRepository mileStoneRepositoryMock;
+    private MilestoneRepository milestoneRepositoryMock;
 
     @Mock
     private ProjectService projectServiceMock;
 
     @InjectMocks
-    private MileStoneService mileStoneService;
+    private MilestoneService mileStoneService;
 
 
     private AutoCloseable closeable;
@@ -35,7 +33,7 @@ class MileStoneServiceTest {
     @Captor
     private ArgumentCaptor<ProjectEntity> projectEntityArgumentCaptor;
 
-    private MileStoneEntity testMilestone1;
+    private MilestoneEntity testMilestone1;
 
     @BeforeEach
     public void setup(){
@@ -45,7 +43,7 @@ class MileStoneServiceTest {
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
 
-        testMilestone1 = MileStoneEntity.builder()
+        testMilestone1 = MilestoneEntity.builder()
                 .projectEntity(ProjectEntity.builder().title("Test").build())
                 .dateFinished(Date.valueOf("2021-12-12"))
                 .dueDate(Date.valueOf("2021-03-13"))
@@ -64,7 +62,7 @@ class MileStoneServiceTest {
         // When
         mileStoneService.findAllByProjectTitle("Test");
 
-        verify(mileStoneRepositoryMock,times(1)).findAllByProjectEntity(projectEntityArgumentCaptor.capture());
+        verify(milestoneRepositoryMock,times(1)).findAllByProjectEntity(projectEntityArgumentCaptor.capture());
         ProjectEntity capturedArgument = projectEntityArgumentCaptor.getValue();
 
         // Then
@@ -79,6 +77,6 @@ class MileStoneServiceTest {
         mileStoneService.createNewMileStone(testMilestone1);
 
         // Then
-        verify(mileStoneRepositoryMock, times(1)).save(testMilestone1);
+        verify(milestoneRepositoryMock, times(1)).save(testMilestone1);
     }
 }

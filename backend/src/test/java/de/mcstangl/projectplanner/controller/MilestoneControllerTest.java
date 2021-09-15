@@ -1,10 +1,10 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.SpringBootTests;
-import de.mcstangl.projectplanner.api.MileStoneDto;
-import de.mcstangl.projectplanner.model.MileStoneEntity;
+import de.mcstangl.projectplanner.api.MilestoneDto;
+import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
-import de.mcstangl.projectplanner.repository.MileStoneRepository;
+import de.mcstangl.projectplanner.repository.MilestoneRepository;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import de.mcstangl.projectplanner.util.TestUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -21,7 +21,6 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 
 import java.sql.Date;
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class MileStoneControllerTest extends SpringBootTests {
+class MilestoneControllerTest extends SpringBootTests {
 
 
     @LocalServerPort
@@ -43,14 +42,14 @@ class MileStoneControllerTest extends SpringBootTests {
     private TestRestTemplate testRestTemplate;
 
     @Autowired
-    private MileStoneRepository mileStoneRepository;
+    private MilestoneRepository milestoneRepository;
 
     @Autowired
     private ProjectRepository projectRepository;
 
-    private MileStoneEntity testMilestone1;
-    private MileStoneEntity testMilestone2;
-    private MileStoneEntity testMilestone3;
+    private MilestoneEntity testMilestone1;
+    private MilestoneEntity testMilestone2;
+    private MilestoneEntity testMilestone3;
     private ProjectEntity testProject1;
 
     @BeforeEach
@@ -73,8 +72,8 @@ class MileStoneControllerTest extends SpringBootTests {
                         .build()
         );
 
-        testMilestone1 = mileStoneRepository.saveAndFlush(
-                MileStoneEntity.builder()
+        testMilestone1 = milestoneRepository.saveAndFlush(
+                MilestoneEntity.builder()
                         .id(1L)
                         .projectEntity(testProject1)
                         .dateFinished(Date.valueOf("2021-12-12"))
@@ -82,8 +81,8 @@ class MileStoneControllerTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone2 = mileStoneRepository.saveAndFlush(
-                MileStoneEntity.builder()
+        testMilestone2 = milestoneRepository.saveAndFlush(
+                MilestoneEntity.builder()
                         .id(2L)
                         .projectEntity(testProject1)
                         .dateFinished(Date.valueOf("2021-12-12"))
@@ -91,7 +90,7 @@ class MileStoneControllerTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone3 = MileStoneEntity.builder()
+        testMilestone3 = MilestoneEntity.builder()
                 .projectEntity(testProject2)
                 .dateFinished(Date.valueOf("2021-12-12"))
                 .dueDate(Date.valueOf("2021-03-13"))
@@ -103,7 +102,7 @@ class MileStoneControllerTest extends SpringBootTests {
 
     @AfterEach
     public void tearDown() {
-        mileStoneRepository.deleteAll();
+        milestoneRepository.deleteAll();
         projectRepository.deleteAll();
     }
 
@@ -112,11 +111,11 @@ class MileStoneControllerTest extends SpringBootTests {
     @DisplayName("Find by project title should return all milestones related the project")
     public void findAllByProjectTitle() {
         // When
-        ResponseEntity<MileStoneDto[]> response = testRestTemplate.exchange(
+        ResponseEntity<MilestoneDto[]> response = testRestTemplate.exchange(
                 getUrl() + "/Test1",
                 HttpMethod.GET,
                 new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
-                MileStoneDto[].class);
+                MilestoneDto[].class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -128,7 +127,7 @@ class MileStoneControllerTest extends SpringBootTests {
     @DisplayName("Create new milestone should return the milestone created")
     public void createNewMilestone(){
         // Given
-        MileStoneDto mileStoneDto = MileStoneDto.builder()
+        MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle("Test1")
                 .title("Test")
                 .dueDate("2021-03-13")
@@ -136,11 +135,11 @@ class MileStoneControllerTest extends SpringBootTests {
                 .build();
 
         // When
-        ResponseEntity<MileStoneDto> response = testRestTemplate.exchange(
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
                 new HttpEntity<>(mileStoneDto, testUtil.getAuthHeader("ADMIN")),
-                MileStoneDto.class);
+                MilestoneDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -155,7 +154,7 @@ class MileStoneControllerTest extends SpringBootTests {
     @DisplayName("Create new milestone without title or unknown project title should fail")
     public void createNewMilestone(String title, String projectTitle, HttpStatus httpStatus){
         // Given
-        MileStoneDto mileStoneDto = MileStoneDto.builder()
+        MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle(projectTitle)
                 .title(title)
                 .dueDate("2021-03-13")
@@ -163,11 +162,11 @@ class MileStoneControllerTest extends SpringBootTests {
                 .build();
 
         // When
-        ResponseEntity<MileStoneDto> response = testRestTemplate.exchange(
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
                 new HttpEntity<>(mileStoneDto, testUtil.getAuthHeader("ADMIN")),
-                MileStoneDto.class);
+                MilestoneDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(httpStatus));

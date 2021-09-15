@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MileStoneDto {
+public class MilestoneDto {
 
     private Long id;
     private String title;

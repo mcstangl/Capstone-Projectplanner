@@ -35,15 +35,15 @@ public class MilestoneController {
     }
 
     @GetMapping("{projectTitle}")
-    public ResponseEntity<List<MilestoneDto>> findAllByProjectTitle(@PathVariable String projectTitle){
+    public ResponseEntity<List<MilestoneDto>> findAllByProjectTitle(@PathVariable String projectTitle) {
         List<MilestoneEntity> milestoneEntityList = mileStoneService.findAllByProjectTitle(projectTitle);
         return ok(map(milestoneEntityList));
     }
 
     @PostMapping
-    public ResponseEntity<MilestoneDto> createNewMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto){
+    public ResponseEntity<MilestoneDto> createNewMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto) {
 
-        if(isAdmin(authUser)) {
+        if (isAdmin(authUser)) {
             hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
 
             ProjectEntity projectEntity = projectService.findByTitle(milestoneDto.getProjectTitle())
@@ -71,21 +71,40 @@ public class MilestoneController {
         }
         return milestoneDtoList;
     }
+
     private MilestoneEntity map(MilestoneDto milestoneDto) {
+        Date dueDate = convertStringToDate(milestoneDto.getDueDate());
+        Date dateFinished = convertStringToDate(milestoneDto.getDateFinished());
         return MilestoneEntity.builder()
+                .id(milestoneDto.getId())
                 .title(milestoneDto.getTitle())
-                .dueDate(Date.valueOf(milestoneDto.getDueDate()))
-                .dateFinished(Date.valueOf(milestoneDto.getDateFinished()))
+                .dueDate(dueDate)
+                .dateFinished(dateFinished)
                 .build();
     }
 
     private MilestoneDto map(MilestoneEntity milestoneEntity) {
+        String dueDate = convertDateToString(milestoneEntity.getDueDate());
+        String dateFinished = convertDateToString(milestoneEntity.getDateFinished());
         return MilestoneDto.builder()
+                .id(milestoneEntity.getId())
                 .title(milestoneEntity.getTitle())
-                .dueDate(milestoneEntity.getDueDate().toString())
+                .dueDate(dueDate)
                 .projectTitle(milestoneEntity.getProjectEntity().getTitle())
-                .dateFinished(milestoneEntity.getDateFinished().toString())
+                .dateFinished(dateFinished)
                 .build();
     }
 
+    private Date convertStringToDate(String dateString) {
+        try {
+            return Date.valueOf(dateString);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+    private String convertDateToString(Date date){
+        if(date == null){
+            return null;
+        }return date.toString();
+    }
 }

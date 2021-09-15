@@ -47,14 +47,9 @@ class MilestoneControllerTest extends SpringBootTests {
     @Autowired
     private ProjectRepository projectRepository;
 
-    private MilestoneEntity testMilestone1;
-    private MilestoneEntity testMilestone2;
-    private MilestoneEntity testMilestone3;
-    private ProjectEntity testProject1;
-
     @BeforeEach
     public void setup() {
-        testProject1 = projectRepository.saveAndFlush(
+        ProjectEntity testProject1 = projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .id(1L)
                         .dateOfReceipt(Date.valueOf("2021-01-01"))
@@ -63,16 +58,7 @@ class MilestoneControllerTest extends SpringBootTests {
                         .build()
         );
 
-        ProjectEntity testProject2 = projectRepository.saveAndFlush(
-                ProjectEntity.builder()
-                        .id(2L)
-                        .dateOfReceipt(Date.valueOf("2021-01-01"))
-                        .title("Test2")
-                        .customer("Test")
-                        .build()
-        );
-
-        testMilestone1 = milestoneRepository.saveAndFlush(
+        milestoneRepository.saveAndFlush(
                 MilestoneEntity.builder()
                         .id(1L)
                         .projectEntity(testProject1)
@@ -81,7 +67,7 @@ class MilestoneControllerTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone2 = milestoneRepository.saveAndFlush(
+        milestoneRepository.saveAndFlush(
                 MilestoneEntity.builder()
                         .id(2L)
                         .projectEntity(testProject1)
@@ -90,14 +76,6 @@ class MilestoneControllerTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone3 = MilestoneEntity.builder()
-                .projectEntity(testProject2)
-                .dateFinished(Date.valueOf("2021-12-12"))
-                .dueDate(Date.valueOf("2021-03-13"))
-                .title("Test3")
-                .build();
-
-
     }
 
     @AfterEach
@@ -202,6 +180,44 @@ class MilestoneControllerTest extends SpringBootTests {
                 Arguments.of("Test", "Unknown", HttpStatus.NOT_FOUND),
                 Arguments.of("Test", null , HttpStatus.NOT_FOUND)
 
+        );
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForCreateNewMilestoneWithBadDatesTest")
+    @DisplayName("Create new milestone with a bad date should the date to null")
+    public void createNewMilestoneWithBadDates(String dueDate, String dateFinished, String expectedDueDate, String expectedDateFinished){
+        // Given
+        MilestoneDto mileStoneDto = MilestoneDto.builder()
+                .projectTitle("Test1")
+                .title("Test")
+                .dueDate(dueDate)
+                .dateFinished(dateFinished)
+                .build();
+
+        // When
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
+                getUrl(),
+                HttpMethod.POST,
+                new HttpEntity<>(mileStoneDto, testUtil.getAuthHeader("ADMIN")),
+                MilestoneDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getDueDate(), is(expectedDueDate));
+        assertThat(response.getBody().getDateFinished(), is(expectedDateFinished));
+
+    }
+
+
+    private static Stream<Arguments> getArgumentsForCreateNewMilestoneWithBadDatesTest(){
+        return Stream.of(
+                Arguments.of(null, "2001-12-12", null, "2001-12-12"),
+                Arguments.of("2001-12-12", null, "2001-12-12", null ),
+                Arguments.of("noDate", "2001-12-12", null, "2001-12-12"),
+                Arguments.of("2001-12-12", "noDate", "2001-12-12", null )
         );
     }
 

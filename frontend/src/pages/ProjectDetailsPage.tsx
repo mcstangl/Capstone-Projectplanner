@@ -42,6 +42,14 @@ const ProjectDetailsPage: FC = () => {
     }
   }
 
+  const fetchProject = () => {
+    if (token) {
+      findProjectByTitle(projectTitle, token)
+        .then(setProject)
+        .catch(error => setError(error.response.data))
+    }
+  }
+
   const updateProjectState = (projectDto: ProjectDto) => {
     setProject(projectDto)
   }
@@ -78,7 +86,9 @@ const ProjectDetailsPage: FC = () => {
             {error && <p>{error.message}</p>}
           </section>
 
-          {project && <Milestone project={project} />}
+          {project && (
+            <Milestone fetchProject={fetchProject} project={project} />
+          )}
         </ProjectDetailsStyle>
       </main>
     </PageLayout>

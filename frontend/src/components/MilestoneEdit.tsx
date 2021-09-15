@@ -3,6 +3,7 @@ import { ChangeEvent, FC, FormEvent, useContext, useState } from 'react'
 import { createNewMilestone } from '../service/api-service'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 import AuthContext from '../auth/AuthContext'
+import { RestExceptionDto } from '../dtos/RestExceptionDto'
 
 interface MilestoneFormData {
   title: string
@@ -13,13 +14,16 @@ interface MilestoneFormData {
 interface MilestoneEditProps {
   projectTitle: string
   switchEditMode: () => void
+  fetchProject: () => void
 }
 
 const MilestoneEdit: FC<MilestoneEditProps> = ({
   projectTitle,
   switchEditMode,
+  fetchProject,
 }) => {
   const { token } = useContext(AuthContext)
+  const [error, setError] = useState<RestExceptionDto>()
   const [formData, setFormData] = useState<MilestoneFormData>({
     title: '',
     dueDate: '',
@@ -40,8 +44,9 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
         projectTitle: projectTitle,
       }
       createNewMilestone(token, milestoneDto)
+        .then(fetchProject)
         .then(switchEditMode)
-        .catch(console.error)
+        .catch(error => setError(error.response.data))
     }
   }
   const handleOnClick = () => switchEditMode()
@@ -75,6 +80,7 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
       ) : (
         <Button disabled>Speichern</Button>
       )}
+      {error && <p>{error.message}</p>}
     </form>
   )
 }

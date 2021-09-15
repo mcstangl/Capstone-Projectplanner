@@ -13,8 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import java.sql.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -23,7 +21,7 @@ import static org.springframework.util.Assert.hasText;
 @CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/milestone")
-public class MilestoneController {
+public class MilestoneController extends Mapper{
 
     private final MilestoneService mileStoneService;
     private final ProjectService projectService;
@@ -37,7 +35,7 @@ public class MilestoneController {
     @GetMapping("{projectTitle}")
     public ResponseEntity<List<MilestoneDto>> findAllByProjectTitle(@PathVariable String projectTitle) {
         List<MilestoneEntity> milestoneEntityList = mileStoneService.findAllByProjectTitle(projectTitle);
-        return ok(map(milestoneEntityList));
+        return ok(mapMilestone(milestoneEntityList));
     }
 
     @PostMapping
@@ -50,12 +48,12 @@ public class MilestoneController {
                     .orElseThrow(() -> new EntityNotFoundException(
                             String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", milestoneDto.getProjectTitle())));
 
-            MilestoneEntity mileStoneEntity = map(milestoneDto);
+            MilestoneEntity mileStoneEntity = mapMilestone(milestoneDto);
             mileStoneEntity.setProjectEntity(projectEntity);
 
             MilestoneEntity newMileStone = mileStoneService.createNewMileStone(mileStoneEntity);
 
-            return ok(map(newMileStone));
+            return ok(mapMilestone(newMileStone));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
@@ -64,47 +62,4 @@ public class MilestoneController {
         return authUser.getRole().equals("ADMIN");
     }
 
-    private List<MilestoneDto> map(List<MilestoneEntity> milestoneEntityList) {
-        List<MilestoneDto> milestoneDtoList = new LinkedList<>();
-        for (MilestoneEntity mileStoneEntity : milestoneEntityList) {
-            milestoneDtoList.add(map(mileStoneEntity));
-        }
-        return milestoneDtoList;
-    }
-
-    private MilestoneEntity map(MilestoneDto milestoneDto) {
-        Date dueDate = convertStringToDate(milestoneDto.getDueDate());
-        Date dateFinished = convertStringToDate(milestoneDto.getDateFinished());
-        return MilestoneEntity.builder()
-                .id(milestoneDto.getId())
-                .title(milestoneDto.getTitle())
-                .dueDate(dueDate)
-                .dateFinished(dateFinished)
-                .build();
-    }
-
-    private MilestoneDto map(MilestoneEntity milestoneEntity) {
-        String dueDate = convertDateToString(milestoneEntity.getDueDate());
-        String dateFinished = convertDateToString(milestoneEntity.getDateFinished());
-        return MilestoneDto.builder()
-                .id(milestoneEntity.getId())
-                .title(milestoneEntity.getTitle())
-                .dueDate(dueDate)
-                .projectTitle(milestoneEntity.getProjectEntity().getTitle())
-                .dateFinished(dateFinished)
-                .build();
-    }
-
-    private Date convertStringToDate(String dateString) {
-        try {
-            return Date.valueOf(dateString);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-    private String convertDateToString(Date date){
-        if(date == null){
-            return null;
-        }return date.toString();
-    }
 }

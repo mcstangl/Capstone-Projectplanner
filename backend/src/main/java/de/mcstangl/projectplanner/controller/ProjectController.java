@@ -93,7 +93,6 @@ public class ProjectController {
             updateProjectDto.setMotionDesign(List.of());
         }
 
-
         if (isAdmin(authUser)) {
 
             String newTitle = updateProjectDto.getNewTitle();

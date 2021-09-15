@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.sql.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -43,6 +44,9 @@ public class ProjectEntity {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "motionDesinger_id")
     private Set<UserEntity> motionDesigners = new HashSet<>();
+
+    @OneToMany(mappedBy = "projectEntity" , fetch=FetchType.EAGER )
+    private Set<MilestoneEntity> milestones;
 
     public void addWriter(UserEntity userEntity) {
         writers.add(userEntity);

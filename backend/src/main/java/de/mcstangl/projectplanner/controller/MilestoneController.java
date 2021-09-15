@@ -3,10 +3,13 @@ package de.mcstangl.projectplanner.controller;
 import de.mcstangl.projectplanner.api.MilestoneDto;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
+import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.MilestoneService;
 import de.mcstangl.projectplanner.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
@@ -38,22 +41,28 @@ public class MilestoneController {
     }
 
     @PostMapping
-    public ResponseEntity<MilestoneDto> createNewMilestone(@RequestBody MilestoneDto milestoneDto){
+    public ResponseEntity<MilestoneDto> createNewMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto){
 
-        hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
+        if(isAdmin(authUser)) {
+            hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
 
-        ProjectEntity projectEntity = projectService.findByTitle(milestoneDto.getProjectTitle())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", milestoneDto.getProjectTitle())));
+            ProjectEntity projectEntity = projectService.findByTitle(milestoneDto.getProjectTitle())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", milestoneDto.getProjectTitle())));
 
-        MilestoneEntity mileStoneEntity = map(milestoneDto);
-        mileStoneEntity.setProjectEntity(projectEntity);
+            MilestoneEntity mileStoneEntity = map(milestoneDto);
+            mileStoneEntity.setProjectEntity(projectEntity);
 
-        MilestoneEntity newMileStone = mileStoneService.createNewMileStone(mileStoneEntity);
+            MilestoneEntity newMileStone = mileStoneService.createNewMileStone(mileStoneEntity);
 
-        return ok(map(newMileStone));
+            return ok(map(newMileStone));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    private boolean isAdmin(UserEntity authUser) {
+        return authUser.getRole().equals("ADMIN");
+    }
 
     private List<MilestoneDto> map(List<MilestoneEntity> milestoneEntityList) {
         List<MilestoneDto> milestoneDtoList = new LinkedList<>();
@@ -78,6 +87,5 @@ public class MilestoneController {
                 .dateFinished(milestoneEntity.getDateFinished().toString())
                 .build();
     }
-
 
 }

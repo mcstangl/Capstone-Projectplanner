@@ -149,6 +149,28 @@ class MilestoneControllerTest extends SpringBootTests {
         assertThat(response.getBody().getDueDate() ,is("2021-03-13"));
     }
 
+    @Test
+    @DisplayName("Create new milestone as user should fail")
+    public void createNewMilestoneAsUser(){
+        // Given
+        MilestoneDto mileStoneDto = MilestoneDto.builder()
+                .projectTitle("Test1")
+                .title("Test")
+                .dueDate("2021-03-13")
+                .dateFinished("2021-12-12")
+                .build();
+
+        // When
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
+                getUrl(),
+                HttpMethod.POST,
+                new HttpEntity<>(mileStoneDto, testUtil.getAuthHeader("USER")),
+                MilestoneDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
+
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateNewMilestoneTest")
     @DisplayName("Create new milestone without title or unknown project title should fail")

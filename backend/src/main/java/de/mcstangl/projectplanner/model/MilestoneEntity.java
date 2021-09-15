@@ -30,7 +30,7 @@ public class MilestoneEntity {
     @Column(name="due_date")
     private Date dueDate;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="project_id", nullable = false)
     private ProjectEntity projectEntity;
 

@@ -21,6 +21,7 @@ public class ProjectDto {
     private String dateOfReceipt;
     private List<UserDto> writer;
     private List<UserDto> motionDesign;
+    private List<MilestoneDto> milestones;
 
     @Override
     public boolean equals(Object o) {

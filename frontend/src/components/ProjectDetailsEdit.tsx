@@ -130,7 +130,6 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
       <input
         type="date"
         name="dateOfReceipt"
-        defaultValue={project?.dateOfReceipt}
         value={formData.dateOfReceipt}
         placeholder={project?.dateOfReceipt}
         onChange={onChangeHandler}

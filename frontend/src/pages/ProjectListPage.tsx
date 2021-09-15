@@ -28,7 +28,7 @@ const ProjectListPage: FC = () => {
           </LinkGroup>
         )}
         <List>
-          <ListHeader>
+          <ListHeader key="header">
             <h4>Eingangsdatum</h4>
             <h4>Kunde</h4>
             <h4>Titel</h4>
@@ -49,10 +49,12 @@ const ProjectListPage: FC = () => {
                 <span>{project.title}</span>
                 <span>{project.owner.loginName}</span>
                 {project.writer.map(writer => (
-                  <span>{writer.loginName}</span>
+                  <span key={writer.loginName}>{writer.loginName}</span>
                 ))}
                 {project.motionDesign.map(motionDesigner => (
-                  <span>{motionDesigner.loginName}</span>
+                  <span key={motionDesigner.loginName}>
+                    {motionDesigner.loginName}
+                  </span>
                 ))}
               </ListItem>
             ))}

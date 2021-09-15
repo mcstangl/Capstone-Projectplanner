@@ -36,6 +36,7 @@ class MileStoneEntityTest extends SpringBootTests {
     private MileStoneEntity testMilestone2;
     private MileStoneEntity testMilestone3;
     private ProjectEntity testProject1;
+    private ProjectEntity testProject2;
 
     @BeforeEach
     public void setup() {
@@ -48,7 +49,7 @@ class MileStoneEntityTest extends SpringBootTests {
                         .build()
         );
 
-        ProjectEntity testProject2 = projectRepository.saveAndFlush(
+        testProject2 = projectRepository.saveAndFlush(
                 ProjectEntity.builder()
                         .id(2L)
                         .dateOfReceipt(Date.valueOf("2021-01-01"))
@@ -66,23 +67,22 @@ class MileStoneEntityTest extends SpringBootTests {
                         .title("Test")
                         .build()
         );
-        testMilestone2 = MileStoneEntity.builder()
-                .id(2L)
-                .projectEntity(testProject2)
-                .dateFinished(Date.valueOf("2021-12-12"))
-                .dueDate(Date.valueOf("2021-03-13"))
-                .title("Test2")
-                .build();
-
-        testMilestone3 = mileStoneRepository.saveAndFlush(
+        testMilestone2 = mileStoneRepository.saveAndFlush(
                 MileStoneEntity.builder()
-                        .id(3L)
+                        .id(2L)
                         .projectEntity(testProject1)
                         .dateFinished(Date.valueOf("2021-12-12"))
                         .dueDate(Date.valueOf("2021-03-13"))
                         .title("Test")
                         .build()
         );
+        testMilestone3 = MileStoneEntity.builder()
+                .projectEntity(testProject2)
+                .dateFinished(Date.valueOf("2021-12-12"))
+                .dueDate(Date.valueOf("2021-03-13"))
+                .title("Test3")
+                .build();
+
 
     }
 
@@ -101,21 +101,18 @@ class MileStoneEntityTest extends SpringBootTests {
 
         // Then
         assertThat(actual.size(), is(2));
-        assertThat(actual, containsInAnyOrder(testMilestone1, testMilestone3));
+        assertThat(actual, containsInAnyOrder(testMilestone1, testMilestone2));
     }
 
     @Test
     @Transactional
     @DisplayName("Save should persist the milestone to DB")
     public void save() {
-        // Given
-        testMilestone2.setId(null);
-
         // When
-        MileStoneEntity actual = mileStoneRepository.save(testMilestone2);
+        MileStoneEntity actual = mileStoneRepository.save(testMilestone3);
 
         // Then
-        assertThat(actual.getTitle(), is("Test2"));
+        assertThat(actual.getTitle(), is("Test3"));
         assertNotNull(actual.getId());
         assertThat(actual.getProjectEntity().getTitle(), is("Test2"));
     }

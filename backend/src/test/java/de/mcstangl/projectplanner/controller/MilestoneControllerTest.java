@@ -186,7 +186,7 @@ class MilestoneControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateNewMilestoneWithBadDatesTest")
-    @DisplayName("Create new milestone with a bad date should the date to null")
+    @DisplayName("Create new milestone with a bad date should set the date to null")
     public void createNewMilestoneWithBadDates(String dueDate, String dateFinished, String expectedDueDate, String expectedDateFinished){
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()

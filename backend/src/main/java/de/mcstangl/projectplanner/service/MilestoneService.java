@@ -21,8 +21,8 @@ public class MilestoneService {
         this.projectService = projectService;
     }
 
-    public MilestoneEntity createNewMileStone(MilestoneEntity mileStone) {
-        return milestoneRepository.save(mileStone);
+    public MilestoneEntity createNewMilestone(MilestoneEntity milestoneEntity) {
+        return milestoneRepository.save(milestoneEntity);
     }
 
     public List<MilestoneEntity> findAllByProjectTitle(String projectTitle){
@@ -31,5 +31,9 @@ public class MilestoneService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Das Projekt mit dem Titel %s konnte nicht gefunden werden", projectTitle)));
 
         return milestoneRepository.findAllByProjectEntity(projectEntity);
+    }
+
+    public MilestoneEntity updateMilestone(MilestoneEntity milestoneEntity) {
+        return milestoneRepository.save(milestoneEntity);
     }
 }

@@ -45,6 +45,11 @@ export const createNewMilestone = (token: string, milestoneDto: MilestoneDto) =>
     .post('/api/project-planner/milestone', milestoneDto, getAuthHeaders(token))
     .then(response => response.data)
 
+export const upDateMilestone = (token: string, milestoneDto: MilestoneDto) =>
+  axios
+    .put('/api/project-planner/milestone', milestoneDto, getAuthHeaders(token))
+    .then(response => response.data)
+
 const getAuthHeaders = (token: string) => {
   return {
     headers: {

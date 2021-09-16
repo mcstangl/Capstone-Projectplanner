@@ -5,9 +5,13 @@ import MilestoneListItem from './MilestoneListItem'
 
 interface MilestoneListProps {
   milestones: MilestoneDto[]
+  fetchProject: () => void
 }
 
-const MilestoneList: FC<MilestoneListProps> = ({ milestones }) => {
+const MilestoneList: FC<MilestoneListProps> = ({
+  milestones,
+  fetchProject,
+}) => {
   return (
     <MilestoneListStyle>
       <ListHeader>
@@ -16,7 +20,11 @@ const MilestoneList: FC<MilestoneListProps> = ({ milestones }) => {
         <h4>Fertig am</h4>
       </ListHeader>
       {milestones.map(milestone => (
-        <MilestoneListItem key={'' + milestone.id} milestone={milestone} />
+        <MilestoneListItem
+          key={'' + milestone.id}
+          fetchProject={fetchProject}
+          milestone={milestone}
+        />
       ))}
     </MilestoneListStyle>
   )

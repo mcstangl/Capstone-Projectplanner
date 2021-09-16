@@ -22,7 +22,10 @@ const Milestone: FC<MilestoneProps> = ({ project, fetchProject }) => {
   return (
     <MilestoneStyle>
       {project.milestones && project.milestones.length > 0 && (
-        <MilestoneList milestones={project.milestones} />
+        <MilestoneList
+          fetchProject={fetchProject}
+          milestones={project.milestones}
+        />
       )}
       {!editMode && (
         <div>

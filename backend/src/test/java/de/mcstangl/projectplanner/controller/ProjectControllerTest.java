@@ -118,6 +118,7 @@ class ProjectControllerTest extends SpringBootTests {
                         .loginName("Test")
                         .role("ADMIN").build())
                 .customer("Test Customer")
+                .dateOfReceipt("2120-12-12")
                 .build();
 
         // When
@@ -433,6 +434,28 @@ class ProjectControllerTest extends SpringBootTests {
                         .role("ADMIN")
                         .build())
         );
+    }
+
+    @Test
+    @DisplayName("Update Project with a bad date or receipt should return HttpStatus.BAD_REQUEST")
+    public void updateProjectWithBadDateOfReceipt() {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .customer("New Customer")
+                .title("Test")
+                .dateOfReceipt("not-a-date")
+                .newTitle("newTitle")
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
 

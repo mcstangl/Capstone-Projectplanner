@@ -1,18 +1,43 @@
-import { FC } from 'react'
+import { FC, useState } from 'react'
 import styled from 'styled-components/macro'
 import { MilestoneDto } from '../dtos/MilestoneDto'
+import MilestoneEdit from './MilestoneEdit'
 
 interface MilestoneListItemProps {
   milestone: MilestoneDto
+  fetchProject: () => void
 }
 
-const MilestoneListItem: FC<MilestoneListItemProps> = ({ milestone }) => {
+const MilestoneListItem: FC<MilestoneListItemProps> = ({
+  milestone,
+  fetchProject,
+}) => {
+  const [editMode, setEditMode] = useState(false)
+
+  const switchEditMode = () => {
+    if (editMode) {
+      setEditMode(false)
+    } else setEditMode(true)
+  }
+
   return (
-    <MilestoneListItemStyle>
-      <span>{milestone.title}</span>
-      <span>{milestone.dueDate}</span>
-      <span>{milestone.dateFinished}</span>
-    </MilestoneListItemStyle>
+    <section>
+      {!editMode && (
+        <MilestoneListItemStyle onClick={switchEditMode}>
+          <span>{milestone.title}</span>
+          <span>{milestone.dueDate}</span>
+          <span>{milestone.dateFinished}</span>
+        </MilestoneListItemStyle>
+      )}
+      {editMode && (
+        <MilestoneEdit
+          fetchProject={fetchProject}
+          switchEditMode={switchEditMode}
+          projectTitle={milestone.projectTitle}
+          milestone={milestone}
+        />
+      )}
+    </section>
   )
 }
 export default MilestoneListItem

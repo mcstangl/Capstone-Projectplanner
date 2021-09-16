@@ -7,9 +7,12 @@ import { PageLayout } from '../components/PageLayout'
 import { Redirect } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
+import Loader from '../components/Loader'
+import MainStyle from '../components/MainStyle'
 
 const LoginPage: FC = () => {
   const { login, authUser } = useContext(AuthContext)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<RestExceptionDto>()
   const [formData, setFormData] = useState<CredentialsDto>({
     loginName: '',
@@ -17,18 +20,22 @@ const LoginPage: FC = () => {
   })
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value })
+    setFormData({ ...formData, [event.target.name]: event.target.value.trim() })
   }
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
+    setLoading(true)
     setError(undefined)
-    if (login && formData.loginName.trim() && formData.password.trim()) {
+    if (login && formData.loginName && formData.password) {
       const credentialsDto: CredentialsDto = {
-        loginName: formData.loginName.trim(),
-        password: formData.password.trim(),
+        loginName: formData.loginName,
+        password: formData.password,
       }
-      login(credentialsDto).catch(error => setError(error.response.data))
+      login(credentialsDto).catch(error => {
+        setLoading(false)
+        setError(error.response.data)
+      })
     }
   }
 
@@ -39,29 +46,33 @@ const LoginPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <LoginForm onSubmit={submitHandler}>
-        <input
-          type="text"
-          name="loginName"
-          placeholder="Benutzername"
-          value={formData.loginName}
-          onChange={handleInputChange}
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Passwort"
-          value={formData.password}
-          onChange={handleInputChange}
-        />
-        {formData.loginName.trim() && formData.password.trim() ? (
-          <Button>Anmelden</Button>
-        ) : (
-          <Button disabled>Anmelden</Button>
-        )}
+      <MainStyle>
+        {loading && <Loader />}
+        {!loading && (
+          <LoginForm onSubmit={submitHandler}>
+            <input
+              type="text"
+              name="loginName"
+              placeholder="Benutzername"
+              value={formData.loginName}
+              onChange={handleInputChange}
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Passwort"
+              value={formData.password}
+              onChange={handleInputChange}
+            />
 
-        {error && <p>{error.message}</p>}
-      </LoginForm>
+            <Button disabled={!(formData.loginName && formData.password)}>
+              Anmelden
+            </Button>
+
+            {error && <p>{error.message}</p>}
+          </LoginForm>
+        )}
+      </MainStyle>
     </PageLayout>
   )
 }

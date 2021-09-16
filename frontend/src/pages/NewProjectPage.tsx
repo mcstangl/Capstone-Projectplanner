@@ -17,6 +17,8 @@ import { Button } from '../components/Button'
 import { LinkGroup } from '../components/LinkGroup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import { UserDto } from '../dtos/UserDto'
+import Loader from '../components/Loader'
+import MainStyle from '../components/MainStyle'
 
 interface NewProjectFormData {
   customer: string
@@ -28,6 +30,7 @@ interface NewProjectFormData {
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
   const [error, setError] = useState<RestExceptionDto>()
+  const [loading, setLoading] = useState(false)
   const [userList, setUserList] = useState<UserDto[]>()
   const [formData, setFormData] = useState<NewProjectFormData>({
     customer: '',
@@ -45,6 +48,7 @@ const NewProjectPage: FC = () => {
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
+    setLoading(true)
     setError(undefined)
     if (
       token &&
@@ -60,8 +64,14 @@ const NewProjectPage: FC = () => {
         dateOfReceipt: formData.dateOfReceipt,
       }
       createNewProject(newProjectDto, token)
-        .then(() => history.push('/projects'))
-        .catch(error => setError(error.response.data))
+        .then(() => {
+          setLoading(false)
+          history.push('/projects')
+        })
+        .catch(error => {
+          setLoading(false)
+          setError(error.response.data)
+        })
     }
   }
   const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -85,54 +95,56 @@ const NewProjectPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         <LinkGroup>
           <Link to="/projects">Zurück zur Liste</Link>
         </LinkGroup>
-
-        <ProjectForm onSubmit={submitHandler}>
-          <input
-            name="customer"
-            type="text"
-            placeholder="Kundenname"
-            value={formData.customer}
-            onChange={handleInputChange}
-          />
-          <input
-            name="title"
-            type="text"
-            placeholder="Projekt Titel"
-            value={formData.title}
-            onChange={handleInputChange}
-          />
-          <select onChange={handleSelectChange} defaultValue={'DEFAULT'}>
-            <option value="DEFAULT" disabled>
-              ...bitte auswählen
-            </option>
-            {userList?.map(user => (
-              <option key={user.loginName} value={user.loginName}>
-                {user.loginName}
+        {loading && <Loader />}
+        {!loading && (
+          <ProjectForm onSubmit={submitHandler}>
+            <input
+              name="customer"
+              type="text"
+              placeholder="Kundenname"
+              value={formData.customer}
+              onChange={handleInputChange}
+            />
+            <input
+              name="title"
+              type="text"
+              placeholder="Projekt Titel"
+              value={formData.title}
+              onChange={handleInputChange}
+            />
+            <select onChange={handleSelectChange} defaultValue={'DEFAULT'}>
+              <option value="DEFAULT" disabled>
+                ...bitte auswählen
               </option>
-            ))}
-          </select>
+              {userList?.map(user => (
+                <option key={user.loginName} value={user.loginName}>
+                  {user.loginName}
+                </option>
+              ))}
+            </select>
 
-          <input
-            type="date"
-            value={formData.dateOfReceipt}
-            onChange={handleDateChange}
-          />
+            <input
+              type="date"
+              value={formData.dateOfReceipt}
+              onChange={handleDateChange}
+            />
 
-          {formData.customer.trim() &&
-          formData.title.trim() &&
-          formData.owner &&
-          formData.dateOfReceipt ? (
-            <Button>Speichern</Button>
-          ) : (
-            <Button disabled>Speichern</Button>
-          )}
-          {error && <p>{error.message}</p>}
-        </ProjectForm>
-      </main>
+            {formData.customer.trim() &&
+            formData.title.trim() &&
+            formData.owner &&
+            formData.dateOfReceipt ? (
+              <Button>Speichern</Button>
+            ) : (
+              <Button disabled>Speichern</Button>
+            )}
+            {error && <p>{error.message}</p>}
+          </ProjectForm>
+        )}
+      </MainStyle>
     </PageLayout>
   )
 }

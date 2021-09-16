@@ -42,20 +42,39 @@ public class MilestoneController extends Mapper{
     public ResponseEntity<MilestoneDto> createNewMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto) {
 
         if (isAdmin(authUser)) {
-            hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
+            MilestoneEntity milestoneEntity = getMilestoneEntity(milestoneDto);
 
-            ProjectEntity projectEntity = projectService.findByTitle(milestoneDto.getProjectTitle())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", milestoneDto.getProjectTitle())));
+            MilestoneEntity newMilestone = mileStoneService.createNewMilestone(milestoneEntity);
 
-            MilestoneEntity mileStoneEntity = mapMilestone(milestoneDto);
-            mileStoneEntity.setProjectEntity(projectEntity);
-
-            MilestoneEntity newMileStone = mileStoneService.createNewMileStone(mileStoneEntity);
-
-            return ok(mapMilestone(newMileStone));
+            return ok(mapMilestone(newMilestone));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+
+    @PutMapping
+    public ResponseEntity<MilestoneDto> updateMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto) {
+
+        if (isAdmin(authUser)) {
+            MilestoneEntity milestoneEntity = getMilestoneEntity(milestoneDto);
+
+            MilestoneEntity newMilestone = mileStoneService.updateMilestone(milestoneEntity);
+
+            return ok(mapMilestone(newMilestone));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    private MilestoneEntity getMilestoneEntity(MilestoneDto milestoneDto) {
+        hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
+
+        ProjectEntity projectEntity = projectService.findByTitle(milestoneDto.getProjectTitle())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Projekt mit dem Titel %s konnte nicht gefunden werden", milestoneDto.getProjectTitle())));
+
+        MilestoneEntity mileStoneEntity = mapMilestone(milestoneDto);
+        mileStoneEntity.setProjectEntity(projectEntity);
+        return mileStoneEntity;
     }
 
     private boolean isAdmin(UserEntity authUser) {

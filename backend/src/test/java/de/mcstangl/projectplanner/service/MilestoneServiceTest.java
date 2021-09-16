@@ -74,7 +74,7 @@ class MilestoneServiceTest {
     @DisplayName("Create new milestone should persist the milestone")
     public void createNewMilestone(){
         // When
-        mileStoneService.createNewMileStone(testMilestone1);
+        mileStoneService.createNewMilestone(testMilestone1);
 
         // Then
         verify(milestoneRepositoryMock, times(1)).save(testMilestone1);

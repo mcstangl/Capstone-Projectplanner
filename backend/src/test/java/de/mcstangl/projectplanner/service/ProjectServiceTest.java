@@ -233,8 +233,8 @@ class ProjectServiceTest {
         // Given
         when(projectRepository.findByTitle("Test"))
                 .thenReturn(
-                        Optional.of(testProject))
-                .thenReturn(Optional.empty());
+                        Optional.of(testProject));
+
 
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .owner(testUser2)
@@ -248,17 +248,12 @@ class ProjectServiceTest {
         verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
         ProjectEntity actualSaved = projectEntityCaptor.getValue();
 
-        verify(projectRepository, times(1)).delete(projectEntityCaptor.capture());
-        String actualDeleted = projectEntityCaptor.getValue().getTitle();
-
         // Then
         assertThat(actualSaved.getTitle(), is("new Title"));
         assertThat(actualSaved.getCustomer(), is("New Customer"));
         assertNotNull(actualSaved.getOwner());
         assertThat(actualSaved.getOwner().getLoginName(), is("Test2"));
         assertThat(actualSaved.getDateOfReceipt().toString(), is("1999-01-01"));
-
-        assertThat(actualDeleted, is("Test"));
     }
 
     @Test

@@ -45,7 +45,7 @@ public class ProjectEntity {
     @JoinColumn(name = "motionDesinger_id")
     private Set<UserEntity> motionDesigners = new HashSet<>();
 
-    @OneToMany(mappedBy = "projectEntity" , fetch=FetchType.EAGER )
+    @OneToMany(mappedBy = "projectEntity" , fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<MilestoneEntity> milestones;
 
     public void addWriter(UserEntity userEntity) {

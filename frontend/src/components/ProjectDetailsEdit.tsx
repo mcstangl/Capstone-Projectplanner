@@ -90,8 +90,10 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
         motionDesign: formData.motionDesign,
       }
       updateProject(updateProjectDto, token)
-        .then(projectDto => updateProjectState(projectDto))
-        .then(() => switchEditMode())
+        .then(projectDto => {
+          updateProjectState(projectDto)
+          switchEditMode()
+        })
         .catch(error => updateErrorState(error.response.data))
     }
   }

@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useState } from 'react'
+import { FC, useCallback, useContext, useEffect, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
 import { Link, useParams } from 'react-router-dom'
@@ -43,8 +43,8 @@ const ProjectDetailsPage: FC = () => {
   }
 
   const fetchProject = () => {
-    if (token) {
-      findProjectByTitle(projectTitle, token)
+    if (token && project) {
+      findProjectByTitle(project.title, token)
         .then(setProject)
         .catch(error => setError(error.response.data))
     }
@@ -53,9 +53,12 @@ const ProjectDetailsPage: FC = () => {
   const updateProjectState = (projectDto: ProjectDto) => {
     setProject(projectDto)
   }
-  const updateErrorState = (restExceptionDto: RestExceptionDto | undefined) => {
-    setError(restExceptionDto)
-  }
+  const updateErrorState = useCallback(
+    (restExceptionDto: RestExceptionDto | undefined) => {
+      setError(restExceptionDto)
+    },
+    [setError]
+  )
 
   const onClickHandler = () => {
     switchEditMode()

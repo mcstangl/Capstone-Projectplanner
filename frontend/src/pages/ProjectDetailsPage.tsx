@@ -12,6 +12,8 @@ import ProjectDetailsEdit from '../components/ProjectDetailsEdit'
 import ProjectDetails from '../components/ProjectDetails'
 import Milestone from '../components/Milestone'
 import styled from 'styled-components/macro'
+import MainStyle from '../components/MainStyle'
+import Loader from '../components/Loader'
 
 interface RouteParams {
   projectTitle: string
@@ -21,6 +23,7 @@ const ProjectDetailsPage: FC = () => {
   const { projectTitle } = useParams<RouteParams>()
   const { token, authUser } = useContext(AuthContext)
   const [error, setError] = useState<RestExceptionDto>()
+  const [loading, setLoading] = useState(true)
 
   const [project, setProject] = useState<ProjectDto>()
 
@@ -31,6 +34,7 @@ const ProjectDetailsPage: FC = () => {
       findProjectByTitle(projectTitle, token)
         .then(setProject)
         .catch(error => setError(error.response.data))
+        .finally(() => setLoading(false))
     }
   }, [projectTitle, token])
 
@@ -67,39 +71,42 @@ const ProjectDetailsPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         <LinkGroup>
           <Link to="/projects">Zurück zur Liste</Link>
         </LinkGroup>
+        {loading && <Loader />}
+        {!loading && (
+          <ProjectDetailsStyle>
+            <section>
+              {!editMode && <ProjectDetails project={project} />}
+              {editMode && (
+                <ProjectDetailsEdit
+                  updateErrorState={updateErrorState}
+                  project={project}
+                  switchEditMode={switchEditMode}
+                  updateProjectState={updateProjectState}
+                />
+              )}
+              {!editMode && authUser && authUser.role === 'ADMIN' && (
+                <Button onClick={onClickHandler}>Edit</Button>
+              )}
+              {error && <p>{error.message}</p>}
+            </section>
 
-        <ProjectDetailsStyle>
-          <section>
-            {!editMode && <ProjectDetails project={project} />}
-            {editMode && (
-              <ProjectDetailsEdit
-                updateErrorState={updateErrorState}
-                project={project}
-                switchEditMode={switchEditMode}
-                updateProjectState={updateProjectState}
-              />
+            {project && (
+              <Milestone fetchProject={fetchProject} project={project} />
             )}
-            {!editMode && authUser && authUser.role === 'ADMIN' && (
-              <Button onClick={onClickHandler}>Edit</Button>
-            )}
-            {error && <p>{error.message}</p>}
-          </section>
-
-          {project && (
-            <Milestone fetchProject={fetchProject} project={project} />
-          )}
-        </ProjectDetailsStyle>
-      </main>
+          </ProjectDetailsStyle>
+        )}
+      </MainStyle>
     </PageLayout>
   )
 }
 export default ProjectDetailsPage
 
 const ProjectDetailsStyle = styled.section`
+  width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
 `

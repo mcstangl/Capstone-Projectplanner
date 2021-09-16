@@ -15,6 +15,7 @@ import { ProjectDto } from '../dtos/ProjectDto'
 import AuthContext from '../auth/AuthContext'
 import { UserDto } from '../dtos/UserDto'
 import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
+import Loader from './Loader'
 
 interface ProjectDetailsEditProps {
   project?: ProjectDto
@@ -40,6 +41,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 }) => {
   const { token } = useContext(AuthContext)
   const [userList, setUserList] = useState<UserDto[]>()
+  const [loading, setLoading] = useState(true)
 
   const [formData, setFormData] = useState<UpdateProjektFormData>({
     customer: '',
@@ -54,6 +56,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
       findAllUser(token)
         .then(setUserList)
         .catch(error => updateErrorState(error.response.data))
+        .finally(() => setLoading(false))
     }
   }, [token, updateErrorState])
 
@@ -72,6 +75,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
+    setLoading(true)
     updateErrorState(undefined)
     if (
       project &&
@@ -91,6 +95,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
       }
       updateProject(updateProjectDto, token)
         .then(projectDto => {
+          setLoading(false)
           updateProjectState(projectDto)
           switchEditMode()
         })
@@ -103,7 +108,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
   }
 
   const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value })
+    setFormData({ ...formData, [event.target.name]: event.target.value.trim() })
   }
 
   const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -126,73 +131,76 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
   }
 
   return (
-    <ProjectDetails onSubmit={submitHandler}>
-      <h4>Eingangsdatum</h4>
+    <section>
+      {loading && <Loader />}
 
-      <input
-        type="date"
-        name="dateOfReceipt"
-        value={formData.dateOfReceipt}
-        placeholder={project?.dateOfReceipt}
-        onChange={onChangeHandler}
-      />
+      {!loading && project && userList && (
+        <ProjectDetails onSubmit={submitHandler}>
+          <h4>Eingangsdatum</h4>
 
-      <h4>Kunde</h4>
+          <input
+            type="date"
+            name="dateOfReceipt"
+            value={formData.dateOfReceipt}
+            placeholder={formData.dateOfReceipt}
+            onChange={onChangeHandler}
+          />
 
-      <input
-        name="customer"
-        type="text"
-        value={formData.customer}
-        placeholder={project?.customer}
-        onChange={onChangeHandler}
-      />
-      <h4>Title</h4>
+          <h4>Kunde</h4>
 
-      <input
-        name="title"
-        type="text"
-        value={formData.title}
-        placeholder={project?.title}
-        onChange={onChangeHandler}
-      />
-      <h4>Projektleitung</h4>
-      {userList && (
-        <UserSelect
-          handleSelectChange={handleSelectChange}
-          userList={userList}
-          project={project}
-          name="owner"
-        />
+          <input
+            name="customer"
+            type="text"
+            value={formData.customer}
+            placeholder={formData.customer}
+            onChange={onChangeHandler}
+          />
+          <h4>Title</h4>
+
+          <input
+            name="title"
+            type="text"
+            value={formData.title}
+            placeholder={formData.title}
+            onChange={onChangeHandler}
+          />
+          <h4>Projektleitung</h4>
+
+          <UserSelect
+            handleSelectChange={handleSelectChange}
+            userList={userList}
+            project={project}
+            name="owner"
+          />
+
+          <h4>Redaktion</h4>
+
+          <UserSelect
+            handleSelectChange={handleSelectChange}
+            userList={userList}
+            project={project}
+            name="writer"
+          />
+
+          <h4>Motion Design</h4>
+
+          <UserSelect
+            handleSelectChange={handleSelectChange}
+            userList={userList}
+            project={project}
+            name="motionDesign"
+          />
+
+          <Button type="button" onClick={onClickHandler}>
+            Abbrechen
+          </Button>
+
+          <Button disabled={!(formData.title && formData.customer)}>
+            Speichern
+          </Button>
+        </ProjectDetails>
       )}
-      <h4>Redaktion</h4>
-      {project && userList && (
-        <UserSelect
-          handleSelectChange={handleSelectChange}
-          userList={userList}
-          project={project}
-          name="writer"
-        />
-      )}
-      <h4>Motion Design</h4>
-      {userList && (
-        <UserSelect
-          handleSelectChange={handleSelectChange}
-          userList={userList}
-          project={project}
-          name="motionDesign"
-        />
-      )}
-
-      <Button type="button" onClick={onClickHandler}>
-        Abbrechen
-      </Button>
-
-      {formData.title.trim() && formData.customer.trim() ? (
-        <Button>Speichern</Button>
-      ) : (
-        <Button disabled>Speichern</Button>
-      )}
-    </ProjectDetails>
+    </section>
   )
 }
 

@@ -5,6 +5,7 @@ import { MilestoneDto } from '../dtos/MilestoneDto'
 import AuthContext from '../auth/AuthContext'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import styled from 'styled-components/macro'
+import Loader from './Loader'
 
 interface MilestoneFormData {
   title: string
@@ -28,6 +29,7 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
 }) => {
   const { token } = useContext(AuthContext)
   const [error, setError] = useState<RestExceptionDto>()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<MilestoneFormData>({
     title: milestone ? milestone.title : '',
     dueDate: milestone ? milestone.dueDate : '',
@@ -35,16 +37,17 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
   })
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value })
+    setFormData({ ...formData, [event.target.name]: event.target.value.trim() })
   }
 
   const handleOnSubmit = (event: FormEvent) => {
     event.preventDefault()
-    if (!(token && formData.title.trim() && formData.dueDate.trim())) {
+    setLoading(true)
+    if (!(token && formData.title && formData.dueDate)) {
       return
     }
     const milestoneDto: MilestoneDto = {
-      title: formData.title.trim(),
+      title: formData.title,
       dueDate: formData.dueDate,
       dateFinished: formData.dateFinished,
       projectTitle: projectTitle,
@@ -53,6 +56,7 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
     if (milestone) {
       upDateMilestone(token, milestoneDto)
         .then(() => {
+          setLoading(false)
           fetchProject()
           switchEditMode()
         })
@@ -60,6 +64,7 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
     } else {
       createNewMilestone(token, milestoneDto)
         .then(() => {
+          setLoading(false)
           fetchProject()
           switchEditMode()
         })
@@ -69,37 +74,42 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
   const handleOnClick = () => switchEditMode()
 
   return (
-    <MilestoneEditStyle onSubmit={handleOnSubmit}>
-      <input
-        type="text"
-        name="title"
-        placeholder="Titel"
-        value={formData.title}
-        onChange={handleOnChange}
-      />
-      <input
-        type="date"
-        name="dueDate"
-        value={formData.dueDate}
-        onChange={handleOnChange}
-      />
-      <input
-        type="date"
-        name="dateFinished"
-        value={formData.dateFinished}
-        onChange={handleOnChange}
-      />
-      <div />
-      <Button type="button" onClick={handleOnClick}>
-        Abbrechen
-      </Button>
-      {formData.title.trim() && formData.dueDate.trim() ? (
-        <Button>Speichern</Button>
-      ) : (
-        <Button disabled>Speichern</Button>
+    <section>
+      {loading && <Loader />}
+      {!loading && (
+        <MilestoneEditStyle onSubmit={handleOnSubmit}>
+          <input
+            type="text"
+            name="title"
+            placeholder="Titel"
+            value={formData.title}
+            onChange={handleOnChange}
+          />
+          <input
+            type="date"
+            name="dueDate"
+            value={formData.dueDate}
+            onChange={handleOnChange}
+          />
+          <input
+            type="date"
+            name="dateFinished"
+            value={formData.dateFinished}
+            onChange={handleOnChange}
+          />
+          <div />
+          <Button type="button" onClick={handleOnClick}>
+            Abbrechen
+          </Button>
+
+          <Button disabled={!(formData.title && formData.dueDate)}>
+            Speichern
+          </Button>
+
+          {error && <p>{error.message}</p>}
+        </MilestoneEditStyle>
       )}
-      {error && <p>{error.message}</p>}
-    </MilestoneEditStyle>
+    </section>
   )
 }
 export default MilestoneEdit

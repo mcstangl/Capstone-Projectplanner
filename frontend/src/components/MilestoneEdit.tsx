@@ -44,8 +44,10 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
         projectTitle: projectTitle,
       }
       createNewMilestone(token, milestoneDto)
-        .then(fetchProject)
-        .then(switchEditMode)
+        .then(() => {
+          fetchProject()
+          switchEditMode()
+        })
         .catch(error => setError(error.response.data))
     }
   }

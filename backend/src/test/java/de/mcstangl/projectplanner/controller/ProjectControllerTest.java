@@ -4,13 +4,11 @@ import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.api.UserDto;
-import de.mcstangl.projectplanner.config.JwtConfig;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import de.mcstangl.projectplanner.repository.UserRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import de.mcstangl.projectplanner.util.TestUtil;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,8 +19,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -39,14 +35,15 @@ class ProjectControllerTest extends SpringBootTests {
     @Autowired
     private TestRestTemplate testRestTemplate;
 
-    @Autowired
-    private JwtConfig jwtConfig;
 
     @Autowired
     private ProjectRepository projectRepository;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TestUtil testUtil;
 
 
 
@@ -99,7 +96,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(projectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -121,13 +118,14 @@ class ProjectControllerTest extends SpringBootTests {
                         .loginName("Test")
                         .role("ADMIN").build())
                 .customer("Test Customer")
+                .dateOfReceipt("2120-12-12")
                 .build();
 
         // When
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("USER")),
+                new HttpEntity<>(projectDto, testUtil.getAuthHeader("USER")),
                 ProjectDto.class
         );
 
@@ -152,7 +150,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(projectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -176,7 +174,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.POST,
-                new HttpEntity<>(projectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(projectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -210,7 +208,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto[]> response = testRestTemplate.exchange(
                 getUrl(),
                 HttpMethod.GET,
-                new HttpEntity<>(null, getAuthHeader("ADMIN")),
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto[].class
         );
 
@@ -230,7 +228,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.GET,
-                new HttpEntity<>(null, getAuthHeader("ADMIN")),
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -247,7 +245,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Unknown",
                 HttpMethod.GET,
-                new HttpEntity<>(null, getAuthHeader("ADMIN")),
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class
         );
 
@@ -272,7 +270,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -310,7 +308,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -357,7 +355,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -398,7 +396,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/DoesNotMatchTitle",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -421,7 +419,7 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/DoesNotMatchTitle",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("ADMIN")),
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
                 ProjectDto.class);
 
         // Then
@@ -436,6 +434,28 @@ class ProjectControllerTest extends SpringBootTests {
                         .role("ADMIN")
                         .build())
         );
+    }
+
+    @Test
+    @DisplayName("Update Project with a bad date or receipt should return HttpStatus.BAD_REQUEST")
+    public void updateProjectWithBadDateOfReceipt() {
+        // Given
+        UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
+                .customer("New Customer")
+                .title("Test")
+                .dateOfReceipt("not-a-date")
+                .newTitle("newTitle")
+                .build();
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test",
+                HttpMethod.PUT,
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("ADMIN")),
+                ProjectDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
 
@@ -454,36 +474,13 @@ class ProjectControllerTest extends SpringBootTests {
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
                 HttpMethod.PUT,
-                new HttpEntity<>(updateProjectDto, getAuthHeader("USER")),
+                new HttpEntity<>(updateProjectDto, testUtil.getAuthHeader("USER")),
                 ProjectDto.class);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
 
-
-    private HttpHeaders getAuthHeader(String role) {
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
-
-        Date iat = Date.from(Instant.now());
-        Date exp = Date.from(Instant.now().plus(Duration.ofDays(jwtConfig.getExpiresAfterDays())));
-
-        String token = Jwts.builder()
-                .setSubject("Hans")
-                .setClaims(claims)
-                .setIssuedAt(iat)
-                .setExpiration(exp)
-                .signWith(SignatureAlgorithm.HS256, jwtConfig.getSecret())
-                .compact();
-
-        HttpHeaders authHeader = new HttpHeaders();
-        authHeader.setBearerAuth(token);
-        authHeader.setContentType(MediaType.APPLICATION_JSON);
-
-        return authHeader;
-    }
 
     private String getUrl() {
         return String.format("http://localhost:%s/api/project-planner/project", port);

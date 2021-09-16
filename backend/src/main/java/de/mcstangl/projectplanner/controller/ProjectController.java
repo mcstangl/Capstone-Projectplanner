@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.sql.Date;
 import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -33,30 +34,25 @@ public class ProjectController extends Mapper{
 
     @PostMapping
     public ResponseEntity<ProjectDto> createNewProject(@AuthenticationPrincipal UserEntity authUser, @RequestBody ProjectDto newProject) {
-        if(newProject.getOwner() == null){
-            throw new IllegalArgumentException("Ein Projekt muss eine*n Projektleiter*in haben");
-        }
-        if(newProject.getWriter() == null){
-            newProject.setWriter(List.of());
-        }
-        if(newProject.getMotionDesign() == null){
-            newProject.setMotionDesign(List.of());
-        }
+        
+        validateDate(newProject.getDateOfReceipt());
+
+        initializeWriterListIfNull(newProject);
+        initializeMotionDesignerListIfNull(newProject);
+
         if (isAdmin(authUser)) {
 
-
             UserEntity ownerEntity = getOwnerEntity(newProject);
-
             ProjectEntity newProjectEntity = mapProject(newProject);
 
             newProjectEntity.setOwner(ownerEntity);
 
             ProjectEntity createdProjectEntity = projectService.createNewProject(newProjectEntity);
-
             return ok(mapProject(createdProjectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
+
 
 
     @GetMapping
@@ -81,12 +77,11 @@ public class ProjectController extends Mapper{
         if (!title.equals(updateProjectDto.getTitle())) {
             throw new IllegalArgumentException("Fehler in der Anfrage: Pfadvariable und Titel stimmen nicht überein");
         }
-        if(updateProjectDto.getWriter() == null){
-            updateProjectDto.setWriter(List.of());
-        }
-        if(updateProjectDto.getMotionDesign() == null){
-            updateProjectDto.setMotionDesign(List.of());
-        }
+
+        validateDate(updateProjectDto.getDateOfReceipt());
+
+        initializeWriterListIfNull(updateProjectDto);
+        initializeMotionDesignerListIfNull(updateProjectDto);
 
         if (isAdmin(authUser)) {
 
@@ -100,19 +95,47 @@ public class ProjectController extends Mapper{
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals("ADMIN");
     }
 
+    private void initializeMotionDesignerListIfNull(ProjectDto projectDto) {
+        if(projectDto.getMotionDesign() == null){
+            projectDto.setMotionDesign(List.of());
+        }
+    }
+
+    private void initializeWriterListIfNull(ProjectDto projectDto) {
+        if(projectDto.getWriter() == null){
+            projectDto.setWriter(List.of());
+        }
+    }
+
+    private void validateDate(String date) {
+        try{
+            Date.valueOf(date);
+        }catch (IllegalArgumentException e){
+            throw new IllegalArgumentException("Bitte geben Sie ein gültiges Datum ein");
+        }
+    }
+
     private UserEntity getOwnerEntity(ProjectDto newProject) {
+        checkThatOwnerIsNotNull(newProject);
         return userService.findByLoginName(newProject.getOwner().getLoginName())
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", newProject.getOwner().getLoginName())));
     }
     private UserEntity getOwnerEntity(UpdateProjectDto updateProjectDto) {
+        checkThatOwnerIsNotNull(updateProjectDto);
         return userService.findByLoginName(updateProjectDto.getOwner().getLoginName())
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Benutzer mit dem Namen %s konnte nicht gefunden werden", updateProjectDto.getOwner().getLoginName())));
+    }
+    private void checkThatOwnerIsNotNull(ProjectDto projectDto) {
+        if(projectDto.getOwner() == null){
+            throw new IllegalArgumentException("Ein Projekt muss eine*n Projektleiter*in haben");
+        }
     }
 
 }

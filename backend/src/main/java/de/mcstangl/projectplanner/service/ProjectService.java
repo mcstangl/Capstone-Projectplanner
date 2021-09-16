@@ -128,6 +128,7 @@ public class ProjectService {
                 .title(fetchedProjectEntity.getTitle())
                 .writers(fetchedProjectEntity.getWriters())
                 .motionDesigners(fetchedProjectEntity.getMotionDesigners())
+                .milestones(fetchedProjectEntity.getMilestones())
                 .owner(fetchedProjectEntity.getOwner()).build();
     }
 

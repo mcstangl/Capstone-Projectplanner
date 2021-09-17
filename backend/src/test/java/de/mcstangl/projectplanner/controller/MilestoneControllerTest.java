@@ -275,7 +275,7 @@ class MilestoneControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateNewMilestoneTest")
-    @DisplayName("Update milestone without title or unknown project title should fail")
+    @DisplayName("Update milestone without id or title or unknown project title should fail")
     public void updateMilestoneWithoutTitle(Long id, String title, String projectTitle, HttpStatus httpStatus){
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()

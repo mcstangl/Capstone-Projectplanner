@@ -117,6 +117,26 @@ class MilestoneEntityTest extends SpringBootTests {
         assertThat(actual.getProjectEntity().getTitle(), is("Test2"));
     }
 
+    @Test
+    @Transactional
+    @DisplayName("Update a milestone should change all fields")
+    public void update(){
+        // When
+        MilestoneEntity actual = milestoneRepository.save(MilestoneEntity.builder()
+                .id(1L)
+                .projectEntity(testProject1)
+                .dateFinished(Date.valueOf("2021-01-01"))
+                .dueDate(Date.valueOf("2021-01-01"))
+                .title("New Title")
+                .build());
+
+        // Then
+        assertThat(actual.getTitle(), is("New Title"));
+        assertThat(actual.getDateFinished().toString(), is("2021-01-01"));
+        assertThat(actual.getDueDate().toString(), is("2021-01-01"));
+        assertThat(actual.getProjectEntity(), is(testProject1));
+    }
+
     @ParameterizedTest
     @MethodSource("getArgumentsForSaveTest")
     @DisplayName("Save milestone without title or project should fail")

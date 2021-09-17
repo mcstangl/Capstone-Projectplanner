@@ -69,6 +69,14 @@ public class MilestoneController extends Mapper{
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<MilestoneDto> deleteMilestone(@AuthenticationPrincipal  UserEntity authUser, @PathVariable Long id){
+
+        MilestoneEntity milestoneEntity = mileStoneService.deleteById(id);
+
+        return ok(mapMilestone(milestoneEntity));
+    }
+
     private MilestoneEntity getMilestoneEntity(MilestoneDto milestoneDto) {
         hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
 

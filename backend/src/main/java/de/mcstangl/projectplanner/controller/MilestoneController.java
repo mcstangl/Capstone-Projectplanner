@@ -55,6 +55,10 @@ public class MilestoneController extends Mapper{
     @PutMapping
     public ResponseEntity<MilestoneDto> updateMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto) {
 
+        if(milestoneDto.getId() == null) {
+            throw new IllegalArgumentException("Milestone ohne ID kann nicht upgedated werden");
+        }
+
         if (isAdmin(authUser)) {
             MilestoneEntity milestoneEntity = getMilestoneEntity(milestoneDto);
 

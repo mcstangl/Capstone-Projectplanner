@@ -7,7 +7,7 @@ import MilestoneList from './MilestoneList'
 
 interface MilestoneProps {
   project: ProjectDto
-  fetchProject: () => void
+  fetchProject: () => Promise<void> | undefined
 }
 
 const Milestone: FC<MilestoneProps> = ({ project, fetchProject }) => {

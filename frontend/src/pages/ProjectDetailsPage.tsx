@@ -48,7 +48,7 @@ const ProjectDetailsPage: FC = () => {
 
   const fetchProject = () => {
     if (token && project) {
-      findProjectByTitle(project.title, token)
+      return findProjectByTitle(project.title, token)
         .then(setProject)
         .catch(error => setError(error.response.data))
     }

@@ -1,6 +1,10 @@
 import { Button } from './Button'
 import { ChangeEvent, FC, FormEvent, useContext, useState } from 'react'
-import { createNewMilestone, upDateMilestone } from '../service/api-service'
+import {
+  createNewMilestone,
+  deleteMilestone,
+  updateMilestone,
+} from '../service/api-service'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 import AuthContext from '../auth/AuthContext'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
@@ -17,7 +21,7 @@ interface MilestoneFormData {
 interface MilestoneEditProps {
   projectTitle: string
   switchEditMode: () => void
-  fetchProject: () => void
+  fetchProject: () => Promise<void> | undefined
   milestone?: MilestoneDto
 }
 
@@ -42,7 +46,7 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
 
   const handleOnSubmit = (event: FormEvent) => {
     event.preventDefault()
-    setLoading(true)
+
     if (!(token && formData.title && formData.dueDate)) {
       return
     }
@@ -54,22 +58,24 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
       id: milestone ? milestone.id : undefined,
     }
     if (milestone) {
-      upDateMilestone(token, milestoneDto)
+      setLoading(true)
+      updateMilestone(token, milestoneDto)
+        .then(() => fetchProject())
         .then(() => {
-          setLoading(false)
-          fetchProject()
           switchEditMode()
+          setLoading(false)
         })
         .catch(error => {
           setLoading(false)
           setError(error.response.data)
         })
     } else {
+      setLoading(true)
       createNewMilestone(token, milestoneDto)
+        .then(() => fetchProject())
         .then(() => {
-          setLoading(false)
-          fetchProject()
           switchEditMode()
+          setLoading(false)
         })
         .catch(error => {
           setLoading(false)
@@ -77,6 +83,19 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
         })
     }
   }
+
+  const handleDeleteOnClick = () => {
+    if (milestone && milestone.id && token) {
+      setLoading(true)
+      deleteMilestone(token, milestone.id)
+        .then(() => fetchProject())
+        .catch(error => {
+          setLoading(false)
+          setError(error.response.data)
+        })
+    }
+  }
+
   const handleOnClick = () => switchEditMode()
 
   return (
@@ -103,7 +122,12 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
             value={formData.dateFinished}
             onChange={handleOnChange}
           />
-          <div />
+          {milestone && (
+            <Button type="button" onClick={handleDeleteOnClick}>
+              Löschen
+            </Button>
+          )}
+          {!milestone && <div />}
           <Button type="button" onClick={handleOnClick}>
             Abbrechen
           </Button>

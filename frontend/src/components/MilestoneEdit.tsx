@@ -60,7 +60,10 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
           fetchProject()
           switchEditMode()
         })
-        .catch(error => setError(error.response.data))
+        .catch(error => {
+          setLoading(false)
+          setError(error.response.data)
+        })
     } else {
       createNewMilestone(token, milestoneDto)
         .then(() => {
@@ -68,7 +71,10 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
           fetchProject()
           switchEditMode()
         })
-        .catch(error => setError(error.response.data))
+        .catch(error => {
+          setLoading(false)
+          setError(error.response.data)
+        })
     }
   }
   const handleOnClick = () => switchEditMode()

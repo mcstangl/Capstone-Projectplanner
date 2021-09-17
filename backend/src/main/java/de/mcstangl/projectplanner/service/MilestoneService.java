@@ -51,4 +51,11 @@ public class MilestoneService {
             }
         }
     }
+
+    public MilestoneEntity deleteById(Long id) {
+
+        MilestoneEntity milestoneEntity = milestoneRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Milestone mit ID %s konnte nicht gefunden werden", id)));
+
+        return projectService.removeMilestone(milestoneEntity);
+    }
 }

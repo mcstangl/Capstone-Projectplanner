@@ -8,12 +8,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityExistsException;
 import java.sql.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class MilestoneServiceTest {
@@ -33,10 +37,13 @@ class MilestoneServiceTest {
     @Captor
     private ArgumentCaptor<ProjectEntity> projectEntityArgumentCaptor;
 
+    @Captor
+    private ArgumentCaptor<MilestoneEntity> milestoneEntityArgumentCaptor;
+
     private MilestoneEntity testMilestone1;
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         closeable = MockitoAnnotations.openMocks(this);
 
         when(projectServiceMock.findByTitle("Test")).thenReturn(
@@ -52,17 +59,17 @@ class MilestoneServiceTest {
     }
 
     @AfterEach
-    public void tearDown() throws Exception{
+    public void tearDown() throws Exception {
         closeable.close();
     }
 
     @Test
     @DisplayName("Find by project title should return all milestones found")
-    public void findAllByProjectTitle(){
+    public void findAllByProjectTitle() {
         // When
         mileStoneService.findAllByProjectTitle("Test");
 
-        verify(milestoneRepositoryMock,times(1)).findAllByProjectEntity(projectEntityArgumentCaptor.capture());
+        verify(milestoneRepositoryMock, times(1)).findAllByProjectEntity(projectEntityArgumentCaptor.capture());
         ProjectEntity capturedArgument = projectEntityArgumentCaptor.getValue();
 
         // Then
@@ -72,11 +79,74 @@ class MilestoneServiceTest {
 
     @Test
     @DisplayName("Create new milestone should persist the milestone")
-    public void createNewMilestone(){
+    public void createNewMilestone() {
         // When
         mileStoneService.createNewMilestone(testMilestone1);
 
         // Then
         verify(milestoneRepositoryMock, times(1)).save(testMilestone1);
+
     }
+
+    @Test
+    @DisplayName("Create new milestone with a milestone that has an id should fail")
+    public void createNewMilestoneWithId() {
+
+        assertThrows(IllegalArgumentException.class, ()-> mileStoneService.createNewMilestone(MilestoneEntity.builder()
+                .id(1L)
+                .projectEntity(ProjectEntity.builder().title("Test").build())
+                .dateFinished(Date.valueOf("2021-12-12"))
+                .dueDate(Date.valueOf("2021-03-13"))
+                .title("Test1")
+                .build()));
+        // Then
+        verifyNoInteractions(milestoneRepositoryMock);
+    }
+
+    @Test
+    @DisplayName("Create new milestone with a milestone title that already exits for the project should fail")
+    public void createNewMilestoneWithAnExistingTitle() {
+        // Given
+        when(milestoneRepositoryMock.findAllByProjectEntity(any())).thenReturn(
+                List.of(MilestoneEntity.builder()
+                        .projectEntity(ProjectEntity.builder().title("Test").build())
+                        .dateFinished(Date.valueOf("2021-12-12"))
+                        .dueDate(Date.valueOf("2021-03-13"))
+                        .title("Test1")
+                        .build())
+        );
+
+        // When
+        assertThrows(EntityExistsException.class, ()-> mileStoneService.createNewMilestone(MilestoneEntity.builder()
+                .projectEntity(ProjectEntity.builder().title("Test").build())
+                .title("Test1")
+                .build()));
+
+    }
+
+
+    @Test
+    @Transactional
+    @DisplayName("Update a milestone should change all fields")
+    public void update(){
+        // When
+       mileStoneService.updateMilestone(MilestoneEntity.builder()
+                .id(1L)
+                .projectEntity(ProjectEntity.builder().title("Test").build())
+                .dateFinished(Date.valueOf("2021-01-01"))
+                .dueDate(Date.valueOf("2021-01-01"))
+                .title("New Title")
+                .build());
+        verify(milestoneRepositoryMock, times(1)).save(milestoneEntityArgumentCaptor.capture());
+        MilestoneEntity actual = milestoneEntityArgumentCaptor.getValue();
+
+        // Then
+        assertThat(actual.getId(), is(1L));
+        assertThat(actual.getTitle(), is("New Title"));
+        assertThat(actual.getDateFinished().toString(), is("2021-01-01"));
+        assertThat(actual.getDueDate().toString(), is("2021-01-01"));
+        assertThat(actual.getProjectEntity(), is(ProjectEntity.builder().title("Test").build()));
+    }
+
+
 }

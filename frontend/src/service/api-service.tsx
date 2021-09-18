@@ -45,10 +45,15 @@ export const createNewMilestone = (token: string, milestoneDto: MilestoneDto) =>
     .post('/api/project-planner/milestone', milestoneDto, getAuthHeaders(token))
     .then(response => response.data)
 
-export const upDateMilestone = (token: string, milestoneDto: MilestoneDto) =>
+export const updateMilestone = (token: string, milestoneDto: MilestoneDto) =>
   axios
     .put('/api/project-planner/milestone', milestoneDto, getAuthHeaders(token))
     .then(response => response.data)
+
+export const deleteMilestone = (token: string, id: bigint) =>
+  axios
+    .delete('/api/project-planner/milestone/' + id, getAuthHeaders(token))
+    .then(require => require.data)
 
 const getAuthHeaders = (token: string) => {
   return {

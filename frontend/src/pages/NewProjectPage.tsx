@@ -30,7 +30,7 @@ interface NewProjectFormData {
 const NewProjectPage: FC = () => {
   const { token } = useContext(AuthContext)
   const [error, setError] = useState<RestExceptionDto>()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [userList, setUserList] = useState<UserDto[]>()
   const [formData, setFormData] = useState<NewProjectFormData>({
     customer: '',
@@ -42,7 +42,10 @@ const NewProjectPage: FC = () => {
 
   useEffect(() => {
     if (token) {
-      findAllUser(token).then(setUserList).catch(setError)
+      findAllUser(token)
+        .then(setUserList)
+        .catch(setError)
+        .finally(() => setLoading(false))
     }
   }, [token])
 

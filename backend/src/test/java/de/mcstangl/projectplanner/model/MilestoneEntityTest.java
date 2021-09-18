@@ -37,126 +37,113 @@ class MilestoneEntityTest extends SpringBootTests {
     @DisplayName("Find by project should return the milestone found")
     public void findByProject() {
         // Given
-        createTestEntities();
+        ProjectEntity testProject = createTestProject();
+        createTestMilestone(testProject);
+        createTestMilestone(testProject);
 
         // When
-        List<MilestoneEntity> actual = milestoneRepository.findAllByProjectEntity(ProjectEntity.builder()
-                .id(1L)
-                .title("Test1")
-                .build());
+        List<MilestoneEntity> actual = milestoneRepository.findAllByProjectEntity(testProject);
 
         // Then
         assertThat(actual.size(), is(2));
     }
 
 
-        @Test
-        @Transactional
-        @DisplayName("Save should persist the milestone to DB")
-        public void save() {
-            // Given
-            createTestEntities();
+    @Test
+    @Transactional
+    @DisplayName("Save should persist the milestone to DB")
+    public void save() {
+        // Given
+        ProjectEntity testProject = createTestProject();
 
-            // When
-            MilestoneEntity actual = milestoneRepository.save(MilestoneEntity.builder()
-                    .projectEntity(ProjectEntity.builder()
-                            .title("Test1")
-                            .id(1L)
-                            .build())
-                    .dateFinished(Date.valueOf("2021-12-12"))
-                    .dueDate(Date.valueOf("2021-03-13"))
-                    .title("Test3")
-                    .build());
+        // When
+        MilestoneEntity actual = milestoneRepository.save(MilestoneEntity.builder()
+                .projectEntity(testProject)
+                .dateFinished(Date.valueOf("2021-12-12"))
+                .dueDate(Date.valueOf("2021-03-13"))
+                .title("Test3")
+                .build());
 
-            // Then
-            assertNotNull(actual.getId());
-            assertThat(actual.getTitle(), is("Test3"));
-            assertThat(actual.getProjectEntity().getTitle(), is("Test1"));
-        }
+        // Then
+        assertNotNull(actual.getId());
+        assertThat(actual.getTitle(), is("Test3"));
+        assertThat(actual.getProjectEntity().getTitle(), is("Test1"));
+    }
 
-        @Test
-        @Transactional
-        @DisplayName("Update a milestone should change all fields")
-        public void update() {
-            // Given
-            createTestEntities();
+    @Test
+    @Transactional
+    @DisplayName("Update a milestone should change all fields")
+    public void update() {
+        // Given
+        ProjectEntity testProject = createTestProject();
+        MilestoneEntity testMilestone = createTestMilestone(testProject);
+        Long idToUpdate = testMilestone.getId();
 
-            // When
-            MilestoneEntity actual = milestoneRepository.save(MilestoneEntity.builder()
-                    .id(3L)
-                    .projectEntity(ProjectEntity.builder()
-                            .id(1L)
-                            .title("Test1")
-                            .build())
-                    .dateFinished(Date.valueOf("2021-01-01"))
-                    .dueDate(Date.valueOf("2021-01-01"))
-                    .title("New Title")
-                    .build());
+        // When
+        MilestoneEntity actual = milestoneRepository.save(MilestoneEntity.builder()
+                .id(idToUpdate)
+                .projectEntity(testProject)
+                .dateFinished(Date.valueOf("2021-01-01"))
+                .dueDate(Date.valueOf("2021-01-01"))
+                .title("New Title")
+                .build());
 
-            // Then
-            assertThat(actual.getTitle(), is("New Title"));
-            assertThat(actual.getId(), is(3L));
-            assertThat(actual.getDateFinished().toString(), is("2021-01-01"));
-            assertThat(actual.getDueDate().toString(), is("2021-01-01"));
-            assertThat(actual.getProjectEntity().getTitle(), is("Test1"));
-        }
+        // Then
+        assertThat(actual.getTitle(), is("New Title"));
+        assertThat(actual.getId(), is(idToUpdate));
+        assertThat(actual.getDateFinished().toString(), is("2021-01-01"));
+        assertThat(actual.getDueDate().toString(), is("2021-01-01"));
+        assertThat(actual.getProjectEntity().getTitle(), is("Test1"));
+    }
 
-        @ParameterizedTest
-        @Transactional
-        @MethodSource("getArgumentsForSaveTest")
-        @DisplayName("Save milestone without title or project should fail")
-        public void saveWithoutTitleAndProject(String title, ProjectEntity project) {
-            // Given
-            createTestEntities();
+    @ParameterizedTest
+    @Transactional
+    @MethodSource("getArgumentsForSaveTest")
+    @DisplayName("Save milestone without title or project should fail")
+    public void saveWithoutTitleAndProject(String title, ProjectEntity project) {
+        // Given
+        MilestoneEntity testMilestone = MilestoneEntity.builder()
+                .title(title)
+                .projectEntity(project)
+                .build();
 
-            MilestoneEntity testMilestone = MilestoneEntity.builder()
-                    .title(title)
-                    .projectEntity(project)
-                    .build();
-
-            // When
-            assertThrows(DataIntegrityViolationException.class, () -> milestoneRepository.save(testMilestone));
-        }
+        // Then
+        assertThrows(DataIntegrityViolationException.class, () -> milestoneRepository.save(testMilestone));
+    }
 
 
-        private static Stream<Arguments> getArgumentsForSaveTest() {
-            ProjectEntity testProject =
-                    ProjectEntity.builder()
-                            .id(1L)
-                            .title("Test1")
-                            .build();
-            return Stream.of(
-                    Arguments.of(null, testProject),
-                    Arguments.of("New Milestone", null)
-            );
-        }
+    private static Stream<Arguments> getArgumentsForSaveTest() {
+        ProjectEntity testProject =
+                ProjectEntity.builder()
+                        .id(1L)
+                        .title("Test1")
+                        .build();
+        return Stream.of(
+                Arguments.of(null, testProject),
+                Arguments.of("New Milestone", null)
+        );
+    }
 
-    private void createTestEntities() {
-        ProjectEntity testProject1 = projectRepository.save(
+    private ProjectEntity createTestProject() {
+        return projectRepository.save(
                 ProjectEntity.builder()
                         .dateOfReceipt(Date.valueOf("2021-01-01"))
                         .title("Test1")
                         .customer("Test")
                         .build()
         );
+    }
 
-
-        milestoneRepository.save(
+    private MilestoneEntity createTestMilestone(ProjectEntity testProject) {
+        return milestoneRepository.save(
                 MilestoneEntity.builder()
-                        .projectEntity(testProject1)
+                        .projectEntity(testProject)
                         .dateFinished(Date.valueOf("2021-12-12"))
                         .dueDate(Date.valueOf("2021-03-13"))
                         .title("Test1")
                         .build()
         );
-        milestoneRepository.save(
-                MilestoneEntity.builder()
-                        .projectEntity(testProject1)
-                        .dateFinished(Date.valueOf("2021-12-12"))
-                        .dueDate(Date.valueOf("2021-03-13"))
-                        .title("Test2")
-                        .build()
-        );
+
     }
 
 

@@ -20,38 +20,36 @@ class UserEntityTest extends SpringBootTests {
     @Autowired
     private UserRepository userRepository;
 
+    @Test
+    @Transactional
+    @DisplayName("Save should persist user in DB")
+    public void save(){
+        // Given
+        UserEntity testUser = createUser();
 
-    @BeforeEach
-    public void setup(){
-        UserEntity admin = UserEntity.builder()
-                .id(1L)
-                .loginName("Hans")
-                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("ADMIN").build();
+        //When
+       UserEntity actual = userRepository.save(testUser);
 
-        UserEntity user = UserEntity.builder()
-                .id(2L)
-                .loginName("Dave")
-                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("USER").build();
-        userRepository.saveAndFlush(admin);
-        userRepository.saveAndFlush(user);
+        //Then
+        assertNotNull(actual.getId());
+        assertThat(actual.getRole(), is("USER"));
+        assertThat(actual.getLoginName(), is("Dave"));
     }
 
-    @AfterEach
-    public void tearDown(){
-        userRepository.deleteAll();
-    }
 
     @Test
     @Transactional
     @DisplayName("Find user by loginName should return the user found")
     public void findUserByLoginName(){
+        // Given
+        createAdminUser();
+
         //When
         Optional<UserEntity> actualOptional = userRepository.findByLoginName("Hans");
 
         //Then
         assertTrue(actualOptional.isPresent());
+        assertThat(actualOptional.get().getRole(), is("ADMIN"));
         assertThat(actualOptional.get().getLoginName(), is("Hans"));
     }
 
@@ -64,5 +62,20 @@ class UserEntityTest extends SpringBootTests {
 
         //Then
         assertTrue(actualOptional.isEmpty());
+    }
+
+    private UserEntity createAdminUser() {
+        return userRepository.save(UserEntity.builder()
+                .id(1L)
+                .loginName("Hans")
+                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
+                .role("ADMIN").build());
+    }
+    private UserEntity createUser(){
+        return userRepository.save(UserEntity.builder()
+                .id(2L)
+                .loginName("Dave")
+                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
+                .role("USER").build());
     }
 }

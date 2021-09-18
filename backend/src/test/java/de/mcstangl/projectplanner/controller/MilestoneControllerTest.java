@@ -8,7 +8,6 @@ import de.mcstangl.projectplanner.repository.MilestoneRepository;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import de.mcstangl.projectplanner.util.TestUtil;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,36 +46,6 @@ class MilestoneControllerTest extends SpringBootTests {
     @Autowired
     private ProjectRepository projectRepository;
 
-    @BeforeEach
-    public void setup() {
-        ProjectEntity testProject1 = projectRepository.saveAndFlush(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .dateOfReceipt(Date.valueOf("2021-01-01"))
-                        .title("Test1")
-                        .customer("Test")
-                        .build()
-        );
-
-        milestoneRepository.saveAndFlush(
-                MilestoneEntity.builder()
-                        .id(1L)
-                        .projectEntity(testProject1)
-                        .dateFinished(Date.valueOf("2021-12-12"))
-                        .dueDate(Date.valueOf("2021-03-13"))
-                        .title("Test")
-                        .build()
-        );
-        milestoneRepository.saveAndFlush(
-                MilestoneEntity.builder()
-                        .id(2L)
-                        .projectEntity(testProject1)
-                        .dateFinished(Date.valueOf("2021-12-12"))
-                        .dueDate(Date.valueOf("2021-03-13"))
-                        .title("Test")
-                        .build()
-        );
-    }
 
     @AfterEach
     public void tearDown() {
@@ -88,6 +57,11 @@ class MilestoneControllerTest extends SpringBootTests {
     @Test
     @DisplayName("Find by project title should return all milestones related the project")
     public void findAllByProjectTitle() {
+        // Given
+        ProjectEntity testProject = createTestProject();
+        createTestMilestone1(testProject);
+        createTestMilestone2(testProject);
+
         // When
         ResponseEntity<MilestoneDto[]> response = testRestTemplate.exchange(
                 getUrl() + "/Test1",
@@ -103,8 +77,9 @@ class MilestoneControllerTest extends SpringBootTests {
 
     @Test
     @DisplayName("Create new milestone should return the milestone created")
-    public void createNewMilestone(){
+    public void createNewMilestone() {
         // Given
+        createTestProject();
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle("Test1")
                 .title("New Milestone")
@@ -123,14 +98,14 @@ class MilestoneControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getId());
-        assertThat(response.getBody().getTitle(),is("New Milestone"));
-        assertThat(response.getBody().getDateFinished(),is("2021-12-12"));
-        assertThat(response.getBody().getDueDate() ,is("2021-03-13"));
+        assertThat(response.getBody().getTitle(), is("New Milestone"));
+        assertThat(response.getBody().getDateFinished(), is("2021-12-12"));
+        assertThat(response.getBody().getDueDate(), is("2021-03-13"));
     }
 
     @Test
     @DisplayName("Create new milestone as user should fail")
-    public void createNewMilestoneAsUser(){
+    public void createNewMilestoneAsUser() {
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle("Test1")
@@ -153,7 +128,7 @@ class MilestoneControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateNewMilestoneTest")
     @DisplayName("Create new milestone without title or unknown project title should fail")
-    public void createNewMilestone(String title, String projectTitle, HttpStatus httpStatus){
+    public void createNewMilestone(String title, String projectTitle, HttpStatus httpStatus) {
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle(projectTitle)
@@ -174,12 +149,12 @@ class MilestoneControllerTest extends SpringBootTests {
     }
 
 
-    private static Stream<Arguments> getArgumentsForCreateNewMilestoneTest(){
+    private static Stream<Arguments> getArgumentsForCreateNewMilestoneTest() {
         return Stream.of(
                 Arguments.of(null, "Test1", HttpStatus.BAD_REQUEST),
                 Arguments.of("", "Test1", HttpStatus.BAD_REQUEST),
                 Arguments.of("Test", "Unknown", HttpStatus.NOT_FOUND),
-                Arguments.of("Test", null , HttpStatus.NOT_FOUND)
+                Arguments.of("Test", null, HttpStatus.NOT_FOUND)
 
         );
     }
@@ -188,8 +163,10 @@ class MilestoneControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateNewMilestoneWithBadDatesTest")
     @DisplayName("Create new milestone with a bad date should set the date to null")
-    public void createNewMilestoneWithBadDates(String dueDate, String dateFinished, String expectedDueDate, String expectedDateFinished){
+    public void createNewMilestoneWithBadDates(String dueDate, String dateFinished, String expectedDueDate, String expectedDateFinished) {
         // Given
+        createTestProject();
+
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle("Test1")
                 .title("New Milestone")
@@ -213,21 +190,23 @@ class MilestoneControllerTest extends SpringBootTests {
     }
 
 
-    private static Stream<Arguments> getArgumentsForCreateNewMilestoneWithBadDatesTest(){
+    private static Stream<Arguments> getArgumentsForCreateNewMilestoneWithBadDatesTest() {
         return Stream.of(
                 Arguments.of(null, "2001-12-12", null, "2001-12-12"),
-                Arguments.of("2001-12-12", null, "2001-12-12", null ),
+                Arguments.of("2001-12-12", null, "2001-12-12", null),
                 Arguments.of("noDate", "2001-12-12", null, "2001-12-12"),
-                Arguments.of("2001-12-12", "noDate", "2001-12-12", null )
+                Arguments.of("2001-12-12", "noDate", "2001-12-12", null)
         );
     }
 
     @Test
     @DisplayName("Update milestone should return the milestone created")
-    public void updateMilestone(){
+    public void updateMilestone() {
         // Given
+        ProjectEntity testProject = createTestProject();
+        MilestoneEntity testMilestone1 = createTestMilestone1(testProject);
         MilestoneDto mileStoneDto = MilestoneDto.builder()
-                .id(1L)
+                .id(testMilestone1.getId())
                 .projectTitle("Test1")
                 .title("Updated Milestone")
                 .dueDate("2021-01-01")
@@ -244,15 +223,16 @@ class MilestoneControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
+        assertThat(response.getBody().getId(), is(testMilestone1.getId()));
         assertThat(response.getBody().getProjectTitle(), is("Test1"));
-        assertThat(response.getBody().getTitle(),is("Updated Milestone"));
-        assertThat(response.getBody().getDateFinished(),is("2021-01-01"));
-        assertThat(response.getBody().getDueDate() ,is("2021-01-01"));
+        assertThat(response.getBody().getTitle(), is("Updated Milestone"));
+        assertThat(response.getBody().getDateFinished(), is("2021-01-01"));
+        assertThat(response.getBody().getDueDate(), is("2021-01-01"));
     }
 
     @Test
     @DisplayName("Update new milestone as user should fail")
-    public void updateMilestoneAsUser(){
+    public void updateMilestoneAsUser() {
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .id(1L)
@@ -276,7 +256,7 @@ class MilestoneControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateNewMilestoneTest")
     @DisplayName("Update milestone without id or title or unknown project title should fail")
-    public void updateMilestoneWithoutTitle(Long id, String title, String projectTitle, HttpStatus httpStatus){
+    public void updateMilestoneWithoutTitle(Long id, String title, String projectTitle, HttpStatus httpStatus) {
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .id(id)
@@ -298,13 +278,13 @@ class MilestoneControllerTest extends SpringBootTests {
     }
 
 
-    private static Stream<Arguments> getArgumentsForUpdateNewMilestoneTest(){
+    private static Stream<Arguments> getArgumentsForUpdateNewMilestoneTest() {
         return Stream.of(
                 Arguments.of(1L, null, "Test1", HttpStatus.BAD_REQUEST),
                 Arguments.of(null, "Test", "Test1", HttpStatus.BAD_REQUEST),
                 Arguments.of(1L, "", "Test1", HttpStatus.BAD_REQUEST),
                 Arguments.of(1L, "Test", "Unknown", HttpStatus.NOT_FOUND),
-                Arguments.of(1L, "Test", null , HttpStatus.NOT_FOUND)
+                Arguments.of(1L, "Test", null, HttpStatus.NOT_FOUND)
 
         );
     }
@@ -312,8 +292,10 @@ class MilestoneControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateMilestoneWithBadDatesTest")
     @DisplayName("Update milestone with a bad date should set the date to null")
-    public void updateMilestoneWithBadDates(String dueDate, String dateFinished, String expectedDueDate, String expectedDateFinished){
+    public void updateMilestoneWithBadDates(String dueDate, String dateFinished, String expectedDueDate, String expectedDateFinished) {
         // Given
+        createTestProject();
+
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .id(1L)
                 .projectTitle("Test1")
@@ -338,12 +320,12 @@ class MilestoneControllerTest extends SpringBootTests {
     }
 
 
-    private static Stream<Arguments> getArgumentsForUpdateMilestoneWithBadDatesTest(){
+    private static Stream<Arguments> getArgumentsForUpdateMilestoneWithBadDatesTest() {
         return Stream.of(
                 Arguments.of(null, "2001-12-12", null, "2001-12-12"),
-                Arguments.of("2001-12-12", null, "2001-12-12", null ),
+                Arguments.of("2001-12-12", null, "2001-12-12", null),
                 Arguments.of("noDate", "2001-12-12", null, "2001-12-12"),
-                Arguments.of("2001-12-12", "noDate", "2001-12-12", null )
+                Arguments.of("2001-12-12", "noDate", "2001-12-12", null)
         );
     }
 
@@ -351,4 +333,39 @@ class MilestoneControllerTest extends SpringBootTests {
         return String.format("http://localhost:%s/api/project-planner/milestone", port);
     }
 
+
+    public ProjectEntity createTestProject() {
+        return projectRepository.save(
+                ProjectEntity.builder()
+                        .id(1L)
+                        .dateOfReceipt(Date.valueOf("2021-01-01"))
+                        .title("Test1")
+                        .customer("Test")
+                        .build()
+        );
+    }
+
+    public MilestoneEntity createTestMilestone1(ProjectEntity testProject) {
+        return milestoneRepository.save(
+                MilestoneEntity.builder()
+                        .id(1L)
+                        .projectEntity(testProject)
+                        .dateFinished(Date.valueOf("2021-12-12"))
+                        .dueDate(Date.valueOf("2021-03-13"))
+                        .title("Test")
+                        .build()
+        );
+    }
+
+    public void createTestMilestone2(ProjectEntity testProject) {
+        milestoneRepository.save(
+                MilestoneEntity.builder()
+                        .id(2L)
+                        .projectEntity(testProject)
+                        .dateFinished(Date.valueOf("2021-12-12"))
+                        .dueDate(Date.valueOf("2021-03-13"))
+                        .title("Test")
+                        .build()
+        );
+    }
 }

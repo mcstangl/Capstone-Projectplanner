@@ -21,7 +21,7 @@ import static org.springframework.util.Assert.hasText;
 @CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/milestone")
-public class MilestoneController extends Mapper{
+public class MilestoneController extends Mapper {
 
     private final MilestoneService mileStoneService;
     private final ProjectService projectService;
@@ -55,7 +55,7 @@ public class MilestoneController extends Mapper{
     @PutMapping
     public ResponseEntity<MilestoneDto> updateMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto) {
 
-        if(milestoneDto.getId() == null) {
+        if (milestoneDto.getId() == null) {
             throw new IllegalArgumentException("Milestone ohne ID kann nicht upgedated werden");
         }
 
@@ -65,6 +65,16 @@ public class MilestoneController extends Mapper{
             MilestoneEntity newMilestone = mileStoneService.updateMilestone(milestoneEntity);
 
             return ok(mapMilestone(newMilestone));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<MilestoneDto> deleteMilestone(@AuthenticationPrincipal UserEntity authUser, @PathVariable Long id) {
+        if (isAdmin(authUser)) {
+            MilestoneEntity milestoneEntity = mileStoneService.deleteById(id);
+
+            return ok(mapMilestone(milestoneEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }

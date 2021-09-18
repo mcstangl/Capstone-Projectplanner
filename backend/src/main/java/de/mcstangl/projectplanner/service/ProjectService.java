@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
@@ -80,6 +81,15 @@ public class ProjectService {
         }
         return projectRepository.save(projectEntityCopy);
     }
+
+    protected MilestoneEntity removeMilestone(MilestoneEntity milestoneEntity) {
+
+        ProjectEntity fetchedProjectEntity = fetchProjectEntity(milestoneEntity.getProjectEntity().getTitle());
+        fetchedProjectEntity.getMilestones().remove(milestoneEntity);
+        projectRepository.save(fetchedProjectEntity);
+        return milestoneEntity;
+    }
+
 
     private ProjectEntity fetchProjectEntity(String title) {
         return findByTitle(title)

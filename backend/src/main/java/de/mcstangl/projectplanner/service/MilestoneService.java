@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MilestoneService {
@@ -41,9 +40,6 @@ public class MilestoneService {
     }
 
     public MilestoneEntity updateMilestone(MilestoneEntity milestoneUpdateData) {
-
-        checkForExistingMilestoneForProject(milestoneUpdateData);
-
         return milestoneRepository.save(milestoneUpdateData);
     }
 
@@ -54,5 +50,12 @@ public class MilestoneService {
                 throw new EntityExistsException(String.format("Dieses Projekt hat bereits einen Milestone %s", newMilestone.getTitle()));
             }
         }
+    }
+
+    public MilestoneEntity deleteById(Long id) {
+
+        MilestoneEntity milestoneEntity = milestoneRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Milestone mit ID %s konnte nicht gefunden werden", id)));
+
+        return projectService.removeMilestone(milestoneEntity);
     }
 }

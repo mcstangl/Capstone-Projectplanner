@@ -27,26 +27,16 @@ class ProjectEntityTest extends SpringBootTests {
     @Autowired
     private ProjectRepository projectRepository;
 
-    @BeforeEach
-    public void setup() {
-        projectRepository.saveAndFlush(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .title("Test")
-                        .dateOfReceipt(Date.valueOf("2021-09-13"))
-                        .customer("Test").build()
-        );
-    }
 
-    @AfterEach
-    public void clear() {
-        projectRepository.deleteAll();
-    }
+
 
     @Test
     @Transactional
     @DisplayName("Find by title should return found project")
     public void findByTitle() {
+        // Given
+        createTestProject();
+
         // When
         Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Test");
 
@@ -77,7 +67,7 @@ class ProjectEntityTest extends SpringBootTests {
                 .dateOfReceipt(Date.valueOf("2021-09-13"))
                 .build();
         // When
-        ProjectEntity actual = projectRepository.saveAndFlush(projectEntity);
+        ProjectEntity actual = projectRepository.save(projectEntity);
 
         // Then
         assertNotNull(actual.getId());
@@ -87,26 +77,31 @@ class ProjectEntityTest extends SpringBootTests {
     }
 
     @ParameterizedTest
+    @Transactional
     @MethodSource("getArgumentsForInvalidProjectEntityTest")
     @DisplayName("Create a project with a title that already exists or an null title should fail")
     public void createProjectInvalidTitle(String title) {
         //Given
+        createTestProject();
+
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .title(title)
                 .dateOfReceipt(Date.valueOf("2021-03-13"))
                 .customer("Test").build();
-        // When
+
+        // Then
         assertThrows(DataIntegrityViolationException.class, () -> projectRepository.saveAndFlush(projectEntity));
     }
 
     private static Stream<Arguments> getArgumentsForInvalidProjectEntityTest(){
         return Stream.of(
-                Arguments.of("Test"),
-                Arguments.of((Object) null)
+                Arguments.of((Object) null),
+                Arguments.of("Test")
         );
     }
 
     @Test
+    @Transactional
     @DisplayName("Create a project without a date of receipt should fail")
     public void createProjectWithoutDateOfReceipt(){
         //Given
@@ -121,6 +116,9 @@ class ProjectEntityTest extends SpringBootTests {
     @Transactional
     @DisplayName("FindAll should return a list of all projects in DB")
     public void findAll() {
+        // Given
+        createTestProject();
+
         // When
         List<ProjectEntity> actual = projectRepository.findAll();
 
@@ -134,6 +132,7 @@ class ProjectEntityTest extends SpringBootTests {
     @DisplayName("Delete should delete project from DB")
     public void delete() {
         // Given
+        createTestProject();
         Optional<ProjectEntity> fetchedProjectEntityOpt = projectRepository.findByTitle("Test");
         if (fetchedProjectEntityOpt.isEmpty()) {
             fail();
@@ -145,5 +144,16 @@ class ProjectEntityTest extends SpringBootTests {
         // Then
         List<ProjectEntity> actual = projectRepository.findAll();
         assertThat(actual.size(), is(0));
+    }
+
+
+    private ProjectEntity createTestProject() {
+        return projectRepository.saveAndFlush(
+                ProjectEntity.builder()
+                        .id(1L)
+                        .title("Test")
+                        .dateOfReceipt(Date.valueOf("2021-09-13"))
+                        .customer("Test").build()
+        );
     }
 }

@@ -48,23 +48,6 @@ class LoginControllerTest extends SpringBootTests {
     @Autowired
     private JwtConfig jwtConfig;
 
-    @BeforeEach
-    public void setup() {
-        UserEntity admin = UserEntity.builder()
-                .id(1L)
-                .loginName("Hans")
-                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("ADMIN").build();
-
-        UserEntity user = UserEntity.builder()
-                .id(2L)
-                .loginName("Dave")
-                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("USER").build();
-        userRepository.saveAndFlush(admin);
-        userRepository.saveAndFlush(user);
-    }
-
     @AfterEach
     public void clearDB() {
         userRepository.deleteAll();
@@ -74,6 +57,7 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with valid CredentialsDto should return a jwt token")
     public void loginWithCredentials() {
         // Given
+        createAdminUser();
         CredentialsDto credentialsDto = getCredentialsDto("Hans", "password");
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
@@ -105,7 +89,7 @@ class LoginControllerTest extends SpringBootTests {
     @DisplayName("Login with invalid credentials should return HttpStatus.UNAUTHORIZED")
     public void loginWithInvalidCredentials(String loginName, String password) {
         // Given
-        CredentialsDto credentialsDto = getCredentialsDto(loginName,password);
+        CredentialsDto credentialsDto = getCredentialsDto(loginName, password);
         HttpEntity<CredentialsDto> httpEntity = new HttpEntity<>(credentialsDto);
 
         // When
@@ -120,7 +104,7 @@ class LoginControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
 
-    private static Stream<Arguments> getArgumentsForInvalidCredentialsTest(){
+    private static Stream<Arguments> getArgumentsForInvalidCredentialsTest() {
         return Stream.of(
                 Arguments.of("Hans", "invalidPassword"),
                 Arguments.of("Does-not-exist", "password")
@@ -148,7 +132,7 @@ class LoginControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
-    private static Stream<Arguments> getArgumentsForBadCredentialsTest(){
+    private static Stream<Arguments> getArgumentsForBadCredentialsTest() {
         return Stream.of(
                 Arguments.of(null, "password"),
                 Arguments.of("Hans", null)
@@ -156,7 +140,7 @@ class LoginControllerTest extends SpringBootTests {
     }
 
 
-    private CredentialsDto getCredentialsDto(String loginName, String password){
+    private CredentialsDto getCredentialsDto(String loginName, String password) {
         return CredentialsDto.builder()
                 .loginName(loginName)
                 .password(password)
@@ -165,5 +149,13 @@ class LoginControllerTest extends SpringBootTests {
 
     private String getUrl() {
         return String.format("http://localhost:%s/api/project-planner/auth", port);
+    }
+
+    public void createAdminUser() {
+        userRepository.save(UserEntity.builder()
+                .id(1L)
+                .loginName("Hans")
+                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
+                .role("ADMIN").build());
     }
 }

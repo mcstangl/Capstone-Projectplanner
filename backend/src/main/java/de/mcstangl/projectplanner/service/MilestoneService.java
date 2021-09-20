@@ -78,15 +78,7 @@ public class MilestoneService {
                 )
         ));
 
-        List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
-
-        for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
-            if (!milestone.equals(milestoneEntity)) {
-                updatedMilestoneEntityList.add(milestone);
-            }
-        }
-
-        fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
+        fetchedProjectEntity.removeMilestone(milestoneEntity);
         projectRepository.save(fetchedProjectEntity);
 
         return milestoneEntity;

@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.Assert.hasText;
 
@@ -30,8 +28,21 @@ public class ProjectService {
     }
 
     public Optional<ProjectEntity> findByTitle(String title) {
-        return projectRepository.findByTitle(title);
+
+        Optional<ProjectEntity> fetchedProjectEntityOpt = projectRepository.findByTitle(title);
+        if(fetchedProjectEntityOpt.isPresent()){
+            ProjectEntity fetchedProjectEntity = fetchedProjectEntityOpt.get();
+            if(fetchedProjectEntity.getMilestones() == null){
+                return Optional.of(fetchedProjectEntity);
+            }
+
+            sortProjectMilestones(fetchedProjectEntity);
+            return Optional.of(fetchedProjectEntity);
+        }
+
+        return Optional.empty();
     }
+
 
     public ProjectEntity createNewProject(ProjectEntity projectEntity) {
 
@@ -43,6 +54,7 @@ public class ProjectService {
         if (projectEntityOptional.isPresent()) {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
+        projectEntity.setMilestones(List.of());
         return projectRepository.save(projectEntity);
     }
 
@@ -82,12 +94,22 @@ public class ProjectService {
         return projectRepository.save(projectEntityCopy);
     }
 
-    protected MilestoneEntity removeMilestone(MilestoneEntity milestoneEntity) {
+    protected MilestoneEntity removeMilestone(MilestoneEntity milestoneEntityToRemove) {
 
-        ProjectEntity fetchedProjectEntity = fetchProjectEntity(milestoneEntity.getProjectEntity().getTitle());
-        fetchedProjectEntity.getMilestones().remove(milestoneEntity);
+        ProjectEntity fetchedProjectEntity = fetchProjectEntity(milestoneEntityToRemove.getProjectEntity().getTitle());
+
+        List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
+
+        for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
+            if(!milestone.equals(milestoneEntityToRemove)){
+                updatedMilestoneEntityList.add(milestone);
+            }
+        }
+
+        fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
+
         projectRepository.save(fetchedProjectEntity);
-        return milestoneEntity;
+        return milestoneEntityToRemove;
     }
 
 
@@ -142,4 +164,14 @@ public class ProjectService {
                 .owner(fetchedProjectEntity.getOwner()).build();
     }
 
+
+    private void sortProjectMilestones(ProjectEntity fetchedProjectEntity) {
+        List<MilestoneEntity> milestoneEntityList = fetchedProjectEntity.getMilestones();
+        List<MilestoneEntity> sortedMilestoneEntityList = sortMilestonesByDueDate(milestoneEntityList);
+        fetchedProjectEntity.setMilestones(sortedMilestoneEntityList);
+    }
+
+    private List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList){
+        return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
+    }
 }

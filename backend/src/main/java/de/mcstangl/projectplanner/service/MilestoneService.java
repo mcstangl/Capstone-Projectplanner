@@ -39,7 +39,8 @@ public class MilestoneService {
     }
 
     public List<MilestoneEntity> getAllSortedByDueDate() {
-        List<MilestoneEntity> milestoneEntityList = findAll();
+        List<MilestoneEntity> milestoneEntityList = findAll().stream()
+                .filter(milestoneEntity -> milestoneEntity.getDateFinished() == null).toList();
         return sortMilestonesByDueDate(milestoneEntityList);
     }
 

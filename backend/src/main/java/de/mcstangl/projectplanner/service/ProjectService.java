@@ -61,17 +61,17 @@ public class ProjectService {
 
     public List<ProjectEntity> findAll() {
         List<ProjectEntity> sortedProjectsWithMilestones = getAllProjectsSortedByMilestoneDueDate();
-        List<ProjectEntity> projectsWithoutMilestones = projectRepository.findAll().stream()
-                .filter(project -> project.getMilestones() == null || project.getMilestones().size() == 0)
-                .toList();
+        List<ProjectEntity> allProjects = projectRepository.findAll();
 
-        List<ProjectEntity> allProjects = new LinkedList<>();
+        List<ProjectEntity> allProjectsSorted = new LinkedList<>(sortedProjectsWithMilestones);
 
-        allProjects.addAll(sortedProjectsWithMilestones);
+        for (ProjectEntity project : allProjects) {
+            if(!allProjectsSorted.contains(project)){
+                allProjectsSorted.add(project);
+            }
+        }
 
-        allProjects.addAll(projectsWithoutMilestones);
-
-        return allProjects;
+        return allProjectsSorted;
     }
 
     public List<ProjectEntity> getAllProjectsSortedByMilestoneDueDate(){

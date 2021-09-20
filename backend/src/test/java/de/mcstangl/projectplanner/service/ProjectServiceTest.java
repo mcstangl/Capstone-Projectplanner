@@ -32,6 +32,9 @@ class ProjectServiceTest {
     @Mock
     private UserService userServiceMock;
 
+    @Mock
+    private MilestoneService milestoneServiceMock;
+
     @Captor
     private ArgumentCaptor<ProjectEntity> projectEntityCaptor;
 
@@ -136,6 +139,8 @@ class ProjectServiceTest {
         when(projectRepositoryMock.findAll()).thenReturn(
                 List.of(testProject)
         );
+
+        when(milestoneServiceMock.getAllSortedByDueDate()).thenReturn(List.of());
 
         // When
         List<ProjectEntity> actual = projectService.findAll();

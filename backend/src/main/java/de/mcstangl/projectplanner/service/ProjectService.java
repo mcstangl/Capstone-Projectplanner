@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.springframework.util.Assert.hasText;
 
@@ -20,11 +19,13 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserService userService;
+    private final MilestoneService milestoneService;
 
     @Autowired
-    public ProjectService(ProjectRepository projectRepository, UserService userService) {
+    public ProjectService(ProjectRepository projectRepository, UserService userService, MilestoneService milestoneService) {
         this.projectRepository = projectRepository;
         this.userService = userService;
+        this.milestoneService = milestoneService;
     }
 
     public Optional<ProjectEntity> findByTitle(String title) {
@@ -59,7 +60,28 @@ public class ProjectService {
     }
 
     public List<ProjectEntity> findAll() {
-        return projectRepository.findAll();
+        List<ProjectEntity> sortedProjectsWithMilestones = getAllProjectsSortedByMilestoneDueDate();
+        List<ProjectEntity> projectsWithoutMilestones = projectRepository.findAll().stream().filter(project -> project.getMilestones() == null || project.getMilestones().size() == 0).toList();
+
+        List<ProjectEntity> allProjects = new LinkedList<>();
+
+        allProjects.addAll(sortedProjectsWithMilestones);
+
+        allProjects.addAll(projectsWithoutMilestones);
+
+        return allProjects;
+    }
+
+    public List<ProjectEntity> getAllProjectsSortedByMilestoneDueDate(){
+        List<ProjectEntity> sortedProjects = milestoneService.getAllSortedByDueDate().stream()
+                .map(MilestoneEntity::getProjectEntity)
+                .distinct()
+                .toList();
+        for (ProjectEntity project : sortedProjects) {
+            sortProjectMilestones(project);
+        }
+
+        return sortedProjects;
     }
 
     public ProjectEntity update(ProjectEntity projectUpdateData, String newTitle) {

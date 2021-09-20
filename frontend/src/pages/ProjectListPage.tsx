@@ -9,6 +9,7 @@ import styled from 'styled-components/macro'
 import { LinkGroup } from '../components/LinkGroup'
 import Loader from '../components/Loader'
 import MainStyle from '../components/MainStyle'
+import ProjectList from '../components/ProjectList'
 
 const ProjectListPage: FC = () => {
   const { token, authUser } = useContext(AuthContext)
@@ -59,50 +60,7 @@ const ProjectListPage: FC = () => {
             placeholder="Suche in Projekten"
           />
         )}
-        {!loading && (
-          <List>
-            <ListHeader key="header">
-              <span>Eingangsdatum</span>
-              <span>Kunde</span>
-              <span>Titel</span>
-              <span>Milestone</span>
-              <span>Projektleitung</span>
-              <span>Redaktion</span>
-              <span>Motion Design</span>
-            </ListHeader>
-            {filteredProjects &&
-              filteredProjects.length &&
-              filteredProjects.map(project => (
-                <ListItem
-                  id={project.title}
-                  key={project.title}
-                  to={'/projects/' + project.title}
-                >
-                  <span>{project.dateOfReceipt}</span>
-                  <span>{project.customer}</span>
-                  <span>{project.title}</span>
-                  {project.milestones && project.milestones[0] ? (
-                    <span>
-                      {project.milestones[0].title +
-                        ' ' +
-                        project.milestones[0].dueDate}
-                    </span>
-                  ) : (
-                    <div />
-                  )}
-                  <span>{project.owner.loginName}</span>
-                  {project.writer.map(writer => (
-                    <span key={writer.loginName}>{writer.loginName}</span>
-                  ))}
-                  {project.motionDesign.map(motionDesigner => (
-                    <span key={motionDesigner.loginName}>
-                      {motionDesigner.loginName}
-                    </span>
-                  ))}
-                </ListItem>
-              ))}
-          </List>
-        )}
+        {!loading && <ProjectList projects={filteredProjects} />}
       </MainStyle>
     </PageLayout>
   )
@@ -120,33 +78,4 @@ const SearchInput = styled.input`
     border: 2px solid white;
     outline: 2px solid var(--accentcolor);
   }
-`
-
-const List = styled.ul`
-  width: 100%;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-gap: 0 var(--size-s);
-`
-const ListItem = styled(Link)`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-column-gap: var(--size-s);
-  padding: 0.5rem;
-  text-decoration: none;
-  color: black;
-
-  &:hover {
-    background-color: var(--gradient4);
-  }
-`
-
-const ListHeader = styled.li`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-column-gap: var(--size-s);
-  padding: 0.5rem;
-  border-bottom: solid 1px var(--secondarycolor);
 `

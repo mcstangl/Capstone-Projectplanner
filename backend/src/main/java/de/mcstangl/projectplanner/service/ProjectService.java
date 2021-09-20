@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.springframework.util.Assert.hasText;
 
@@ -20,11 +19,13 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserService userService;
+    private final MilestoneService milestoneService;
 
     @Autowired
-    public ProjectService(ProjectRepository projectRepository, UserService userService) {
+    public ProjectService(ProjectRepository projectRepository, UserService userService, MilestoneService milestoneService) {
         this.projectRepository = projectRepository;
         this.userService = userService;
+        this.milestoneService = milestoneService;
     }
 
     public Optional<ProjectEntity> findByTitle(String title) {
@@ -59,7 +60,29 @@ public class ProjectService {
     }
 
     public List<ProjectEntity> findAll() {
-        return projectRepository.findAll();
+        List<ProjectEntity> sortedProjectsWithMilestones = getAllProjectsSortedByMilestoneDueDate();
+        List<ProjectEntity> allProjects = projectRepository.findAll();
+
+        List<ProjectEntity> allProjectsSorted = new LinkedList<>(sortedProjectsWithMilestones);
+
+        for (ProjectEntity project : allProjects) {
+            if(!allProjectsSorted.contains(project)){
+                allProjectsSorted.add(project);
+            }
+        }
+
+        return allProjectsSorted;
+    }
+
+    public List<ProjectEntity> getAllProjectsSortedByMilestoneDueDate(){
+        List<ProjectEntity> sortedProjects = milestoneService.getAllSortedByDueDate().stream()
+                .map(MilestoneEntity::getProjectEntity)
+                .distinct()
+                .toList();
+        for (ProjectEntity project : sortedProjects) {
+            sortProjectMilestones(project);
+        }
+        return sortedProjects;
     }
 
     public ProjectEntity update(ProjectEntity projectUpdateData, String newTitle) {
@@ -94,34 +117,12 @@ public class ProjectService {
         return projectRepository.save(projectEntityCopy);
     }
 
-    protected MilestoneEntity removeMilestone(MilestoneEntity milestoneEntityToRemove) {
-
-        ProjectEntity fetchedProjectEntity = fetchProjectEntity(milestoneEntityToRemove.getProjectEntity().getTitle());
-
-        List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
-
-        for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
-            if(!milestone.equals(milestoneEntityToRemove)){
-                updatedMilestoneEntityList.add(milestone);
-            }
-        }
-
-        fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
-
-        projectRepository.save(fetchedProjectEntity);
-        return milestoneEntityToRemove;
-    }
-
-
     private ProjectEntity fetchProjectEntity(String title) {
-        return findByTitle(title)
-                .orElseThrow(
+        return findByTitle(title).orElseThrow(
                         () -> new EntityNotFoundException(
                                 String.format(
                                         "Projekt mit dem Titel %s konnte nicht gefunden werden",
-                                        title
-                                )
-                        )
+                                        title))
                 );
     }
 

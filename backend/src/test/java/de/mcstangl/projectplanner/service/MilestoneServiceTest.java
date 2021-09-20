@@ -3,6 +3,7 @@ package de.mcstangl.projectplanner.service;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.MilestoneRepository;
+import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +26,7 @@ class MilestoneServiceTest {
     private MilestoneRepository milestoneRepositoryMock;
 
     @Mock
-    private ProjectService projectServiceMock;
+    private ProjectRepository projectRepositoryMock;
 
     @InjectMocks
     private MilestoneService mileStoneService;
@@ -53,7 +54,7 @@ class MilestoneServiceTest {
     @DisplayName("Find by project title should return all milestones found")
     public void findAllByProjectTitle() {
         // Given
-        when(projectServiceMock.findByTitle("Test")).thenReturn(
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
 
@@ -74,7 +75,7 @@ class MilestoneServiceTest {
     @DisplayName("Create new milestone should persist the milestone")
     public void createNewMilestone() {
         // Given
-        when(projectServiceMock.findByTitle("Test")).thenReturn(
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
         MilestoneEntity testMilestone1 = getTestMilestone();
@@ -111,7 +112,7 @@ class MilestoneServiceTest {
         when(milestoneRepositoryMock.findAllByProjectEntity(any())).thenReturn(
                 List.of(getTestMilestone())
         );
-        when(projectServiceMock.findByTitle("Test")).thenReturn(
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
 

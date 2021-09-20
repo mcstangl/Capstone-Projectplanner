@@ -56,6 +56,10 @@ public class ProjectEntity {
         motionDesigners.add(userEntity);
     }
 
+    public void removeMilestone(MilestoneEntity milestoneEntity){
+        milestones.remove(milestoneEntity);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

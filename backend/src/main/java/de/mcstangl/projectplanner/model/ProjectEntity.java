@@ -39,14 +39,14 @@ public class ProjectEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "writer_id")
-    private Set<UserEntity> writers = new HashSet<>();
+    private Set<UserEntity> writers;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "motionDesinger_id")
-    private Set<UserEntity> motionDesigners = new HashSet<>();
+    private Set<UserEntity> motionDesigners;
 
     @OneToMany(mappedBy = "projectEntity" , fetch=FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MilestoneEntity> milestones;
+    private List<MilestoneEntity> milestones;
 
     public void addWriter(UserEntity userEntity) {
         writers.add(userEntity);

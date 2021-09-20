@@ -334,7 +334,7 @@ class MilestoneControllerTest extends SpringBootTests {
 
     @Test
     @DisplayName("Delete milestone should delete milestone from project and from DB and return deleted milestone")
-    public void deleteMilestone(){
+    public void deleteMilestone() {
         // Given
         ProjectEntity testProject = createTestProject();
         MilestoneEntity testMilestone1 = createTestMilestone1(testProject);
@@ -342,7 +342,7 @@ class MilestoneControllerTest extends SpringBootTests {
 
         // When
         ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
-                getUrl()+"/"+idToDelete,
+                getUrl() + "/" + idToDelete,
                 HttpMethod.DELETE,
                 new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
                 MilestoneDto.class);
@@ -355,9 +355,50 @@ class MilestoneControllerTest extends SpringBootTests {
         Optional<MilestoneEntity> milestoneEntityOptional = milestoneRepository.findById(idToDelete);
         assertTrue(milestoneEntityOptional.isEmpty());
     }
+
+
+    @Test
+    @DisplayName("Delete milestone should return HttpStatus.NOT_FOUND if the milestone is not in DB")
+    public void deleteMilestoneWithNonExistingId() {
+        // Given
+        ProjectEntity testProject = createTestProject();
+        createTestMilestone1(testProject);
+
+        // When
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
+                getUrl() + "/12345435",
+                HttpMethod.DELETE,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                MilestoneDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("Delete milestone should return HttpStatus.NOT_FOUND if the project is not in DB")
+    public void deleteMilestoneWithNonExistingProject() {
+        // Given
+        ProjectEntity testProject = createTestProject();
+        MilestoneEntity testMilestone = createTestMilestone1(testProject);
+        Long idToDelete = testMilestone.getId();
+        projectRepository.deleteAll();
+
+        // When
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
+                getUrl() + "/" + idToDelete,
+                HttpMethod.DELETE,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                MilestoneDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+
     @Test
     @DisplayName("Delete milestone as user should return HttpStatus.UNAUTHORIZED")
-    public void deleteMilestoneAsUser(){
+    public void deleteMilestoneAsUser() {
         // Given
         ProjectEntity testProject = createTestProject();
         MilestoneEntity testMilestone1 = createTestMilestone1(testProject);
@@ -365,7 +406,7 @@ class MilestoneControllerTest extends SpringBootTests {
 
         // When
         ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
-                getUrl()+"/"+idToDelete,
+                getUrl() + "/" + idToDelete,
                 HttpMethod.DELETE,
                 new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
                 MilestoneDto.class);

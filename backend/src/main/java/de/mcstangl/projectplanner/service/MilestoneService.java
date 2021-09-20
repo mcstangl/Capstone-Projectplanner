@@ -34,10 +34,11 @@ public class MilestoneService {
         return milestoneRepository.save(newMilestone);
     }
 
-    public List<MilestoneEntity> findAll(){
+    public List<MilestoneEntity> findAll() {
         return milestoneRepository.findAll();
     }
-    public List<MilestoneEntity> getAllSortedByDueDate(){
+
+    public List<MilestoneEntity> getAllSortedByDueDate() {
         List<MilestoneEntity> milestoneEntityList = findAll();
         return sortMilestonesByDueDate(milestoneEntityList);
     }
@@ -69,31 +70,30 @@ public class MilestoneService {
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findByTitle(milestoneEntity.getProjectEntity().getTitle());
 
+        ProjectEntity fetchedProjectEntity = projectEntityOptional.orElseThrow(() -> new EntityNotFoundException(
+                String.format(
+                        "Projekt mit dem Titel %s konnte nicht gefunden werden",
+                        milestoneEntity.getProjectEntity().getTitle()
+                )
+        ));
 
-            ProjectEntity fetchedProjectEntity = projectEntityOptional.orElseThrow(() -> new EntityNotFoundException(
-                    String.format(
-                            "Projekt mit dem Titel %s konnte nicht gefunden werden",
-                            milestoneEntity.getProjectEntity().getTitle()
-                    )
-            ));
+        List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
 
-            List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
-
-            for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
-                if(!milestone.equals(milestoneEntity)){
-                    updatedMilestoneEntityList.add(milestone);
-                }
+        for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
+            if (!milestone.equals(milestoneEntity)) {
+                updatedMilestoneEntityList.add(milestone);
             }
+        }
 
-            fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
-            projectRepository.save(fetchedProjectEntity);
+        fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
+        projectRepository.save(fetchedProjectEntity);
 
-            return milestoneEntity;
+        return milestoneEntity;
 
 
     }
 
-    public List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList){
+    public List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList) {
         return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
 }

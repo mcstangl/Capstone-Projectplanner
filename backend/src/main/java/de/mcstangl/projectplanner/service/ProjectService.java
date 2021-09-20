@@ -61,7 +61,9 @@ public class ProjectService {
 
     public List<ProjectEntity> findAll() {
         List<ProjectEntity> sortedProjectsWithMilestones = getAllProjectsSortedByMilestoneDueDate();
-        List<ProjectEntity> projectsWithoutMilestones = projectRepository.findAll().stream().filter(project -> project.getMilestones() == null || project.getMilestones().size() == 0).toList();
+        List<ProjectEntity> projectsWithoutMilestones = projectRepository.findAll().stream()
+                .filter(project -> project.getMilestones() == null || project.getMilestones().size() == 0)
+                .toList();
 
         List<ProjectEntity> allProjects = new LinkedList<>();
 
@@ -80,7 +82,6 @@ public class ProjectService {
         for (ProjectEntity project : sortedProjects) {
             sortProjectMilestones(project);
         }
-
         return sortedProjects;
     }
 
@@ -117,14 +118,11 @@ public class ProjectService {
     }
 
     private ProjectEntity fetchProjectEntity(String title) {
-        return findByTitle(title)
-                .orElseThrow(
+        return findByTitle(title).orElseThrow(
                         () -> new EntityNotFoundException(
                                 String.format(
                                         "Projekt mit dem Titel %s konnte nicht gefunden werden",
-                                        title
-                                )
-                        )
+                                        title))
                 );
     }
 

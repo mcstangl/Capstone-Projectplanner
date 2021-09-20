@@ -146,6 +146,35 @@ class MilestoneServiceTest {
         assertThat(actual.getProjectEntity(), is(ProjectEntity.builder().title("Test").build()));
     }
 
+
+    @Test
+    @DisplayName("Sort milestone by dueDate should return a sorted list")
+    public void sortMilestonesByDueDate(){
+        // Given
+        MilestoneEntity firstMilestone = MilestoneEntity.builder()
+                .id(1L)
+                .dueDate(Date.valueOf("2021-01-01"))
+                .title("Test1")
+                .build();
+        MilestoneEntity secondMilestone = MilestoneEntity.builder()
+                .id(2L)
+                .dueDate(Date.valueOf("2021-02-02"))
+                .title("Test2")
+                .build();
+        MilestoneEntity thirdMilestone = MilestoneEntity.builder()
+                .id(3L)
+                .dueDate(Date.valueOf("2021-02-03"))
+                .title("Test2")
+                .build();
+
+        // When
+        List<MilestoneEntity> actual = mileStoneService.sortMilestonesByDueDate(List.of(thirdMilestone, secondMilestone, firstMilestone));
+
+        // Then
+        assertThat(actual, contains(firstMilestone, secondMilestone, thirdMilestone));
+
+    }
+
     private MilestoneEntity getTestMilestone() {
         return MilestoneEntity.builder()
                 .projectEntity(ProjectEntity.builder().title("Test").build())
@@ -154,4 +183,5 @@ class MilestoneServiceTest {
                 .title("Test1")
                 .build();
     }
+
 }

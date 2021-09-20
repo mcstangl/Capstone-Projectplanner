@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
@@ -14,10 +15,7 @@ import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
 import java.sql.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,10 +27,13 @@ import static org.mockito.Mockito.*;
 class ProjectServiceTest {
 
     @Mock
-    private ProjectRepository projectRepository;
+    private ProjectRepository projectRepositoryMock;
 
     @Mock
-    private UserService userService;
+    private UserService userServiceMock;
+
+    @Mock
+    private MilestoneService milestoneServiceMock;
 
     @Captor
     private ArgumentCaptor<ProjectEntity> projectEntityCaptor;
@@ -59,7 +60,7 @@ class ProjectServiceTest {
     public void findByTitle() {
         // Given
         ProjectEntity testProject = createTestProject();
-        when(projectRepository.findByTitle(any())).thenReturn(
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(
                 Optional.of(testProject)
         );
 
@@ -74,10 +75,52 @@ class ProjectServiceTest {
     }
 
     @Test
+    @DisplayName("FindByName should return an optional project with the milesStones sorted by dueDate")
+    public void findByTitleWithSortedMilestones() {
+        // Given
+        ProjectEntity testProject = createTestProject();
+
+
+        MilestoneEntity firstMilestone = MilestoneEntity.builder()
+                .id(1L)
+                .dueDate(Date.valueOf("2021-01-01"))
+                .title("Test1")
+                .build();
+        MilestoneEntity secondMilestone = MilestoneEntity.builder()
+                .id(2L)
+                .dueDate(Date.valueOf("2021-02-02"))
+                .title("Test2")
+                .build();
+        MilestoneEntity thirdMilestone = MilestoneEntity.builder()
+                .id(3L)
+                .dueDate(Date.valueOf("2021-02-03"))
+                .title("Test2")
+                .build();
+
+        List<MilestoneEntity> milestoneEntitySet = new ArrayList<>();
+        milestoneEntitySet.add(thirdMilestone);
+        milestoneEntitySet.add(firstMilestone);
+        milestoneEntitySet.add(secondMilestone);
+        testProject.setMilestones(milestoneEntitySet);
+
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(
+                Optional.of(testProject)
+        );
+
+        // When
+        Optional<ProjectEntity> actualOptional = projectService.findByTitle("Test");
+
+        // Then
+        assertTrue(actualOptional.isPresent());
+        assertThat(actualOptional.get().getMilestones(), contains(firstMilestone,secondMilestone,thirdMilestone));
+
+    }
+
+    @Test
     @DisplayName("FindByName should return an optional empty when the project is not found")
     public void findByTitleUnknown() {
         // Given
-        when(projectRepository.findByTitle(any())).thenReturn(
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(
                 Optional.empty()
         );
 
@@ -93,9 +136,11 @@ class ProjectServiceTest {
     public void findAll() {
         // Given
         ProjectEntity testProject = createTestProject();
-        when(projectRepository.findAll()).thenReturn(
+        when(projectRepositoryMock.findAll()).thenReturn(
                 List.of(testProject)
         );
+
+        when(milestoneServiceMock.getAllSortedByDueDate()).thenReturn(List.of());
 
         // When
         List<ProjectEntity> actual = projectService.findAll();
@@ -110,7 +155,7 @@ class ProjectServiceTest {
     public void createNewProject() {
         // Given
         ProjectEntity testProject = createTestProject();
-        when(projectRepository.save(any())).thenReturn(
+        when(projectRepositoryMock.save(any())).thenReturn(
                 testProject
         );
 
@@ -132,9 +177,9 @@ class ProjectServiceTest {
     public void createNewProjectWithTitleThatAlreadyExists() {
         // Given
         ProjectEntity testProject = createTestProject();
-        when(projectRepository.save(any())).thenReturn(testProject);
+        when(projectRepositoryMock.save(any())).thenReturn(testProject);
 
-        when(projectRepository.findByTitle(any())).thenReturn(
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(
                 Optional.of(testProject)
         );
 
@@ -174,7 +219,7 @@ class ProjectServiceTest {
         // Given
         ProjectEntity testProject = createTestProject();
         UserEntity testUser2 = createTestUser2();
-        when(projectRepository.findByTitle(any()))
+        when(projectRepositoryMock.findByTitle(any()))
                 .thenReturn(
                         Optional.of(testProject));
 
@@ -186,7 +231,7 @@ class ProjectServiceTest {
                 .build();
         // When
         projectService.update(projectEntity, newTitle);
-        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
         ProjectEntity actual = projectEntityCaptor.getValue();
 
         // Then
@@ -212,7 +257,7 @@ class ProjectServiceTest {
         ProjectEntity testProject = createTestProject();
         UserEntity testUser2 = createTestUser2();
 
-        when(projectRepository.findByTitle("Test"))
+        when(projectRepositoryMock.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(testProject));
 
@@ -226,7 +271,7 @@ class ProjectServiceTest {
         // When
         projectService.update(projectEntity, "new Title");
 
-        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
         ProjectEntity actualSaved = projectEntityCaptor.getValue();
 
         // Then
@@ -248,7 +293,7 @@ class ProjectServiceTest {
         writerSet.add(testUser1);
         writerSet.add(testUser2);
 
-        when(projectRepository.findByTitle("Test"))
+        when(projectRepositoryMock.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
@@ -260,7 +305,7 @@ class ProjectServiceTest {
                                 .build()));
 
 
-        when(userService.findByLoginName(any()))
+        when(userServiceMock.findByLoginName(any()))
                 .thenReturn(
                         Optional.of(testUser1))
                 .thenReturn(
@@ -275,7 +320,7 @@ class ProjectServiceTest {
                 .build();
         // When
         projectService.update(projectEntity, "Test");
-        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
         Set<UserEntity> actual = projectEntityCaptor.getValue().getWriters();
 
         // Then
@@ -293,7 +338,7 @@ class ProjectServiceTest {
         motionDesigners.add(testUser1);
         motionDesigners.add(testUser2);
 
-        when(projectRepository.findByTitle("Test"))
+        when(projectRepositoryMock.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(ProjectEntity.builder()
                                 .id(1L)
@@ -305,7 +350,7 @@ class ProjectServiceTest {
                                 .build()));
 
 
-        when(userService.findByLoginName(any()))
+        when(userServiceMock.findByLoginName(any()))
                 .thenReturn(
                         Optional.of(testUser1))
                 .thenReturn(
@@ -324,7 +369,7 @@ class ProjectServiceTest {
         projectService.update(projectEntity, "Test");
 
         // Then
-        verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
         Set<UserEntity> actual = projectEntityCaptor.getValue().getMotionDesigners();
         assertThat(actual, containsInAnyOrder(testUser1, testUser2));
     }

@@ -3,20 +3,26 @@ package de.mcstangl.projectplanner.service;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.MilestoneRepository;
+import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class MilestoneServiceTest {
@@ -25,7 +31,7 @@ class MilestoneServiceTest {
     private MilestoneRepository milestoneRepositoryMock;
 
     @Mock
-    private ProjectService projectServiceMock;
+    private ProjectRepository projectRepositoryMock;
 
     @InjectMocks
     private MilestoneService mileStoneService;
@@ -53,7 +59,7 @@ class MilestoneServiceTest {
     @DisplayName("Find by project title should return all milestones found")
     public void findAllByProjectTitle() {
         // Given
-        when(projectServiceMock.findByTitle("Test")).thenReturn(
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
 
@@ -74,7 +80,7 @@ class MilestoneServiceTest {
     @DisplayName("Create new milestone should persist the milestone")
     public void createNewMilestone() {
         // Given
-        when(projectServiceMock.findByTitle("Test")).thenReturn(
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
         MilestoneEntity testMilestone1 = getTestMilestone();
@@ -111,7 +117,7 @@ class MilestoneServiceTest {
         when(milestoneRepositoryMock.findAllByProjectEntity(any())).thenReturn(
                 List.of(getTestMilestone())
         );
-        when(projectServiceMock.findByTitle("Test")).thenReturn(
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
         );
 
@@ -146,6 +152,94 @@ class MilestoneServiceTest {
         assertThat(actual.getProjectEntity(), is(ProjectEntity.builder().title("Test").build()));
     }
 
+    @Test
+    @DisplayName("Delete milestone should delete milestone from DB")
+    public void deleteMilestoneById() {
+        // Given
+        MilestoneEntity testMilestone = getTestMilestone();
+        Long idToDelete = testMilestone.getId();
+
+        when(milestoneRepositoryMock.findById(idToDelete))
+                .thenReturn(Optional.of(testMilestone));
+
+        when(projectRepositoryMock.findByTitle(any()))
+                .thenReturn(Optional.of(ProjectEntity.builder().title("Test").id(1L).milestones(new ArrayList<>(List.of(testMilestone))).build()));
+
+        // When
+        MilestoneEntity actual = mileStoneService.deleteById(idToDelete);
+
+        // Then
+        assertThat(actual, is(testMilestone));
+        verify(projectRepositoryMock, times(1)).save(projectEntityArgumentCaptor.capture());
+        List<MilestoneEntity> actualMilestoneList = projectEntityArgumentCaptor.getValue().getMilestones();
+        assertTrue(actualMilestoneList.isEmpty());
+
+    }
+
+    @Test
+    @DisplayName("Delete by id should throw and EntityNotFoundException when milestone is not in DB")
+    public void deleteMilestoneWithNonExistingId(){
+        // Given
+        MilestoneEntity testMilestone = getTestMilestone();
+        Long idToDelete = testMilestone.getId();
+
+        when(milestoneRepositoryMock.findById(idToDelete))
+                .thenReturn(Optional.empty());
+
+        when(projectRepositoryMock.findByTitle(any()))
+                .thenReturn(Optional.of(ProjectEntity.builder().title("Test").id(1L).milestones(new ArrayList<>(List.of(testMilestone))).build()));
+
+        // Then
+        assertThrows(EntityNotFoundException.class, ()-> mileStoneService.deleteById(1L));
+
+    }
+
+    @Test
+    @DisplayName("Delete by id should throw and EntityNotFoundException when the project is not in DB")
+    public void deleteMilestoneWithNonExistingProject(){
+        MilestoneEntity testMilestone = getTestMilestone();
+        Long idToDelete = testMilestone.getId();
+
+        when(milestoneRepositoryMock.findById(idToDelete))
+                .thenReturn(Optional.of(testMilestone));
+
+        when(projectRepositoryMock.findByTitle(any()))
+                .thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(EntityNotFoundException.class, ()-> mileStoneService.deleteById(1L));
+
+    }
+
+
+    @Test
+    @DisplayName("Sort milestone by dueDate should return a sorted list")
+    public void sortMilestonesByDueDate(){
+        // Given
+        MilestoneEntity firstMilestone = MilestoneEntity.builder()
+                .id(1L)
+                .dueDate(Date.valueOf("2021-01-01"))
+                .title("Test1")
+                .build();
+        MilestoneEntity secondMilestone = MilestoneEntity.builder()
+                .id(2L)
+                .dueDate(Date.valueOf("2021-02-02"))
+                .title("Test2")
+                .build();
+        MilestoneEntity thirdMilestone = MilestoneEntity.builder()
+                .id(3L)
+                .dueDate(Date.valueOf("2021-02-03"))
+                .title("Test3")
+                .build();
+
+        // When
+        List<MilestoneEntity> actual = mileStoneService.sortMilestonesByDueDate(List.of(thirdMilestone, secondMilestone, firstMilestone));
+
+        // Then
+        assertThat(actual, contains(firstMilestone, secondMilestone, thirdMilestone));
+
+    }
+
     private MilestoneEntity getTestMilestone() {
         return MilestoneEntity.builder()
                 .projectEntity(ProjectEntity.builder().title("Test").build())
@@ -154,4 +248,5 @@ class MilestoneServiceTest {
                 .title("Test1")
                 .build();
     }
+
 }

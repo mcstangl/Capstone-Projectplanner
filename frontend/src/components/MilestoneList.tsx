@@ -15,9 +15,9 @@ const MilestoneList: FC<MilestoneListProps> = ({
   return (
     <MilestoneListStyle>
       <ListHeader>
-        <h4>Title</h4>
-        <h4>Fällig am</h4>
-        <h4>Fertig am</h4>
+        <span>Title</span>
+        <span>Fällig am</span>
+        <span>Fertig am</span>
       </ListHeader>
       {milestones.map(milestone => (
         <MilestoneListItem
@@ -45,9 +45,4 @@ const ListHeader = styled.li`
   grid-column-gap: var(--size-s);
   padding: 0.5rem;
   border-bottom: solid 1px var(--secondarycolor);
-
-  h4 {
-    margin: 0;
-    padding: 0;
-  }
 `

@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -122,6 +124,26 @@ class MilestoneEntityTest extends SpringBootTests {
                 Arguments.of(null, testProject),
                 Arguments.of("New Milestone", null)
         );
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Delete a milestone from project should delete milestone from DB")
+    public void deleteMilestoneFromProject(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+        MilestoneEntity testMilestone = createTestMilestone(testProject);
+        testProject.setMilestones(new ArrayList<>(List.of(testMilestone)));
+        projectRepository.saveAndFlush(testProject);
+        if(milestoneRepository.findById(testMilestone.getId()).isEmpty()){
+            fail();
+        }
+        // When
+        testProject.removeMilestone(testMilestone);
+        projectRepository.saveAndFlush(testProject);
+        Optional<MilestoneEntity> actual = milestoneRepository.findById(testMilestone.getId());
+        // Then
+        assertTrue(actual.isEmpty());
     }
 
     private ProjectEntity createTestProject() {

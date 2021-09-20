@@ -42,37 +42,9 @@ class ProjectServiceTest {
     @InjectMocks
     private ProjectService projectService;
 
-    private ProjectEntity testProject;
-    private UserEntity testUser1;
-    private UserEntity testUser2;
-    private UserEntity testUser3;
-
     @BeforeEach
     void setup() {
-
         closeable = MockitoAnnotations.openMocks(this);
-        testUser1 = UserEntity.builder()
-                .id(1L)
-                .loginName("Test1")
-                .role("ADMIN")
-                .build();
-        testUser2 = UserEntity.builder()
-                .id(2L)
-                .loginName("Test2")
-                .role("ADMIN")
-                .build();
-        testUser3 = UserEntity.builder()
-                .id(3L)
-                .loginName("Test3")
-                .role("ADMIN")
-                .build();
-        testProject = ProjectEntity.builder()
-                .id(1L)
-                .customer("Test")
-                .title("Test")
-                .dateOfReceipt(Date.valueOf("2021-09-12"))
-                .owner(testUser1)
-                .build();
 
     }
 
@@ -86,6 +58,7 @@ class ProjectServiceTest {
     @DisplayName("FindByName should return an optional project when the project is found")
     public void findByTitle() {
         // Given
+        ProjectEntity testProject = createTestProject();
         when(projectRepository.findByTitle(any())).thenReturn(
                 Optional.of(testProject)
         );
@@ -119,6 +92,7 @@ class ProjectServiceTest {
     @DisplayName("FindAll should return all projects in DB")
     public void findAll() {
         // Given
+        ProjectEntity testProject = createTestProject();
         when(projectRepository.findAll()).thenReturn(
                 List.of(testProject)
         );
@@ -135,6 +109,7 @@ class ProjectServiceTest {
     @DisplayName("Creating a new project should return the newly created project")
     public void createNewProject() {
         // Given
+        ProjectEntity testProject = createTestProject();
         when(projectRepository.save(any())).thenReturn(
                 testProject
         );
@@ -156,6 +131,7 @@ class ProjectServiceTest {
     @DisplayName("Creating a new project with a title that is already in DB should throw EntityExistsException")
     public void createNewProjectWithTitleThatAlreadyExists() {
         // Given
+        ProjectEntity testProject = createTestProject();
         when(projectRepository.save(any())).thenReturn(testProject);
 
         when(projectRepository.findByTitle(any())).thenReturn(
@@ -196,6 +172,8 @@ class ProjectServiceTest {
     @DisplayName("Updating all project fields except title")
     public void updateProject(String newTitle) {
         // Given
+        ProjectEntity testProject = createTestProject();
+        UserEntity testUser2 = createTestUser2();
         when(projectRepository.findByTitle(any()))
                 .thenReturn(
                         Optional.of(testProject));
@@ -231,6 +209,9 @@ class ProjectServiceTest {
     @DisplayName("Updating all project fields")
     public void updateAllFieldsProject() {
         // Given
+        ProjectEntity testProject = createTestProject();
+        UserEntity testUser2 = createTestUser2();
+
         when(projectRepository.findByTitle("Test"))
                 .thenReturn(
                         Optional.of(testProject));
@@ -260,6 +241,9 @@ class ProjectServiceTest {
     @DisplayName("Update should update writers")
     public void updateWriters() {
         // Given
+        UserEntity testUser1 = createTestUser1();
+        UserEntity testUser2 = createTestUser2();
+        UserEntity testUser3 = createTestUser3();
         Set<UserEntity> writerSet = new HashSet<>();
         writerSet.add(testUser1);
         writerSet.add(testUser2);
@@ -302,6 +286,9 @@ class ProjectServiceTest {
     @DisplayName("Update should update motion designers")
     public void updateMotionDesigners() {
         // Given
+        UserEntity testUser1 = createTestUser1();
+        UserEntity testUser2 = createTestUser2();
+        UserEntity testUser3 = createTestUser3();
         Set<UserEntity> motionDesigners = new HashSet<>();
         motionDesigners.add(testUser1);
         motionDesigners.add(testUser2);
@@ -340,5 +327,41 @@ class ProjectServiceTest {
         verify(projectRepository, times(1)).save(projectEntityCaptor.capture());
         Set<UserEntity> actual = projectEntityCaptor.getValue().getMotionDesigners();
         assertThat(actual, containsInAnyOrder(testUser1, testUser2));
+    }
+
+
+    private UserEntity createTestUser1() {
+        return UserEntity.builder()
+                .id(1L)
+                .loginName("Test1")
+                .role("ADMIN")
+                .build();
+    }
+
+    private UserEntity createTestUser2() {
+        return UserEntity.builder()
+                .id(2L)
+                .loginName("Test2")
+                .role("ADMIN")
+                .build();
+    }
+
+    private UserEntity createTestUser3() {
+        return UserEntity.builder()
+                .id(3L)
+                .loginName("Test3")
+                .role("ADMIN")
+                .build();
+    }
+
+    private ProjectEntity createTestProject() {
+        return ProjectEntity.builder()
+                .id(1L)
+                .customer("Test")
+                .title("Test")
+                .dateOfReceipt(Date.valueOf("2021-09-12"))
+                .owner(createTestUser1())
+                .build();
+
     }
 }

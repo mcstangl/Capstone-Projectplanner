@@ -46,33 +46,6 @@ class ProjectControllerTest extends SpringBootTests {
     private TestUtil testUtil;
 
 
-
-    @BeforeEach
-    public void setup() {
-
-
-        UserEntity testUser1 = userRepository.saveAndFlush(UserEntity.builder()
-                .id(1L)
-                .loginName("Test")
-                .password("Test")
-                .role("ADMIN").build());
-        userRepository.saveAndFlush(UserEntity.builder()
-                .id(2L)
-                .loginName("Other User")
-                .password("Test")
-                .role("ADMIN").build());
-
-        projectRepository.saveAndFlush(
-                ProjectEntity.builder()
-                        .id(1L)
-                        .title("Test")
-                        .dateOfReceipt(java.sql.Date.valueOf("2012-03-21"))
-                        .owner(testUser1)
-                        .customer("Test").build()
-
-        );
-    }
-
     @AfterEach
     public void clear() {
         projectRepository.deleteAll();
@@ -83,6 +56,8 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project should persist and return the newly created project")
     public void createNewProject() {
         // Given
+        createTestUser1();
+
         ProjectDto projectDto = ProjectDto.builder()
                 .owner(UserDto.builder()
                         .loginName("Test")
@@ -137,6 +112,9 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a title that is already in DB should return HttpStatus.CONFLICT")
     public void createProjectWithTitleThatAlreadyExists() {
         // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
         ProjectDto projectDto = ProjectDto.builder()
                 .title("Test")
                 .owner(UserDto.builder()
@@ -163,6 +141,7 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST")
     public void createProjectWithBadRequest(String title, String customer, UserDto user, String date, HttpStatus expected) {
         // Given
+        createTestUser1();
         ProjectDto projectDto = ProjectDto.builder()
                 .title(title)
                 .owner(user)
@@ -204,6 +183,10 @@ class ProjectControllerTest extends SpringBootTests {
     @Test
     @DisplayName("Find all should return a list of all projects in DB")
     public void findAll() {
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
         // When
         ResponseEntity<ProjectDto[]> response = testRestTemplate.exchange(
                 getUrl(),
@@ -224,6 +207,10 @@ class ProjectControllerTest extends SpringBootTests {
     @Test
     @DisplayName("Find by title should return project found")
     public void findByTitle() {
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
         // When
         ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
                 getUrl() + "/Test",
@@ -258,6 +245,10 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Update Project should update all fields except title when there is no new title")
     public void updateProject(String newTitle, String expectedTitle) {
         // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestUser2();
+        createTestProject(testUser1);
+
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
@@ -295,6 +286,10 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Update Project should update the list of writers")
     public void updateWritersOfProject(List<UserDto> writers, int expectedLength) {
         // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestUser2();
+        createTestProject(testUser1);
+
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
@@ -342,6 +337,10 @@ class ProjectControllerTest extends SpringBootTests {
     @DisplayName("Update Project should update the list of writers")
     public void updateMotionDesignersOfProject(List<UserDto> motionDesigners, int expectedLength) {
         // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestUser2();
+        createTestProject(testUser1);
+
         UpdateProjectDto updateProjectDto = UpdateProjectDto.builder()
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
@@ -485,4 +484,35 @@ class ProjectControllerTest extends SpringBootTests {
     private String getUrl() {
         return String.format("http://localhost:%s/api/project-planner/project", port);
     }
+
+
+    public UserEntity createTestUser1() {
+        return userRepository.save(UserEntity.builder()
+                .id(1L)
+                .loginName("Test")
+                .password("Test")
+                .role("ADMIN").build());
+    }
+
+    public void createTestUser2() {
+        userRepository.save(UserEntity.builder()
+                .id(2L)
+                .loginName("Other User")
+                .password("Test")
+                .role("ADMIN").build());
+    }
+
+    public void createTestProject(UserEntity testUser){
+
+        projectRepository.saveAndFlush(
+                ProjectEntity.builder()
+                        .id(1L)
+                        .title("Test")
+                        .dateOfReceipt(java.sql.Date.valueOf("2012-03-21"))
+                        .owner(testUser)
+                        .customer("Test").build()
+
+        );
+    }
+
 }

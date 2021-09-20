@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.model;
 
 import de.mcstangl.projectplanner.SpringBootTests;
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +64,7 @@ class ProjectEntityTest extends SpringBootTests {
         //Given
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .title("Test2")
+                .status(ProjectStatus.OPEN)
                 .customer("Test2")
                 .dateOfReceipt(Date.valueOf("2021-09-13"))
                 .build();
@@ -71,6 +73,7 @@ class ProjectEntityTest extends SpringBootTests {
 
         // Then
         assertNotNull(actual.getId());
+        assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
         assertThat(actual.getTitle(), is("Test2"));
         assertThat(actual.getCustomer(), is("Test2"));
         assertThat(actual.getDateOfReceipt().toString(), is("2021-09-13"));

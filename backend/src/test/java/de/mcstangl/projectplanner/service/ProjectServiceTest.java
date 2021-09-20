@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -155,20 +156,15 @@ class ProjectServiceTest {
     public void createNewProject() {
         // Given
         ProjectEntity testProject = createTestProject();
-        when(projectRepositoryMock.save(any())).thenReturn(
-                testProject
-        );
 
         // When
-        ProjectEntity newProject = projectService.createNewProject(ProjectEntity.builder()
-                .customer("Test")
-                .title("Test")
-                .dateOfReceipt(Date.valueOf("2021-09-12"))
-                .build());
+        ProjectEntity newProject = projectService.createNewProject(testProject);
 
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectEntity actual = projectEntityCaptor.getValue();
         // Then
-        assertThat(newProject, is(testProject));
-
+        assertThat(actual, is(testProject));
+        assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
     }
 
 

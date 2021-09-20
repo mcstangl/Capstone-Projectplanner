@@ -42,7 +42,7 @@ public class MilestoneController extends Mapper {
     public ResponseEntity<MilestoneDto> createNewMilestone(@AuthenticationPrincipal UserEntity authUser, @RequestBody MilestoneDto milestoneDto) {
 
         if (isAdmin(authUser)) {
-            MilestoneEntity milestoneEntity = getMilestoneEntity(milestoneDto);
+            MilestoneEntity milestoneEntity = convertMilestoneDtoToEntityWithProject(milestoneDto);
 
             MilestoneEntity newMilestone = mileStoneService.createNewMilestone(milestoneEntity);
 
@@ -60,7 +60,7 @@ public class MilestoneController extends Mapper {
         }
 
         if (isAdmin(authUser)) {
-            MilestoneEntity milestoneEntity = getMilestoneEntity(milestoneDto);
+            MilestoneEntity milestoneEntity = convertMilestoneDtoToEntityWithProject(milestoneDto);
 
             MilestoneEntity newMilestone = mileStoneService.updateMilestone(milestoneEntity);
 
@@ -79,7 +79,7 @@ public class MilestoneController extends Mapper {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    private MilestoneEntity getMilestoneEntity(MilestoneDto milestoneDto) {
+    private MilestoneEntity convertMilestoneDtoToEntityWithProject(MilestoneDto milestoneDto) {
         hasText(milestoneDto.getTitle(), "Ein Milestone muss einen Titel haben");
 
         ProjectEntity projectEntity = projectService.findByTitle(milestoneDto.getProjectTitle())

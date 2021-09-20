@@ -20,11 +20,13 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 
 import java.sql.Date;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -128,7 +130,7 @@ class MilestoneControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateNewMilestoneTest")
     @DisplayName("Create new milestone without title or unknown project title should fail")
-    public void createNewMilestone(String title, String projectTitle, HttpStatus httpStatus) {
+    public void createNewMilestoneWithBadTitleOrProject(String title, String projectTitle, HttpStatus httpStatus) {
         // Given
         MilestoneDto mileStoneDto = MilestoneDto.builder()
                 .projectTitle(projectTitle)
@@ -205,8 +207,9 @@ class MilestoneControllerTest extends SpringBootTests {
         // Given
         ProjectEntity testProject = createTestProject();
         MilestoneEntity testMilestone1 = createTestMilestone1(testProject);
+        Long idToUpdate = testMilestone1.getId();
         MilestoneDto mileStoneDto = MilestoneDto.builder()
-                .id(testMilestone1.getId())
+                .id(idToUpdate)
                 .projectTitle("Test1")
                 .title("Updated Milestone")
                 .dueDate("2021-01-01")
@@ -223,7 +226,7 @@ class MilestoneControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
-        assertThat(response.getBody().getId(), is(testMilestone1.getId()));
+        assertThat(response.getBody().getId(), is(idToUpdate));
         assertThat(response.getBody().getProjectTitle(), is("Test1"));
         assertThat(response.getBody().getTitle(), is("Updated Milestone"));
         assertThat(response.getBody().getDateFinished(), is("2021-01-01"));
@@ -327,6 +330,49 @@ class MilestoneControllerTest extends SpringBootTests {
                 Arguments.of("noDate", "2001-12-12", null, "2001-12-12"),
                 Arguments.of("2001-12-12", "noDate", "2001-12-12", null)
         );
+    }
+
+    @Test
+    @DisplayName("Delete milestone should delete milestone from project and from DB and return deleted milestone")
+    public void deleteMilestone(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+        MilestoneEntity testMilestone1 = createTestMilestone1(testProject);
+        Long idToDelete = testMilestone1.getId();
+
+        // When
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
+                getUrl()+"/"+idToDelete,
+                HttpMethod.DELETE,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                MilestoneDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getId(), is(idToDelete));
+        assertThat(response.getBody().getTitle(), is(testMilestone1.getTitle()));
+        Optional<MilestoneEntity> milestoneEntityOptional = milestoneRepository.findById(idToDelete);
+        assertTrue(milestoneEntityOptional.isEmpty());
+    }
+    @Test
+    @DisplayName("Delete milestone as user should return HttpStatus.UNAUTHORIZED")
+    public void deleteMilestoneAsUser(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+        MilestoneEntity testMilestone1 = createTestMilestone1(testProject);
+        Long idToDelete = testMilestone1.getId();
+
+        // When
+        ResponseEntity<MilestoneDto> response = testRestTemplate.exchange(
+                getUrl()+"/"+idToDelete,
+                HttpMethod.DELETE,
+                new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
+                MilestoneDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+
     }
 
     private String getUrl() {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -57,5 +58,9 @@ public class MilestoneService {
         MilestoneEntity milestoneEntity = milestoneRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Milestone mit ID %s konnte nicht gefunden werden", id)));
 
         return projectService.removeMilestone(milestoneEntity);
+    }
+
+    public List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList){
+        return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
 }

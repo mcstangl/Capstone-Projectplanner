@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -56,6 +57,7 @@ public class ProjectService {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
         projectEntity.setMilestones(List.of());
+        projectEntity.setStatus(ProjectStatus.OPEN);
         return projectRepository.save(projectEntity);
     }
 

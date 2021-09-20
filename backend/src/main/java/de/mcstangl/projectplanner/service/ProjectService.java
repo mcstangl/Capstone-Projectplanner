@@ -94,25 +94,6 @@ public class ProjectService {
         return projectRepository.save(projectEntityCopy);
     }
 
-    protected MilestoneEntity removeMilestone(MilestoneEntity milestoneEntityToRemove) {
-
-        ProjectEntity fetchedProjectEntity = fetchProjectEntity(milestoneEntityToRemove.getProjectEntity().getTitle());
-
-        List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
-
-        for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
-            if(!milestone.equals(milestoneEntityToRemove)){
-                updatedMilestoneEntityList.add(milestone);
-            }
-        }
-
-        fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
-
-        projectRepository.save(fetchedProjectEntity);
-        return milestoneEntityToRemove;
-    }
-
-
     private ProjectEntity fetchProjectEntity(String title) {
         return findByTitle(title)
                 .orElseThrow(

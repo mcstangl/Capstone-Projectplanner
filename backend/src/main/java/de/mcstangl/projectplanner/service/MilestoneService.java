@@ -3,24 +3,27 @@ package de.mcstangl.projectplanner.service;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.repository.MilestoneRepository;
+import de.mcstangl.projectplanner.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MilestoneService {
 
     private final MilestoneRepository milestoneRepository;
-    private final ProjectService projectService;
+    private final ProjectRepository projectRepository;
 
     @Autowired
-    public MilestoneService(MilestoneRepository milestoneRepository, ProjectService projectService) {
+    public MilestoneService(MilestoneRepository milestoneRepository, ProjectRepository projectRepository) {
         this.milestoneRepository = milestoneRepository;
-        this.projectService = projectService;
+        this.projectRepository = projectRepository;
     }
 
     public MilestoneEntity createNewMilestone(MilestoneEntity newMilestone) {
@@ -33,7 +36,7 @@ public class MilestoneService {
 
 
     public List<MilestoneEntity> findAllByProjectTitle(String projectTitle) {
-        ProjectEntity projectEntity = projectService
+        ProjectEntity projectEntity = projectRepository
                 .findByTitle(projectTitle)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Das Projekt mit dem Titel %s konnte nicht gefunden werden", projectTitle)));
 
@@ -57,7 +60,30 @@ public class MilestoneService {
 
         MilestoneEntity milestoneEntity = milestoneRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(String.format("Milestone mit ID %s konnte nicht gefunden werden", id)));
 
-        return projectService.removeMilestone(milestoneEntity);
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findByTitle(milestoneEntity.getProjectEntity().getTitle());
+
+
+            ProjectEntity fetchedProjectEntity = projectEntityOptional.orElseThrow(() -> new EntityNotFoundException(
+                    String.format(
+                            "Projekt mit dem Titel %s konnte nicht gefunden werden",
+                            milestoneEntity.getProjectEntity().getTitle()
+                    )
+            ));
+
+            List<MilestoneEntity> updatedMilestoneEntityList = new LinkedList<>();
+
+            for (MilestoneEntity milestone : fetchedProjectEntity.getMilestones()) {
+                if(!milestone.equals(milestoneEntity)){
+                    updatedMilestoneEntityList.add(milestone);
+                }
+            }
+
+            fetchedProjectEntity.setMilestones(updatedMilestoneEntityList);
+            projectRepository.save(fetchedProjectEntity);
+
+            return milestoneEntity;
+
+
     }
 
     public List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList){

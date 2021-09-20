@@ -34,6 +34,13 @@ public class MilestoneService {
         return milestoneRepository.save(newMilestone);
     }
 
+    public List<MilestoneEntity> findAll(){
+        return milestoneRepository.findAll();
+    }
+    public List<MilestoneEntity> getAllSortedByDueDate(){
+        List<MilestoneEntity> milestoneEntityList = findAll();
+        return sortMilestonesByDueDate(milestoneEntityList);
+    }
 
     public List<MilestoneEntity> findAllByProjectTitle(String projectTitle) {
         ProjectEntity projectEntity = projectRepository

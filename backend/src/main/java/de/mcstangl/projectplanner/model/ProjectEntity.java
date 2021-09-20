@@ -1,13 +1,15 @@
 package de.mcstangl.projectplanner.model;
 
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import lombok.*;
 
 import javax.persistence.*;
 import java.sql.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
+import static javax.persistence.EnumType.STRING;
 
 @Entity
 @Table(name = "projects")
@@ -33,16 +35,20 @@ public class ProjectEntity {
     @Column(name = "date_of_receipt", nullable = false)
     private Date dateOfReceipt;
 
+    @Enumerated(STRING)
+    @Column(name = "status")
+    private ProjectStatus status;
+
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id")
     private UserEntity owner;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "writer_id")
+    @JoinColumn
     private Set<UserEntity> writers;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "motionDesinger_id")
+    @JoinColumn
     private Set<UserEntity> motionDesigners;
 
     @OneToMany(mappedBy = "projectEntity" , fetch=FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

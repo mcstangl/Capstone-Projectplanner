@@ -125,6 +125,12 @@ public class ProjectService {
         return projectRepository.save(fetchProjectEntity);
     }
 
+    public ProjectEntity restoreFromArchive(String title) {
+        ProjectEntity fetchProjectEntity = getProjectEntity(title);
+        fetchProjectEntity.setStatus(ProjectStatus.OPEN);
+        return projectRepository.save(fetchProjectEntity);
+    }
+
     private ProjectEntity getProjectEntity(String title) {
         return findByTitle(title).orElseThrow(
                 () -> new EntityNotFoundException(
@@ -184,4 +190,6 @@ public class ProjectService {
     private List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList) {
         return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
+
+
 }

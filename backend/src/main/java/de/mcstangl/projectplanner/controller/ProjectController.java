@@ -105,6 +105,15 @@ public class ProjectController extends Mapper{
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @PutMapping("{title}/restore")
+    public ResponseEntity<ProjectDto> restoreFromArchive(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title){
+        if(isAdmin(authUser)){
+            ProjectEntity projectEntity = projectService.restoreFromArchive(title);
+            return ok(mapProject(projectEntity));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
 
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals("ADMIN");

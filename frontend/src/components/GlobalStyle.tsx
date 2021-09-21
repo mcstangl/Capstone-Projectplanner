@@ -12,6 +12,7 @@ export default createGlobalStyle`
     --maincolor: #006c5b;
     --gradient4: #c7e4dc;
     --accentcolor: #f39200;
+    --accentcolor-gradient: rgba(243, 146, 0, 0.5);
     --secondarycolor: #d1d0d0;
     --darkgrey: #939393;
   }

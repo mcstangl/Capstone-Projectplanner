@@ -64,6 +64,15 @@ export const moveToArchive = (token: string, projectTitle: string) =>
     )
     .then(require => require.data)
 
+export const restoreFromArchive = (token: string, projectTitle: string) =>
+  axios
+    .put(
+      `/api/project-planner/project/${projectTitle}/restore`,
+      null,
+      getAuthHeaders(token)
+    )
+    .then(require => require.data)
+
 const getAuthHeaders = (token: string) => {
   return {
     headers: {

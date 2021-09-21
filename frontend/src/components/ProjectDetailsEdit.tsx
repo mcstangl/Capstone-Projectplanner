@@ -9,13 +9,18 @@ import {
 import UserSelect from './UserSelect'
 import { Button } from './Button'
 import styled from 'styled-components/macro'
-import { findAllUser, updateProject } from '../service/api-service'
+import {
+  findAllUser,
+  moveToArchive,
+  updateProject,
+} from '../service/api-service'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import { ProjectDto } from '../dtos/ProjectDto'
 import AuthContext from '../auth/AuthContext'
 import { UserDto } from '../dtos/UserDto'
 import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
 import Loader from './Loader'
+import { useHistory } from 'react-router-dom'
 
 interface ProjectDetailsEditProps {
   project?: ProjectDto
@@ -40,6 +45,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
   updateErrorState,
 }) => {
   const { token } = useContext(AuthContext)
+  const history = useHistory()
   const [userList, setUserList] = useState<UserDto[]>()
   const [loading, setLoading] = useState(true)
 
@@ -105,6 +111,14 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 
   const onClickHandler = () => {
     switchEditMode()
+  }
+
+  const handleMoveToArchiveOnClick = () => {
+    if (token && project) {
+      moveToArchive(token, project.title)
+        .then(() => history.push('/projects'))
+        .catch(error => updateErrorState(error.response.data))
+    }
   }
 
   const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -199,6 +213,11 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
             Speichern
           </Button>
         </ProjectDetails>
+      )}
+      {!loading && (
+        <Button type="button" onClick={handleMoveToArchiveOnClick}>
+          ins Archiv verschieben
+        </Button>
       )}
     </section>
   )

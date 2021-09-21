@@ -5,9 +5,11 @@ import ProjectListItem from './ProjectListItem'
 
 interface ProjectListProps {
   projects: ProjectDto[]
+  theme: string
+  archive?: boolean
 }
 
-const ProjectList: FC<ProjectListProps> = ({ projects }) => {
+const ProjectList: FC<ProjectListProps> = ({ projects, theme, archive }) => {
   return (
     <List>
       <ListHeader key="header">
@@ -24,9 +26,11 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
         projects.length &&
         projects.map((project, index) => (
           <ProjectListItem
+            theme={theme}
             position={index + 1}
             key={project.title}
             project={project}
+            archive={archive}
           />
         ))}
     </List>

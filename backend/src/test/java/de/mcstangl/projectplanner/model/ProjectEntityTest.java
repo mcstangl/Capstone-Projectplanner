@@ -153,7 +153,6 @@ class ProjectEntityTest extends SpringBootTests {
     private ProjectEntity createTestProject() {
         return projectRepository.saveAndFlush(
                 ProjectEntity.builder()
-                        .id(1L)
                         .title("Test")
                         .dateOfReceipt(Date.valueOf("2021-09-13"))
                         .customer("Test").build()

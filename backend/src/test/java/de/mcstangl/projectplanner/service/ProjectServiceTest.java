@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Stream;
@@ -370,6 +371,34 @@ class ProjectServiceTest {
         assertThat(actual, containsInAnyOrder(testUser1, testUser2));
     }
 
+    @Test
+    @DisplayName("Move to archive should set project status to ARCHIVE")
+    public void moveToArchive(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.of(testProject));
+
+        // When
+        projectService.moveToArchive("Test");
+
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectStatus actual = projectEntityCaptor.getValue().getStatus();
+
+        // Then
+        assertThat(actual, is(ProjectStatus.ARCHIVE));
+    }
+
+    @Test
+    @DisplayName("Move to archive should throw an EntityNotFoundException when project is not in DB")
+    public void moveToArchiveWithUnknownProjectTitle(){
+        // Given
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(EntityNotFoundException.class,() -> projectService.moveToArchive("Unknown"));
+
+    }
 
     private UserEntity createTestUser1() {
         return UserEntity.builder()

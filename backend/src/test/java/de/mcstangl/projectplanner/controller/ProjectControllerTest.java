@@ -4,6 +4,7 @@ import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.api.UserDto;
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
@@ -480,6 +481,62 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
 
+    @Test
+    @DisplayName("Move to archive should set the project status to archive")
+    public void moveToArchive(){
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test/archive",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                ProjectDto.class);
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        Optional<ProjectEntity> testProjectOpt = projectRepository.findByTitle("Test");
+        if(testProjectOpt.isEmpty()){
+            fail();
+        }
+        assertThat(testProjectOpt.get().getStatus(), is(ProjectStatus.ARCHIVE));
+    }
+
+    @Test
+    @DisplayName("Move to archive should return HttpStatus.NOT_FOUND when the project is not in DB")
+    public void moveToArchiveWithUnknownProjectTitle(){
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Unknown/archive",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                ProjectDto.class);
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("Move to archive as non admin user should return HttpStatus.UNAUTHORIZED")
+    public void moveToArchiveAsUser(){
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Unknown/archive",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
+                ProjectDto.class);
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
 
     private String getUrl() {
         return String.format("http://localhost:%s/api/project-planner/project", port);

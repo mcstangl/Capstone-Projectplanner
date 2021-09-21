@@ -7,9 +7,15 @@ interface ProjectListProps {
   projects: ProjectDto[]
   theme: string
   archive?: boolean
+  updateProjects?: () => Promise<void> | undefined
 }
 
-const ProjectList: FC<ProjectListProps> = ({ projects, theme, archive }) => {
+const ProjectList: FC<ProjectListProps> = ({
+  projects,
+  theme,
+  archive,
+  updateProjects,
+}) => {
   return (
     <List>
       <ListHeader key="header">
@@ -31,6 +37,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, theme, archive }) => {
             key={project.title}
             project={project}
             archive={archive}
+            updateProjects={updateProjects}
           />
         ))}
     </List>

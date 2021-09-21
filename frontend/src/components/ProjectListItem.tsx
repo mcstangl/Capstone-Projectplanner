@@ -1,15 +1,19 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, useContext, useEffect, useState } from 'react'
 import styled, { css } from 'styled-components/macro'
 import { useHistory } from 'react-router-dom'
 import { ProjectDto } from '../dtos/ProjectDto'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 import { Button } from './Button'
+import { restoreFromArchive } from '../service/api-service'
+import AuthContext from '../auth/AuthContext'
+import ErrorPopup from './ErrorPopup'
 
 interface ProjectListItemProps {
   project: ProjectDto
   position: number
   theme: string
   archive?: boolean
+  updateProjects?: () => Promise<void> | undefined
 }
 
 const ProjectListItem: FC<ProjectListItemProps> = ({
@@ -17,9 +21,12 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
   position,
   theme,
   archive,
+  updateProjects,
 }) => {
+  const { token, authUser } = useContext(AuthContext)
   const [nextMilestone, setNextMilestone] = useState<MilestoneDto>()
   const [restoreMode, setRestoreMode] = useState(false)
+  const [error, setError] = useState()
   const history = useHistory()
 
   useEffect(() => {
@@ -38,6 +45,18 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
     if (!archive) {
       history.push('/projects/' + project.title)
     } else setRestoreMode(true)
+  }
+
+  const handleRestoreOnClick = () => {
+    if (token && updateProjects) {
+      restoreFromArchive(token, project.title)
+        .then(() => updateProjects())
+        .then(() => setRestoreMode(false))
+        .catch(error => {
+          setRestoreMode(false)
+          setError(error.data.message)
+        })
+    }
   }
 
   return (
@@ -60,16 +79,19 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
           <span key={motionDesigner.loginName}>{motionDesigner.loginName}</span>
         ))}
       </ListItem>
-      {restoreMode && (
+      {restoreMode && authUser && authUser.role === 'ADMIN' && (
         <DeletePopup>
           <h3>Projekt</h3>
           <p>{project.title}</p>
-          <Button theme="secondary">Wiederherstellen</Button>
+          <Button theme="secondary" onClick={handleRestoreOnClick}>
+            Wiederherstellen
+          </Button>
           <Button theme="secondary" onClick={() => setRestoreMode(false)}>
             Abbrechen
           </Button>
         </DeletePopup>
       )}
+      {error && <ErrorPopup message={error} />}
     </section>
   )
 }

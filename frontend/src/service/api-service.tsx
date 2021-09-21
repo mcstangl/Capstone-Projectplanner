@@ -55,6 +55,15 @@ export const deleteMilestone = (token: string, id: bigint) =>
     .delete('/api/project-planner/milestone/' + id, getAuthHeaders(token))
     .then(require => require.data)
 
+export const moveToArchive = (token: string, projectTitle: string) =>
+  axios
+    .put(
+      `/api/project-planner/project/${projectTitle}/archive`,
+      null,
+      getAuthHeaders(token)
+    )
+    .then(require => require.data)
+
 const getAuthHeaders = (token: string) => {
   return {
     headers: {

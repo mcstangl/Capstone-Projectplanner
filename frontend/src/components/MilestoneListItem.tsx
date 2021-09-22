@@ -1,7 +1,8 @@
-import { FC, useState } from 'react'
+import { FC, useContext, useState } from 'react'
 import styled from 'styled-components/macro'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 import MilestoneEdit from './MilestoneEdit'
+import AuthContext from '../auth/AuthContext'
 
 interface MilestoneListItemProps {
   milestone: MilestoneDto
@@ -13,8 +14,12 @@ const MilestoneListItem: FC<MilestoneListItemProps> = ({
   fetchProject,
 }) => {
   const [editMode, setEditMode] = useState(false)
+  const { authUser } = useContext(AuthContext)
 
   const switchEditMode = () => {
+    if (authUser && authUser.role !== 'ADMIN') {
+      return
+    }
     if (editMode) {
       setEditMode(false)
     } else setEditMode(true)
@@ -29,7 +34,7 @@ const MilestoneListItem: FC<MilestoneListItemProps> = ({
           <span>{milestone.dateFinished}</span>
         </MilestoneListItemStyle>
       )}
-      {editMode && (
+      {editMode && authUser && authUser.role === 'ADMIN' && (
         <MilestoneEdit
           fetchProject={fetchProject}
           switchEditMode={switchEditMode}

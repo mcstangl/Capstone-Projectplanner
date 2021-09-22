@@ -101,6 +101,10 @@ public class ProjectService {
             projectEntityCopy.setOwner(projectUpdateData.getOwner());
         }
 
+        if(projectUpdateData.getStatus() != null){
+            projectEntityCopy.setStatus(projectUpdateData.getStatus());
+        } else projectEntityCopy.setStatus(ProjectStatus.OPEN);
+
         if (projectUpdateData.getDateOfReceipt() != null) {
             projectEntityCopy.setDateOfReceipt(projectUpdateData.getDateOfReceipt());
         }

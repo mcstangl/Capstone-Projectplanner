@@ -94,6 +94,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
         title: project.title,
         newTitle: formData.title.trim(),
         customer: formData.customer.trim(),
+        status: project.status,
         dateOfReceipt: formData.dateOfReceipt,
         owner: formData.owner,
         writer: formData.writer,

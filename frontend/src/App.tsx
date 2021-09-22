@@ -7,6 +7,7 @@ import ProjectListPage from './pages/ProjectListPage'
 import Homepage from './pages/Homepage'
 import ProtectedRoute from './auth/ProtectedRoute'
 import ProjectDetailsPage from './pages/ProjectDetailsPage'
+import UserListPage from './pages/UserListPage'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             component={ProjectDetailsPage}
           />
           <ProtectedRoute path="/projects" component={ProjectListPage} />
+          <ProtectedRoute path="/users" component={UserListPage} />
           <ProtectedRoute path="/" component={Homepage} />
         </Switch>
       </Router>

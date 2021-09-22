@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.api;
 
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class ProjectDto {
     private List<UserDto> writer;
     private List<UserDto> motionDesign;
     private List<MilestoneDto> milestones;
+    private String status;
 
     @Override
     public boolean equals(Object o) {

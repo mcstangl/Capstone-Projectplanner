@@ -1,16 +1,24 @@
 import { FC, useEffect, useState } from 'react'
-import styled from 'styled-components/macro'
-import { Link } from 'react-router-dom'
+import styled, { css } from 'styled-components/macro'
+import { useHistory } from 'react-router-dom'
 import { ProjectDto } from '../dtos/ProjectDto'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 
 interface ProjectListItemProps {
   project: ProjectDto
   position: number
+  theme: string
+  archive?: boolean
 }
 
-const ProjectListItem: FC<ProjectListItemProps> = ({ project, position }) => {
+const ProjectListItem: FC<ProjectListItemProps> = ({
+  project,
+  position,
+  theme,
+  archive,
+}) => {
   const [nextMilestone, setNextMilestone] = useState<MilestoneDto>()
+  const history = useHistory()
 
   useEffect(() => {
     let filteredMilestones: MilestoneDto[] = []
@@ -24,8 +32,14 @@ const ProjectListItem: FC<ProjectListItemProps> = ({ project, position }) => {
     }
   }, [project.milestones])
 
+  const handleOnClick = () => {
+    if (!archive) {
+      history.push('/projects/' + project.title)
+    } else console.log('archive')
+  }
+
   return (
-    <ListItem id={project.title} to={'/projects/' + project.title}>
+    <ListItem theme={theme} id={project.title} onClick={handleOnClick}>
       <span>{position}</span>
       <span>{project.dateOfReceipt}</span>
       <span>{project.customer}</span>
@@ -48,7 +62,7 @@ const ProjectListItem: FC<ProjectListItemProps> = ({ project, position }) => {
 
 export default ProjectListItem
 
-const ListItem = styled(Link)`
+const ListItem = styled.section`
   display: grid;
   grid-template-columns: var(--size-xxl) repeat(7, 1fr);
   grid-column-gap: var(--size-s);
@@ -57,6 +71,13 @@ const ListItem = styled(Link)`
   color: black;
 
   &:hover {
-    background-color: var(--gradient4);
+    ${props =>
+      props.theme === 'archive'
+        ? css`
+            background-color: var(--accentcolor-gradient);
+          `
+        : css`
+            background-color: var(--gradient4);
+          `};
   }
 `

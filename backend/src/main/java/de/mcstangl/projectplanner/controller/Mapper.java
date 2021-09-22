@@ -5,6 +5,7 @@ import de.mcstangl.projectplanner.api.MilestoneDto;
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.api.UserDto;
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -25,6 +26,7 @@ import java.util.Set;
                 .writers(mapUserList(updateProjectDto.getWriter()))
                 .motionDesigners(mapUserList(updateProjectDto.getMotionDesign()))
                 .title(updateProjectDto.getTitle())
+                .status(convertStringToProjectStatus(updateProjectDto.getStatus()))
                 .build();
     }
 
@@ -36,6 +38,7 @@ import java.util.Set;
                 .dateOfReceipt(Date.valueOf(projectDto.getDateOfReceipt()))
                 .writers(mapUserList(projectDto.getWriter()))
                 .motionDesigners(mapUserList(projectDto.getMotionDesign()))
+                .status(convertStringToProjectStatus(projectDto.getStatus()))
                 .build();
     }
 
@@ -48,6 +51,7 @@ import java.util.Set;
                 .motionDesign(mapUser(projectEntity.getMotionDesigners()))
                 .title(projectEntity.getTitle())
                 .milestones(mapMilestone(projectEntity.getMilestones()))
+                .status(convertProjectStatusToString(projectEntity.getStatus()))
                 .build();
     }
 
@@ -80,6 +84,14 @@ import java.util.Set;
         }
         return userDtoList;
     }
+
+     public List<UserDto> mapUser(List<UserEntity> userEntityList){
+         List<UserDto> userDtoList = new LinkedList<>();
+         for (UserEntity userEntity : userEntityList) {
+             userDtoList.add(mapUser(userEntity));
+         }
+         return userDtoList;
+     }
      public Set<UserEntity> mapUserList(List<UserDto> userDtos){
         Set<UserEntity> userEntitySet = new HashSet<>();
         for (UserDto userDto : userDtos) {
@@ -89,16 +101,6 @@ import java.util.Set;
     }
 
      public List<MilestoneDto> mapMilestone(List<MilestoneEntity> milestoneEntityList) {
-         List<MilestoneDto> milestoneDtoList = new LinkedList<>();
-         for (MilestoneEntity mileStoneEntity : milestoneEntityList) {
-             milestoneDtoList.add(mapMilestone(mileStoneEntity));
-         }
-         return milestoneDtoList;
-     }
-     private List<MilestoneDto> mapMilestone(Set<MilestoneEntity> milestoneEntityList) {
-        if(milestoneEntityList == null){
-            return null;
-        }
          List<MilestoneDto> milestoneDtoList = new LinkedList<>();
          for (MilestoneEntity mileStoneEntity : milestoneEntityList) {
              milestoneDtoList.add(mapMilestone(mileStoneEntity));
@@ -129,13 +131,7 @@ import java.util.Set;
                  .build();
      }
 
-     public List<UserDto> mapUser(List<UserEntity> userEntityList){
-         List<UserDto> userDtoList = new LinkedList<>();
-         for (UserEntity userEntity : userEntityList) {
-             userDtoList.add(mapUser(userEntity));
-         }
-         return userDtoList;
-     }
+
      private Date convertStringToDate(String dateString) {
          try {
              return Date.valueOf(dateString);
@@ -147,6 +143,20 @@ import java.util.Set;
          if(date == null){
              return null;
          }return date.toString();
+     }
+
+     public String convertProjectStatusToString(ProjectStatus projectStatus){
+        if(projectStatus == null){
+            return null;
+        }
+        return projectStatus.toString();
+     }
+
+     public ProjectStatus convertStringToProjectStatus(String projectStatusString){
+        if(projectStatusString == null){
+            return null;
+        }
+        return ProjectStatus.valueOf(projectStatusString);
      }
  }
 

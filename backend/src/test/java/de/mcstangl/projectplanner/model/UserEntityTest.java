@@ -2,16 +2,16 @@ package de.mcstangl.projectplanner.model;
 
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,6 +34,23 @@ class UserEntityTest extends SpringBootTests {
         assertNotNull(actual.getId());
         assertThat(actual.getRole(), is("USER"));
         assertThat(actual.getLoginName(), is("Dave"));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Find all users should return all users")
+    public void findAll(){
+        // Given
+        UserEntity adminUser = createAdminUser();
+        UserEntity user = createUser();
+
+        // When
+        List<UserEntity> actual = userRepository.findAll();
+
+        // Then
+        assertThat(actual.size(), is(2));
+        assertThat(actual, containsInAnyOrder(adminUser, user));
+
     }
 
 
@@ -66,14 +83,12 @@ class UserEntityTest extends SpringBootTests {
 
     private UserEntity createAdminUser() {
         return userRepository.save(UserEntity.builder()
-                .id(1L)
                 .loginName("Hans")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("ADMIN").build());
     }
     private UserEntity createUser(){
         return userRepository.save(UserEntity.builder()
-                .id(2L)
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role("USER").build());

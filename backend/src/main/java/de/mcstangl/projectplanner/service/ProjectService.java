@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -31,9 +32,9 @@ public class ProjectService {
     public Optional<ProjectEntity> findByTitle(String title) {
 
         Optional<ProjectEntity> fetchedProjectEntityOpt = projectRepository.findByTitle(title);
-        if(fetchedProjectEntityOpt.isPresent()){
+        if (fetchedProjectEntityOpt.isPresent()) {
             ProjectEntity fetchedProjectEntity = fetchedProjectEntityOpt.get();
-            if(fetchedProjectEntity.getMilestones() == null){
+            if (fetchedProjectEntity.getMilestones() == null) {
                 return Optional.of(fetchedProjectEntity);
             }
 
@@ -56,6 +57,7 @@ public class ProjectService {
             throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
         }
         projectEntity.setMilestones(List.of());
+        projectEntity.setStatus(ProjectStatus.OPEN);
         return projectRepository.save(projectEntity);
     }
 
@@ -66,7 +68,7 @@ public class ProjectService {
         List<ProjectEntity> allProjectsSorted = new LinkedList<>(sortedProjectsWithMilestones);
 
         for (ProjectEntity project : allProjects) {
-            if(!allProjectsSorted.contains(project)){
+            if (!allProjectsSorted.contains(project)) {
                 allProjectsSorted.add(project);
             }
         }
@@ -74,7 +76,7 @@ public class ProjectService {
         return allProjectsSorted;
     }
 
-    public List<ProjectEntity> getAllProjectsSortedByMilestoneDueDate(){
+    public List<ProjectEntity> getAllProjectsSortedByMilestoneDueDate() {
         List<ProjectEntity> sortedProjects = milestoneService.getAllSortedByDueDate().stream()
                 .map(MilestoneEntity::getProjectEntity)
                 .distinct()
@@ -87,7 +89,7 @@ public class ProjectService {
 
     public ProjectEntity update(ProjectEntity projectUpdateData, String newTitle) {
 
-        ProjectEntity fetchedProjectEntity = fetchProjectEntity(projectUpdateData.getTitle());
+        ProjectEntity fetchedProjectEntity = getProjectEntity(projectUpdateData.getTitle());
 
         ProjectEntity projectEntityCopy = copyProjectEntity(fetchedProjectEntity);
 
@@ -99,7 +101,11 @@ public class ProjectService {
             projectEntityCopy.setOwner(projectUpdateData.getOwner());
         }
 
-        if(projectUpdateData.getDateOfReceipt() != null){
+        if(projectUpdateData.getStatus() != null){
+            projectEntityCopy.setStatus(projectUpdateData.getStatus());
+        } else projectEntityCopy.setStatus(ProjectStatus.OPEN);
+
+        if (projectUpdateData.getDateOfReceipt() != null) {
             projectEntityCopy.setDateOfReceipt(projectUpdateData.getDateOfReceipt());
         }
 
@@ -117,13 +123,25 @@ public class ProjectService {
         return projectRepository.save(projectEntityCopy);
     }
 
-    private ProjectEntity fetchProjectEntity(String title) {
+    public ProjectEntity moveToArchive(String title) {
+        ProjectEntity fetchProjectEntity = getProjectEntity(title);
+        fetchProjectEntity.setStatus(ProjectStatus.ARCHIVE);
+        return projectRepository.save(fetchProjectEntity);
+    }
+
+    public ProjectEntity restoreFromArchive(String title) {
+        ProjectEntity fetchProjectEntity = getProjectEntity(title);
+        fetchProjectEntity.setStatus(ProjectStatus.OPEN);
+        return projectRepository.save(fetchProjectEntity);
+    }
+
+    private ProjectEntity getProjectEntity(String title) {
         return findByTitle(title).orElseThrow(
-                        () -> new EntityNotFoundException(
-                                String.format(
-                                        "Projekt mit dem Titel %s konnte nicht gefunden werden",
-                                        title))
-                );
+                () -> new EntityNotFoundException(
+                        String.format(
+                                "Projekt mit dem Titel %s konnte nicht gefunden werden",
+                                title))
+        );
     }
 
     private void updateCustomer(ProjectEntity projectUpdateEntity, ProjectEntity projectEntityCopy) {
@@ -153,6 +171,7 @@ public class ProjectService {
         }
     }
 
+
     private ProjectEntity copyProjectEntity(ProjectEntity fetchedProjectEntity) {
         return ProjectEntity.builder()
                 .id(fetchedProjectEntity.getId())
@@ -172,7 +191,9 @@ public class ProjectService {
         fetchedProjectEntity.setMilestones(sortedMilestoneEntityList);
     }
 
-    private List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList){
+    private List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList) {
         return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
+
+
 }

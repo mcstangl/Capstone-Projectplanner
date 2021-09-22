@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
@@ -91,6 +92,24 @@ public class ProjectController extends Mapper{
             projectUpdateEntity.setOwner(ownerEntity);
             ProjectEntity updatedProjectEntity = projectService.update(projectUpdateEntity, newTitle);
             return ok(mapProject(updatedProjectEntity));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @PutMapping("{title}/archive")
+    public ResponseEntity<ProjectDto> moveToArchive(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title){
+        if(isAdmin(authUser)){
+            ProjectEntity projectEntity = projectService.moveToArchive(title);
+            return ok(mapProject(projectEntity));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @PutMapping("{title}/restore")
+    public ResponseEntity<ProjectDto> restoreFromArchive(@AuthenticationPrincipal UserEntity authUser, @PathVariable String title){
+        if(isAdmin(authUser)){
+            ProjectEntity projectEntity = projectService.restoreFromArchive(title);
+            return ok(mapProject(projectEntity));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }

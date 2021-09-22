@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -14,6 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Stream;
@@ -155,20 +157,15 @@ class ProjectServiceTest {
     public void createNewProject() {
         // Given
         ProjectEntity testProject = createTestProject();
-        when(projectRepositoryMock.save(any())).thenReturn(
-                testProject
-        );
 
         // When
-        ProjectEntity newProject = projectService.createNewProject(ProjectEntity.builder()
-                .customer("Test")
-                .title("Test")
-                .dateOfReceipt(Date.valueOf("2021-09-12"))
-                .build());
+        ProjectEntity newProject = projectService.createNewProject(testProject);
 
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectEntity actual = projectEntityCaptor.getValue();
         // Then
-        assertThat(newProject, is(testProject));
-
+        assertThat(actual, is(testProject));
+        assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
     }
 
 
@@ -239,6 +236,7 @@ class ProjectServiceTest {
         assertThat(actual.getCustomer(), is("New Customer"));
         assertNotNull(actual.getOwner());
         assertThat(actual.getOwner().getLoginName(), is("Test2"));
+        assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
         assertThat(actual.getDateOfReceipt().toString(), is("1999-01-01"));
         assertNotNull(actual.getId());
     }
@@ -278,6 +276,7 @@ class ProjectServiceTest {
         assertThat(actualSaved.getTitle(), is("new Title"));
         assertThat(actualSaved.getCustomer(), is("New Customer"));
         assertNotNull(actualSaved.getOwner());
+        assertThat(actualSaved.getStatus(), is(ProjectStatus.OPEN));
         assertThat(actualSaved.getOwner().getLoginName(), is("Test2"));
         assertThat(actualSaved.getDateOfReceipt().toString(), is("1999-01-01"));
     }
@@ -374,6 +373,63 @@ class ProjectServiceTest {
         assertThat(actual, containsInAnyOrder(testUser1, testUser2));
     }
 
+    @Test
+    @DisplayName("Move to archive should set project status to ARCHIVE")
+    public void moveToArchive(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.of(testProject));
+
+        // When
+        projectService.moveToArchive("Test");
+
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectStatus actual = projectEntityCaptor.getValue().getStatus();
+
+        // Then
+        assertThat(actual, is(ProjectStatus.ARCHIVE));
+    }
+
+    @Test
+    @DisplayName("Move to archive should throw an EntityNotFoundException when project is not in DB")
+    public void moveToArchiveWithUnknownProjectTitle(){
+        // Given
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(EntityNotFoundException.class,() -> projectService.moveToArchive("Unknown"));
+
+    }
+
+    @Test
+    @DisplayName("Restore project should set project status to OPEN")
+    public void restoreProject(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.of(testProject));
+
+        // When
+        projectService.restoreFromArchive("Test");
+
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectStatus actual = projectEntityCaptor.getValue().getStatus();
+
+        // Then
+        assertThat(actual, is(ProjectStatus.OPEN));
+    }
+
+    @Test
+    @DisplayName("Move to archive should throw an EntityNotFoundException when project is not in DB")
+    public void restoreProjectWithUnknownProjectTitle(){
+        // Given
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(EntityNotFoundException.class,() -> projectService.moveToArchive("Unknown"));
+
+    }
 
     private UserEntity createTestUser1() {
         return UserEntity.builder()

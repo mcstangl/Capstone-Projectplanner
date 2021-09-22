@@ -1,9 +1,8 @@
 package de.mcstangl.projectplanner.model;
 
 import de.mcstangl.projectplanner.SpringBootTests;
+import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,7 +49,7 @@ class ProjectEntityTest extends SpringBootTests {
     @DisplayName("Find by title should return an empty optional if project is not in DB")
     public void findByUnknownTitle() {
         // When
-        Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Unkown");
+        Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Unknown");
 
         // Then
         assertTrue(actualOptional.isEmpty());
@@ -63,6 +62,7 @@ class ProjectEntityTest extends SpringBootTests {
         //Given
         ProjectEntity projectEntity = ProjectEntity.builder()
                 .title("Test2")
+                .status(ProjectStatus.OPEN)
                 .customer("Test2")
                 .dateOfReceipt(Date.valueOf("2021-09-13"))
                 .build();
@@ -71,6 +71,7 @@ class ProjectEntityTest extends SpringBootTests {
 
         // Then
         assertNotNull(actual.getId());
+        assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
         assertThat(actual.getTitle(), is("Test2"));
         assertThat(actual.getCustomer(), is("Test2"));
         assertThat(actual.getDateOfReceipt().toString(), is("2021-09-13"));
@@ -150,7 +151,6 @@ class ProjectEntityTest extends SpringBootTests {
     private ProjectEntity createTestProject() {
         return projectRepository.saveAndFlush(
                 ProjectEntity.builder()
-                        .id(1L)
                         .title("Test")
                         .dateOfReceipt(Date.valueOf("2021-09-13"))
                         .customer("Test").build()

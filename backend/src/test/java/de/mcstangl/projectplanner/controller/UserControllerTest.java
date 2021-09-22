@@ -2,6 +2,7 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.api.UserDto;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
 import de.mcstangl.projectplanner.service.UserService;
@@ -80,14 +81,14 @@ class UserControllerTest extends SpringBootTests {
         return userRepository.save(UserEntity.builder()
                 .loginName("Hans")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("ADMIN").build());
+                .role(UserRole.ADMIN).build());
     }
 
     private UserEntity createUser() {
         return userRepository.save(UserEntity.builder()
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("USER").build());
+                .role(UserRole.USER).build());
     }
 
     private String getUrl() {

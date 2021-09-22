@@ -5,6 +5,7 @@ import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.enums.ProjectStatus;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
@@ -602,7 +603,7 @@ class ProjectControllerTest extends SpringBootTests {
                 .id(1L)
                 .loginName("Test")
                 .password("Test")
-                .role("ADMIN").build());
+                .role(UserRole.ADMIN).build());
     }
 
     public void createTestUser2() {
@@ -610,7 +611,7 @@ class ProjectControllerTest extends SpringBootTests {
                 .id(2L)
                 .loginName("Other User")
                 .password("Test")
-                .role("ADMIN").build());
+                .role(UserRole.ADMIN).build());
     }
 
     public void createTestProject(UserEntity testUser){

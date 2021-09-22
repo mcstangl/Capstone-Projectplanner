@@ -54,7 +54,7 @@ public class ProjectService {
         Optional<ProjectEntity> projectEntityOptional = findByTitle(projectEntity.getTitle());
 
         if (projectEntityOptional.isPresent()) {
-            throw new EntityExistsException("Ein Projekt mit diesem Name existiert schon");
+            throw new EntityExistsException("Ein Projekt mit diesem Namen existiert schon");
         }
         projectEntity.setMilestones(List.of());
         projectEntity.setStatus(ProjectStatus.OPEN);

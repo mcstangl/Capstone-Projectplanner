@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.model;
 
 import de.mcstangl.projectplanner.SpringBootTests;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class UserEntityTest extends SpringBootTests {
 
         //Then
         assertNotNull(actual.getId());
-        assertThat(actual.getRole(), is("USER"));
+        assertThat(actual.getRole(), is(UserRole.USER));
         assertThat(actual.getLoginName(), is("Dave"));
     }
 
@@ -66,7 +67,7 @@ class UserEntityTest extends SpringBootTests {
 
         //Then
         assertTrue(actualOptional.isPresent());
-        assertThat(actualOptional.get().getRole(), is("ADMIN"));
+        assertThat(actualOptional.get().getRole(), is(UserRole.ADMIN));
         assertThat(actualOptional.get().getLoginName(), is("Hans"));
     }
 
@@ -85,12 +86,12 @@ class UserEntityTest extends SpringBootTests {
         return userRepository.save(UserEntity.builder()
                 .loginName("Hans")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("ADMIN").build());
+                .role(UserRole.ADMIN).build());
     }
     private UserEntity createUser(){
         return userRepository.save(UserEntity.builder()
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("USER").build());
+                .role(UserRole.USER).build());
     }
 }

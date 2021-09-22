@@ -2,6 +2,7 @@ package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.ProjectService;
@@ -116,7 +117,7 @@ public class ProjectController extends Mapper{
 
 
     private boolean isAdmin(UserEntity authUser) {
-        return authUser.getRole().equals("ADMIN");
+        return authUser.getRole().equals(UserRole.ADMIN);
     }
 
     private void initializeMotionDesignerListIfNull(ProjectDto projectDto) {

@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.filter;
 
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.JwtService;
 import io.jsonwebtoken.Claims;
@@ -39,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.decodeJwtClaims(token);
                 UserEntity userEntity = UserEntity.builder()
                         .loginName(claims.getSubject())
-                        .role(claims.get("role", String.class))
+                        .role(UserRole.valueOf(claims.get("role", String.class)))
                         .build();
                 SecurityContextHolder.getContext().setAuthentication(
                         new UsernamePasswordAuthenticationToken(

@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.service;
 
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -91,13 +92,13 @@ class UserServiceTest {
                 .id(1L)
                 .loginName("Hans")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("ADMIN").build();
+                .role(UserRole.ADMIN).build();
     }
     private UserEntity createUser(){
         return UserEntity.builder()
                 .id(2L)
                 .loginName("Dave")
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
-                .role("USER").build();
+                .role(UserRole.USER).build();
     }
 }

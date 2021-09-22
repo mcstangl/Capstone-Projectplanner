@@ -6,6 +6,7 @@ import de.mcstangl.projectplanner.api.ProjectDto;
 import de.mcstangl.projectplanner.api.UpdateProjectDto;
 import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.enums.ProjectStatus;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -67,13 +68,13 @@ import java.util.Set;
      public UserDto mapUser(UserEntity userEntity){
         return UserDto.builder()
                 .loginName(userEntity.getLoginName())
-                .role(userEntity.getRole())
+                .role(convertUserRoleToString(userEntity.getRole()))
                 .build();
     }
      public UserEntity mapUser(UserDto userDto) {
         return UserEntity.builder()
                 .loginName(userDto.getLoginName())
-                .role(userDto.getRole())
+                .role(convertStringToUserRole(userDto.getRole()))
                 .build();
     }
 
@@ -157,6 +158,20 @@ import java.util.Set;
             return null;
         }
         return ProjectStatus.valueOf(projectStatusString);
+     }
+
+     public String convertUserRoleToString(UserRole userRole){
+         if(userRole == null){
+             return null;
+         }
+         return userRole.toString();
+     }
+
+     public UserRole convertStringToUserRole(String userRoleString){
+         if(userRoleString == null){
+             return null;
+         }
+         return UserRole.valueOf(userRoleString);
      }
  }
 

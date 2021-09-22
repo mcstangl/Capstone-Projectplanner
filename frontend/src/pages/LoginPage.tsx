@@ -20,17 +20,17 @@ const LoginPage: FC = () => {
   })
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value.trim() })
+    setFormData({ ...formData, [event.target.name]: event.target.value })
   }
 
   const submitHandler = (event: FormEvent) => {
     event.preventDefault()
     setLoading(true)
     setError(undefined)
-    if (login && formData.loginName && formData.password) {
+    if (login && formData.loginName.trim() && formData.password.trim()) {
       const credentialsDto: CredentialsDto = {
-        loginName: formData.loginName,
-        password: formData.password,
+        loginName: formData.loginName.trim(),
+        password: formData.password.trim(),
       }
       login(credentialsDto).catch(error => {
         setLoading(false)
@@ -65,7 +65,11 @@ const LoginPage: FC = () => {
               onChange={handleInputChange}
             />
 
-            <Button disabled={!(formData.loginName && formData.password)}>
+            <Button
+              disabled={
+                !(formData.loginName.trim() && formData.password.trim())
+              }
+            >
               Anmelden
             </Button>
 

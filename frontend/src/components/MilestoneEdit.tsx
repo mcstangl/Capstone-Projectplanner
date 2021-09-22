@@ -41,17 +41,17 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
   })
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value.trim() })
+    setFormData({ ...formData, [event.target.name]: event.target.value })
   }
 
   const handleOnSubmit = (event: FormEvent) => {
     event.preventDefault()
 
-    if (!(token && formData.title && formData.dueDate)) {
+    if (!(token && formData.title.trim() && formData.dueDate)) {
       return
     }
     const milestoneDto: MilestoneDto = {
-      title: formData.title,
+      title: formData.title.trim(),
       dueDate: formData.dueDate,
       dateFinished: formData.dateFinished,
       projectTitle: projectTitle,
@@ -132,7 +132,7 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
             Abbrechen
           </Button>
 
-          <Button disabled={!(formData.title && formData.dueDate)}>
+          <Button disabled={!(formData.title.trim() && formData.dueDate)}>
             Speichern
           </Button>
 

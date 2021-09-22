@@ -11,6 +11,8 @@ import javax.persistence.EntityExistsException;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.util.Assert.hasText;
+
 @Service
 public class UserService {
 
@@ -30,6 +32,12 @@ public class UserService {
     }
 
     public UserEntity createNewUser(UserEntity newUserEntity) {
+
+        hasText(newUserEntity.getLoginName(), "Login Name darf nicht leer sein");
+        if(newUserEntity.getRole() == null){
+            throw new IllegalArgumentException("Die User Rolle darf nicht leer sein");
+        }
+
         Optional<UserEntity> userEntityOpt = findByLoginName(newUserEntity.getLoginName());
         if(userEntityOpt.isPresent()){
             throw new EntityExistsException("Ein User mit diesem Namen existiert schon");

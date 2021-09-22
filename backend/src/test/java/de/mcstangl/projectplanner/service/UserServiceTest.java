@@ -43,7 +43,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Find all shoul return all user in DB")
+    @DisplayName("Find all should return all user in DB")
     public void findAll(){
         // Given
         UserEntity adminUser = createAdminUser();

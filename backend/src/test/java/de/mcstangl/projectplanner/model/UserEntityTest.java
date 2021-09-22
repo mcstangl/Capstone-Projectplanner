@@ -5,11 +5,16 @@ import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -35,6 +40,31 @@ class UserEntityTest extends SpringBootTests {
         assertNotNull(actual.getId());
         assertThat(actual.getRole(), is(UserRole.USER));
         assertThat(actual.getLoginName(), is("Dave"));
+    }
+
+    @ParameterizedTest
+    @Transactional
+    @MethodSource("getArgumentsForCreateUserTest")
+    @DisplayName("Save a user should fail if required fields are empty or a user with this loginName already exists")
+    public void saveUserWithInvalidInput(String loginName, String password, UserRole userRole){
+        // Given
+        UserEntity testUser = UserEntity.builder()
+                .loginName(loginName)
+                .password(password)
+                .role(userRole)
+                .build();
+
+        // Then
+        assertThrows(DataIntegrityViolationException.class, ()-> userRepository.save(testUser));
+
+    }
+
+    private static Stream<Arguments> getArgumentsForCreateUserTest(){
+        return Stream.of(
+                Arguments.of("Test", "Password", null),
+                Arguments.of("Test", null, UserRole.ADMIN),
+                Arguments.of(null, "Password", UserRole.ADMIN)
+        );
     }
 
     @Test

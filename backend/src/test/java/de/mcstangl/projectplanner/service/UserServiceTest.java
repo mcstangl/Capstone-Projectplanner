@@ -3,21 +3,25 @@ package de.mcstangl.projectplanner.service;
 import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.*;
 
+import javax.persistence.EntityExistsException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class UserServiceTest {
 
@@ -27,6 +31,8 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
+    @Captor
+    private ArgumentCaptor<UserEntity> userEntityArgumentCaptor;
 
     private AutoCloseable closeable;
 
@@ -41,6 +47,57 @@ class UserServiceTest {
     void tearDown() throws Exception {
         closeable.close();
     }
+
+
+    @Test
+    @DisplayName("Create user should return the created user")
+    public void createNewUser() {
+        // Given
+        UserEntity adminUser = createAdminUser();
+        adminUser.setId(null);
+        adminUser.setPassword(null);
+
+        when(userRepositoryMock.save(any())).thenReturn(adminUser);
+        when(userRepositoryMock.findByLoginName(adminUser.getLoginName())).thenReturn(Optional.empty());
+
+        // When
+        UserEntity actual = userService.createNewUser(adminUser);
+
+        verify(userRepositoryMock, times(1)).save(userEntityArgumentCaptor.capture());
+        UserEntity argument = userEntityArgumentCaptor.getValue();
+
+        // Then
+        assertThat(argument, is(adminUser));
+        assertNotNull(argument.getPassword());
+        assertThat(actual, is(adminUser));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForCreateUserWithInvalidDataTest")
+    @DisplayName("Create user with invalid data should throw an exception")
+    public void createUserWithInvalidData(String loginName, UserRole userRole, Throwable throwable){
+        // Given
+        UserEntity userToSave = UserEntity.builder()
+                .loginName(loginName)
+                .role(userRole)
+                .build();
+
+        when(userRepositoryMock.findByLoginName("Test")).thenReturn(Optional.of(userToSave));
+
+        // Then
+        assertThrows(throwable.getClass(), ()-> userService.createNewUser(userToSave));
+        verify(userRepositoryMock, times(0)).save(any());
+    }
+
+    private static Stream<Arguments> getArgumentsForCreateUserWithInvalidDataTest(){
+        return Stream.of(
+          Arguments.of(null, UserRole.ADMIN, new IllegalArgumentException()),
+          Arguments.of("NewUser", null, new IllegalArgumentException()),
+          Arguments.of("Test", UserRole.ADMIN, new EntityExistsException())
+        );
+    }
+
 
     @Test
     @DisplayName("Find all should return all user in DB")

@@ -50,6 +50,15 @@ const ProjectListPage: FC = () => {
     } else setArchiveOn(true)
   }
 
+  const updateProjects: () => Promise<void> | undefined = () => {
+    setLoading(true)
+    if (token) {
+      return findAllProjects(token)
+        .then(setProjects)
+        .finally(() => setLoading(false))
+    }
+  }
+
   return (
     <PageLayout>
       <Header />
@@ -94,6 +103,7 @@ const ProjectListPage: FC = () => {
           <ProjectList
             archive
             theme="archive"
+            updateProjects={updateProjects}
             projects={filteredProjects.filter(
               project => project.status === 'ARCHIVE'
             )}

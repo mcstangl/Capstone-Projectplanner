@@ -101,6 +101,10 @@ public class ProjectService {
             projectEntityCopy.setOwner(projectUpdateData.getOwner());
         }
 
+        if(projectUpdateData.getStatus() != null){
+            projectEntityCopy.setStatus(projectUpdateData.getStatus());
+        } else projectEntityCopy.setStatus(ProjectStatus.OPEN);
+
         if (projectUpdateData.getDateOfReceipt() != null) {
             projectEntityCopy.setDateOfReceipt(projectUpdateData.getDateOfReceipt());
         }
@@ -122,6 +126,12 @@ public class ProjectService {
     public ProjectEntity moveToArchive(String title) {
         ProjectEntity fetchProjectEntity = getProjectEntity(title);
         fetchProjectEntity.setStatus(ProjectStatus.ARCHIVE);
+        return projectRepository.save(fetchProjectEntity);
+    }
+
+    public ProjectEntity restoreFromArchive(String title) {
+        ProjectEntity fetchProjectEntity = getProjectEntity(title);
+        fetchProjectEntity.setStatus(ProjectStatus.OPEN);
         return projectRepository.save(fetchProjectEntity);
     }
 
@@ -184,4 +194,6 @@ public class ProjectService {
     private List<MilestoneEntity> sortMilestonesByDueDate(List<MilestoneEntity> milestoneEntityList) {
         return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
+
+
 }

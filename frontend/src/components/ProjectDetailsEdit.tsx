@@ -123,7 +123,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
   }
 
   const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value.trim() })
+    setFormData({ ...formData, [event.target.name]: event.target.value })
   }
 
   const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -210,7 +210,9 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
             Abbrechen
           </Button>
 
-          <Button disabled={!(formData.title && formData.customer)}>
+          <Button
+            disabled={!(formData.title.trim() && formData.customer.trim())}
+          >
             Speichern
           </Button>
         </ProjectDetails>

@@ -11,9 +11,10 @@ import { findAllUser } from '../service/api-service'
 import Loader from '../components/Loader'
 
 const UserListPage: FC = () => {
-  const { token } = useContext(AuthContext)
+  const { token, authUser } = useContext(AuthContext)
   const [user, setUser] = useState<UserDto[]>()
   const [loading, setLoading] = useState(true)
+  const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
     if (token) {
@@ -24,12 +25,23 @@ const UserListPage: FC = () => {
     }
   }, [token])
 
+  const handleEditOnClick = () => {
+    if (authUser && authUser.role !== 'ADMIN') {
+      return
+    }
+    if (editMode) {
+      setEditMode(false)
+    } else setEditMode(true)
+  }
+
   return (
     <PageLayout>
       <Header />
       <main>
         <ButtonGroupFlexbox>
-          {!loading && <LinkStyle to="/">Neuen Benutzer anlegen</LinkStyle>}
+          {!loading && (
+            <LinkStyle to="/new-user">Neuen Benutzer anlegen</LinkStyle>
+          )}
         </ButtonGroupFlexbox>
         {loading && <Loader />}
         {!loading && user && (
@@ -41,17 +53,19 @@ const UserListPage: FC = () => {
               </UserListHeader>
 
               {user?.map(user => (
-                <UserListItem key={user.loginName}>
+                <UserListItem key={user.loginName} onClick={handleEditOnClick}>
                   <span>{user.loginName}</span>
                   <span>{user.role}</span>
                 </UserListItem>
               ))}
             </UserList>
-            <section>
-              <Button>Edit</Button>
-              <Button>Passwort zurücksetzen</Button>
-              <Button>Abbrechen</Button>
-            </section>
+            {editMode && (
+              <section>
+                <Button>Edit</Button>
+                <Button>Passwort zurücksetzen</Button>
+                <Button onClick={handleEditOnClick}>Abbrechen</Button>
+              </section>
+            )}
           </section>
         )}
       </main>
@@ -76,15 +90,32 @@ const LinkStyle = styled(Link)`
 `
 
 const UserList = styled.section`
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: grid;
+  grid-gap: 0 var(--size-s);
 `
 
 const UserListHeader = styled.section`
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-column-gap: var(--size-s);
+  padding: 0.5rem;
+  border-bottom: solid 1px var(--secondarycolor);
+  margin-bottom: var(--size-s);
 `
 
 const UserListItem = styled.section`
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-column-gap: var(--size-s);
+  padding: 0.5rem;
+  text-decoration: none;
+  color: black;
+
+  &:hover {
+    background: var(--gradient4);
+  }
 `

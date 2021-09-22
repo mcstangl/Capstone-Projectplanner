@@ -4,13 +4,16 @@ import { Button } from './Button'
 
 interface ErrorPopupProps {
   message: string
+  resetErrorState: () => void
 }
 
-const ErrorPopup: FC<ErrorPopupProps> = ({ message }) => {
+const ErrorPopup: FC<ErrorPopupProps> = ({ message, resetErrorState }) => {
   return (
     <ErrorPopupStyle>
       <p>{message}</p>
-      <Button theme="secondary">Klick</Button>
+      <Button theme="secondary" onClick={resetErrorState}>
+        OK
+      </Button>
     </ErrorPopupStyle>
   )
 }

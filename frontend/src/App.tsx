@@ -8,6 +8,7 @@ import Homepage from './pages/Homepage'
 import ProtectedRoute from './auth/ProtectedRoute'
 import ProjectDetailsPage from './pages/ProjectDetailsPage'
 import UserListPage from './pages/UserListPage'
+import NewUserPage from './pages/NewUserPage'
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         <Switch>
           <Route path="/login" component={LoginPage} />
           <ProtectedRoute
-            adminOnly={true}
+            adminOnly
             path="/new-project"
             component={NewProjectPage}
           />
@@ -25,7 +26,8 @@ function App() {
             component={ProjectDetailsPage}
           />
           <ProtectedRoute path="/projects" component={ProjectListPage} />
-          <ProtectedRoute path="/users" component={UserListPage} />
+          <ProtectedRoute adminOnly path="/users" component={UserListPage} />
+          <ProtectedRoute adminOnly path="/new-user" component={NewUserPage} />
           <ProtectedRoute path="/" component={Homepage} />
         </Switch>
       </Router>

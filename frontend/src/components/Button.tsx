@@ -7,6 +7,7 @@ export const Button = styled.button`
   color: var(--maincolor);
   font-size: 1em;
   border-radius: var(--size-xs);
+  transition-duration: 300ms;
 
   ${props =>
     props.theme === 'secondary'
@@ -19,6 +20,8 @@ export const Button = styled.button`
           color: var(--maincolor);
         `}
   &:hover {
+    transition-duration: 300ms;
+
     ${props =>
       props.theme === 'secondary'
         ? css`

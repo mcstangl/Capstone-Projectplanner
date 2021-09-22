@@ -81,6 +81,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertNotNull(response.getBody());
         assertThat(response.getBody().getTitle(), is("Test Title"));
         assertThat(response.getBody().getCustomer(), is("Test Customer"));
+        assertThat(response.getBody().getStatus(), is("OPEN"));
         assertThat(response.getBody().getDateOfReceipt(), is("2021-09-13"));
     }
 
@@ -139,7 +140,7 @@ class ProjectControllerTest extends SpringBootTests {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForBadRequestTest")
-    @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST")
+    @DisplayName("Creating a new project with a invalid parameters should return HttpStatus.BAD_REQUEST or NOT_FOUND")
     public void createProjectWithBadRequest(String title, String customer, UserDto user, String date, HttpStatus expected) {
         // Given
         createTestUser1();
@@ -223,6 +224,7 @@ class ProjectControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
+        assertThat(response.getBody().getStatus(), is("OPEN"));
         assertThat(response.getBody().getTitle(), is("Test"));
     }
 
@@ -271,6 +273,7 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getBody().getTitle(), is(expectedTitle));
         assertThat(response.getBody().getOwner().getLoginName(), is("Other User"));
         assertThat(response.getBody().getCustomer(), is("New Customer"));
+        assertThat(response.getBody().getStatus(), is("OPEN"));
         assertThat(response.getBody().getDateOfReceipt(), is("2021-09-13"));
     }
 
@@ -497,11 +500,7 @@ class ProjectControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertNotNull(response.getBody());
-        Optional<ProjectEntity> testProjectOpt = projectRepository.findByTitle("Test");
-        if(testProjectOpt.isEmpty()){
-            fail();
-        }
-        assertThat(testProjectOpt.get().getStatus(), is(ProjectStatus.ARCHIVE));
+        assertThat(response.getBody().getStatus(), is("ARCHIVE"));
     }
 
     @Test
@@ -538,6 +537,61 @@ class ProjectControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
 
+
+    @Test
+    @DisplayName("Restore Project should set the project status to open")
+    public void restoreProject(){
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Test/restore",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                ProjectDto.class);
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getStatus(), is("OPEN"));
+    }
+
+    @Test
+    @DisplayName("Restore project should return HttpStatus.NOT_FOUND when the project is not in DB")
+    public void restoreProjectWithUnknownProjectTitle(){
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Unknown/archive",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                ProjectDto.class);
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("Restore project as non admin user should return HttpStatus.UNAUTHORIZED")
+    public void restoreProjectAsUser(){
+        // Given
+        UserEntity testUser1 = createTestUser1();
+        createTestProject(testUser1);
+
+        // When
+        ResponseEntity<ProjectDto> response = testRestTemplate.exchange(
+                getUrl() + "/Unknown/archive",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
+                ProjectDto.class);
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
+
+
     private String getUrl() {
         return String.format("http://localhost:%s/api/project-planner/project", port);
     }
@@ -567,6 +621,7 @@ class ProjectControllerTest extends SpringBootTests {
                         .title("Test")
                         .dateOfReceipt(java.sql.Date.valueOf("2012-03-21"))
                         .owner(testUser)
+                        .status(ProjectStatus.OPEN)
                         .customer("Test").build()
 
         );

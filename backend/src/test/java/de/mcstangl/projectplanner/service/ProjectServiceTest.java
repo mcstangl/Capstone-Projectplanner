@@ -236,6 +236,7 @@ class ProjectServiceTest {
         assertThat(actual.getCustomer(), is("New Customer"));
         assertNotNull(actual.getOwner());
         assertThat(actual.getOwner().getLoginName(), is("Test2"));
+        assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
         assertThat(actual.getDateOfReceipt().toString(), is("1999-01-01"));
         assertNotNull(actual.getId());
     }
@@ -275,6 +276,7 @@ class ProjectServiceTest {
         assertThat(actualSaved.getTitle(), is("new Title"));
         assertThat(actualSaved.getCustomer(), is("New Customer"));
         assertNotNull(actualSaved.getOwner());
+        assertThat(actualSaved.getStatus(), is(ProjectStatus.OPEN));
         assertThat(actualSaved.getOwner().getLoginName(), is("Test2"));
         assertThat(actualSaved.getDateOfReceipt().toString(), is("1999-01-01"));
     }
@@ -392,6 +394,35 @@ class ProjectServiceTest {
     @Test
     @DisplayName("Move to archive should throw an EntityNotFoundException when project is not in DB")
     public void moveToArchiveWithUnknownProjectTitle(){
+        // Given
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(EntityNotFoundException.class,() -> projectService.moveToArchive("Unknown"));
+
+    }
+
+    @Test
+    @DisplayName("Restore project should set project status to OPEN")
+    public void restoreProject(){
+        // Given
+        ProjectEntity testProject = createTestProject();
+
+        when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.of(testProject));
+
+        // When
+        projectService.restoreFromArchive("Test");
+
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectStatus actual = projectEntityCaptor.getValue().getStatus();
+
+        // Then
+        assertThat(actual, is(ProjectStatus.OPEN));
+    }
+
+    @Test
+    @DisplayName("Move to archive should throw an EntityNotFoundException when project is not in DB")
+    public void restoreProjectWithUnknownProjectTitle(){
         // Given
         when(projectRepositoryMock.findByTitle(any())).thenReturn(Optional.empty());
 

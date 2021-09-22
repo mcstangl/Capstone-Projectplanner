@@ -3,8 +3,6 @@ package de.mcstangl.projectplanner.model;
 import de.mcstangl.projectplanner.SpringBootTests;
 import de.mcstangl.projectplanner.enums.ProjectStatus;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +49,7 @@ class ProjectEntityTest extends SpringBootTests {
     @DisplayName("Find by title should return an empty optional if project is not in DB")
     public void findByUnknownTitle() {
         // When
-        Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Unkown");
+        Optional<ProjectEntity> actualOptional = projectRepository.findByTitle("Unknown");
 
         // Then
         assertTrue(actualOptional.isEmpty());

@@ -10,6 +10,7 @@ import { findUserByLoginName } from '../service/api-service'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import ErrorPopup from '../components/ErrorPopup'
 import Loader from '../components/Loader'
+import UserDetailsEdit from '../components/UserDetailsEdit'
 
 interface RouteParams {
   loginName: string
@@ -33,7 +34,7 @@ const UserDetailPage: FC = () => {
     }
   }, [token, loginName])
 
-  const handleEditOnClick = () => {
+  const resetEditMode = () => {
     if (editMode) {
       setEditMode(false)
     } else setEditMode(true)
@@ -53,16 +54,12 @@ const UserDetailPage: FC = () => {
             <span>{user.loginName}</span>
             <span>User Rolle</span>
             <span>{user.role}</span>
-            <Button onClick={handleEditOnClick}>Edit</Button>
+            <Button onClick={resetEditMode}>Edit</Button>
           </UserDetailsStyle>
         )}
 
-        {editMode && (
-          <section>
-            <Button>Speichern</Button>
-            <Button>Passwort zurücksetzen</Button>
-            <Button onClick={handleEditOnClick}>Abbrechen</Button>
-          </section>
+        {editMode && user && (
+          <UserDetailsEdit user={user} resetEditMode={resetEditMode} />
         )}
         {error && (
           <ErrorPopup

@@ -5,6 +5,7 @@ import { NewProjectDto } from '../dtos/NewProjectDto'
 import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 import { NewUserDto } from '../dtos/NewUserDto'
+import { UserDto } from '../dtos/UserDto'
 
 export const getAccessToken = (credentials: CredentialsDto) =>
   axios
@@ -49,6 +50,19 @@ export const createNewUser = (token: string, newUserDto: NewUserDto) =>
 export const findUserByLoginName = (token: string, loginName: string) =>
   axios
     .get(`/api/project-planner/user/${loginName}`, getAuthHeaders(token))
+    .then(response => response.data)
+
+export const updateUser = (
+  token: string,
+  loginName: string,
+  userDto: UserDto
+) =>
+  axios
+    .put(
+      `/api/project-planner/user/${loginName}`,
+      userDto,
+      getAuthHeaders(token)
+    )
     .then(response => response.data)
 
 export const createNewMilestone = (token: string, milestoneDto: MilestoneDto) =>

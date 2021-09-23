@@ -44,7 +44,7 @@ class UserControllerTest extends SpringBootTests {
     private TestRestTemplate testRestTemplate;
 
     @AfterEach
-    public void clear(){
+    public void clear() {
         userRepository.deleteAll();
     }
 
@@ -81,9 +81,10 @@ class UserControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
 
     }
+
     @Test
     @DisplayName("Create a new user should return the user with password")
-    public void createNewUser(){
+    public void createNewUser() {
         // Given
         UserDto userDto = UserDto.builder()
                 .role("USER")
@@ -108,7 +109,7 @@ class UserControllerTest extends SpringBootTests {
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateUserWithInvalidDataTest")
     @DisplayName("Create a new user without loginName or role should return HttpStatus.BAD_REQUEST")
-    public void createWithInvalidData(String loginName, String role){
+    public void createWithInvalidData(String loginName, String role) {
         // Given
         UserDto userDto = UserDto.builder()
                 .role(role)
@@ -126,7 +127,7 @@ class UserControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
     }
 
-    public static Stream<Arguments> getArgumentsForCreateUserWithInvalidDataTest(){
+    public static Stream<Arguments> getArgumentsForCreateUserWithInvalidDataTest() {
         return Stream.of(
                 Arguments.of("Test", null),
                 Arguments.of("Test", ""),
@@ -137,7 +138,7 @@ class UserControllerTest extends SpringBootTests {
 
     @Test
     @DisplayName("Create a new user as non admin user should return HttpStatus.UNAUTHORIZED")
-    public void createUserAsUser(){
+    public void createUserAsUser() {
         // Given
         UserDto userDto = UserDto.builder()
                 .role("USER")
@@ -157,14 +158,14 @@ class UserControllerTest extends SpringBootTests {
 
     @Test
     @DisplayName("Find user by login name should return the user found in DB")
-    public void findByLoginName(){
+    public void findByLoginName() {
         // Given
         UserEntity testUser = createUser();
         String loginName = testUser.getLoginName();
 
         // When
         ResponseEntity<UserDto> response = testRestTemplate.exchange(
-                getUrl() +"/" + loginName,
+                getUrl() + "/" + loginName,
                 HttpMethod.GET, new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
                 UserDto.class);
 
@@ -176,7 +177,7 @@ class UserControllerTest extends SpringBootTests {
 
     @Test
     @DisplayName("Find user by login name should return HttpStatus.NOT_FOUND if the user is not in DB")
-    public void findByUnknownLoginName(){
+    public void findByUnknownLoginName() {
         // Given
         String loginName = "Unknown";
 
@@ -190,8 +191,90 @@ class UserControllerTest extends SpringBootTests {
         assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
     }
 
+    @Test
+    @DisplayName("Update user should return the updated user")
+    public void updateUser() {
+        // Given
+        UserEntity testAdminUser = createAdminUser();
+        String userToUpdateLoginName = testAdminUser.getLoginName();
+
+        UserDto userUpdateDataDto = UserDto.builder()
+                .role("USER")
+                .loginName("New Name")
+                .build();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + "/" + userToUpdateLoginName,
+                HttpMethod.PUT,
+                new HttpEntity<>(userUpdateDataDto, testUtil.getAuthHeader("ADMIN")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getLoginName(), is("New Name"));
+        assertThat(response.getBody().getRole(), is("USER"));
+    }
+
+    @Test
+    @DisplayName("Update user should return HttpStatus.UNAUTHORIZED when a user wants to update an other user")
+    public void aUserCanOnlyUpdateHimself() {
+        // Given
+        UserEntity testUser = createUser();
+        String userToUpdateLoginName = testUser.getLoginName();
+
+        UserDto userUpdateDataDto = UserDto.builder()
+                .role("USER")
+                .loginName("New Name")
+                .build();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + "/" + userToUpdateLoginName,
+                HttpMethod.PUT,
+                new HttpEntity<>(userUpdateDataDto, testUtil.getAuthHeader("USER")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForUpdateUserWithInvalidLoginNameTest")
+    @DisplayName("Update user should fail when newName is blank or a user with this name already exists or the user is not found in DB")
+    public void updateUserWithInvalidLoginName(String loginName, String newName, HttpStatus httpStatus) {
+        // Given
+        createUser();
+        UserEntity testUser = userRepository.saveAndFlush(UserEntity.builder()
+                .loginName("Hans")
+                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
+                .role(UserRole.ADMIN).build());
 
 
+        UserDto userUpdateDataDto = UserDto.builder()
+                .role("USER")
+                .loginName(newName)
+                .build();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + "/" + loginName,
+                HttpMethod.PUT,
+                new HttpEntity<>(userUpdateDataDto, testUtil.getAuthHeader("ADMIN")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(httpStatus));
+    }
+
+    private static Stream<Arguments> getArgumentsForUpdateUserWithInvalidLoginNameTest() {
+        return Stream.of(
+                Arguments.of("Hans", null, HttpStatus.BAD_REQUEST),
+                Arguments.of("Hans", "Dave",HttpStatus.CONFLICT),
+                Arguments.of("Unknown", "New Name",HttpStatus.NOT_FOUND)
+        );
+    }
 
     private UserEntity createAdminUser() {
         return userRepository.save(UserEntity.builder()

@@ -68,6 +68,21 @@ public class UserController extends Mapper {
     }
 
 
+    @PutMapping("{loginName}")
+    public ResponseEntity<UserDto> updateUser(@AuthenticationPrincipal UserEntity authUser, @PathVariable String loginName, @RequestBody UserDto userDto){
+        if(isAdmin(authUser)) {
+            UserEntity updatedUserEntity = userService.updateUser(loginName, mapUser(userDto));
+            return ok(mapUser(updatedUserEntity));
+        }
+       if(!isAdmin(authUser) && authUser.getLoginName().equals(loginName)){
+           UserEntity updatedUserEntity = userService.updateUser(loginName, mapUser(userDto));
+           return ok(mapUser(updatedUserEntity));
+       }
+
+       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals(UserRole.ADMIN);
     }

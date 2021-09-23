@@ -37,8 +37,8 @@ public class TestUtil {
         Date exp = Date.from(Instant.now().plus(Duration.ofDays(jwtConfig.getExpiresAfterDays())));
 
         String token = Jwts.builder()
-                .setSubject("Hans")
                 .setClaims(claims)
+                .setSubject("Hans")
                 .setIssuedAt(iat)
                 .setExpiration(exp)
                 .signWith(SignatureAlgorithm.HS256, jwtConfig.getSecret())

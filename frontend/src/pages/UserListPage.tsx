@@ -17,13 +17,18 @@ const UserListPage: FC = () => {
   const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
-    if (token) {
+    if (token && authUser) {
       findAllUser(token)
-        .then(setUser)
+        .then((userList: UserDto[]) => {
+          const filteredUserList = userList.filter(
+            user => user.loginName !== authUser?.loginName
+          )
+          setUser(filteredUserList)
+        })
         .catch(console.error)
         .finally(() => setLoading(false))
     }
-  }, [token])
+  }, [token, authUser])
 
   const handleEditOnClick = () => {
     if (authUser && authUser.role !== 'ADMIN') {

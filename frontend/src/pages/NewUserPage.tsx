@@ -10,12 +10,14 @@ import { useHistory } from 'react-router-dom'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from '../components/Loader'
 import ErrorPopup from '../components/ErrorPopup'
+import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
 const NewUserPage: FC = () => {
   const { token } = useContext(AuthContext)
   const history = useHistory()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<RestExceptionDto>()
+  const [newUser, setNewUser] = useState<UserWithPasswordDto>()
   const [formData, setFormData] = useState<NewUserDto>({
     loginName: '',
     role: 'USER',
@@ -30,9 +32,9 @@ const NewUserPage: FC = () => {
       }
       setLoading(true)
       createNewUser(token, newUserDto)
-        .then(() => {
+        .then((newUser: UserWithPasswordDto) => {
           setLoading(false)
-          history.push('/users')
+          setNewUser(newUser)
         })
         .catch(error => {
           setLoading(false)
@@ -50,6 +52,12 @@ const NewUserPage: FC = () => {
   const handleOnSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setFormData({ ...formData, role: event.target.value })
   }
+
+  const handleNewPasswordPopupOnClick = () => {
+    setNewUser(undefined)
+    history.push('/users')
+  }
+
   return (
     <PageLayout>
       <Header />
@@ -81,6 +89,15 @@ const NewUserPage: FC = () => {
             resetErrorState={resetErrorState}
           />
         )}
+        {newUser && (
+          <NewPasswordPopupStyle>
+            <p>Temporäres Passwort für Benutzer {newUser.loginName}</p>
+            <p>{newUser.password}</p>
+            <Button theme="secondary" onClick={handleNewPasswordPopupOnClick}>
+              OK
+            </Button>
+          </NewPasswordPopupStyle>
+        )}
       </main>
     </PageLayout>
   )
@@ -91,4 +108,25 @@ const NewUserForm = styled.form`
   display: grid;
   grid-gap: var(--size-l);
   justify-items: center;
+`
+const NewPasswordPopupStyle = styled.section`
+  position: absolute;
+  background-color: white;
+  right: 0;
+  left: 0;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  width: 250px;
+  display: grid;
+  grid-template-columns: 100%;
+  justify-items: center;
+  grid-gap: var(--size-l);
+  border: 1px solid var(--secondarycolor);
+  box-shadow: 3px 8px 12px grey;
+  padding: var(--size-l);
+
+  button {
+    width: 100%;
+  }
 `

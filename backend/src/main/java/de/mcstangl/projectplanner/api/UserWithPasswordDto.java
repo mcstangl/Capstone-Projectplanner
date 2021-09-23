@@ -1,17 +1,19 @@
 package de.mcstangl.projectplanner.api;
 
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
-@AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class UserWithPasswordDto extends UserDto{
 
-    private String loginName;
-    private String role;
+    private String password;
+
 }

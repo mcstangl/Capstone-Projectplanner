@@ -46,6 +46,11 @@ export const createNewUser = (token: string, newUserDto: NewUserDto) =>
     .post('/api/project-planner/user', newUserDto, getAuthHeaders(token))
     .then(response => response.data)
 
+export const findUserByLoginName = (token: string, loginName: string) =>
+  axios
+    .get(`/api/project-planner/user/${loginName}`, getAuthHeaders(token))
+    .then(response => response.data)
+
 export const createNewMilestone = (token: string, milestoneDto: MilestoneDto) =>
   axios
     .post('/api/project-planner/milestone', milestoneDto, getAuthHeaders(token))

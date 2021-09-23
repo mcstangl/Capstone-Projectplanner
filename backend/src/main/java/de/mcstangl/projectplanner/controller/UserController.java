@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,6 +56,16 @@ public class UserController extends Mapper {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @GetMapping("{loginName}")
+    public ResponseEntity<UserDto> findByLoginName(@PathVariable String loginName){
+
+        UserEntity userEntity = userService.findByLoginName(loginName)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                String.format("Der User %s konnte nicht gefunden werden", loginName)));
+
+        return ok(mapUser(userEntity));
+    }
 
 
     private boolean isAdmin(UserEntity authUser) {

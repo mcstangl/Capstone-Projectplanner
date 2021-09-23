@@ -1,5 +1,6 @@
 package de.mcstangl.projectplanner.model;
 
+import de.mcstangl.projectplanner.enums.UserRole;
 import lombok.*;
 
 import javax.persistence.*;
@@ -26,8 +27,9 @@ public class UserEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="role", nullable = false)
-    private String role;
+    private UserRole role;
 
 
     @Override

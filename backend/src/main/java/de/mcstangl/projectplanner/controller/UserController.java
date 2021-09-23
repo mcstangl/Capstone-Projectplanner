@@ -1,16 +1,15 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.UserDto;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,9 +40,18 @@ public class UserController extends Mapper {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @PostMapping
+    public ResponseEntity<UserDto> createNewUser(@AuthenticationPrincipal UserEntity authUser, @RequestBody UserDto newUserDto){
+        if(isAdmin(authUser)){
+           UserEntity createdUserEntity = userService.createNewUser(mapUser(newUserDto));
+           return ok(mapUser(createdUserEntity));
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
 
 
     private boolean isAdmin(UserEntity authUser) {
-        return authUser.getRole().equals("ADMIN");
+        return authUser.getRole().equals(UserRole.ADMIN);
     }
 }

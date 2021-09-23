@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.enums.ProjectStatus;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -435,7 +436,7 @@ class ProjectServiceTest {
         return UserEntity.builder()
                 .id(1L)
                 .loginName("Test1")
-                .role("ADMIN")
+                .role(UserRole.ADMIN)
                 .build();
     }
 
@@ -443,7 +444,7 @@ class ProjectServiceTest {
         return UserEntity.builder()
                 .id(2L)
                 .loginName("Test2")
-                .role("ADMIN")
+                .role(UserRole.ADMIN)
                 .build();
     }
 
@@ -451,7 +452,7 @@ class ProjectServiceTest {
         return UserEntity.builder()
                 .id(3L)
                 .loginName("Test3")
-                .role("ADMIN")
+                .role(UserRole.ADMIN)
                 .build();
     }
 

@@ -58,18 +58,17 @@ public class UserService {
     }
 
 
-    private UserEntity copyUserEntity(UserEntity userEntity){
-        return UserEntity.builder()
-                .id(userEntity.getId())
-                .loginName(userEntity.getLoginName())
-                .password(userEntity.getPassword())
-                .role(userEntity.getRole())
-                .build();
-    }
+
 
     public UserEntity updateUser(String loginName, UserEntity userUpdateData) {
 
         hasText(userUpdateData.getLoginName(), "Login Name darf nicht leer sein");
+
+        Optional<UserEntity> userEntityOpt = findByLoginName(userUpdateData.getLoginName());
+        if(userEntityOpt.isPresent()){
+            throw new EntityExistsException("Ein User mit diesem Namen existiert schon");
+        }
+
         UserEntity userEntity = findByLoginName(loginName)
                 .orElseThrow(() ->
                         new EntityNotFoundException(
@@ -82,5 +81,14 @@ public class UserService {
         }
 
         return userRepository.save(userEntity);
+    }
+
+    private UserEntity copyUserEntity(UserEntity userEntity){
+        return UserEntity.builder()
+                .id(userEntity.getId())
+                .loginName(userEntity.getLoginName())
+                .password(userEntity.getPassword())
+                .role(userEntity.getRole())
+                .build();
     }
 }

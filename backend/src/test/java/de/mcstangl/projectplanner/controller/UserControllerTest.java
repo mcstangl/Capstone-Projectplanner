@@ -6,7 +6,6 @@ import de.mcstangl.projectplanner.api.UserWithPasswordDto;
 import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
-import de.mcstangl.projectplanner.service.UserService;
 import de.mcstangl.projectplanner.util.TestUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -155,6 +154,43 @@ class UserControllerTest extends SpringBootTests {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
     }
+
+    @Test
+    @DisplayName("Find user by login name should return the user found in DB")
+    public void findByLoginName(){
+        // Given
+        UserEntity testUser = createUser();
+        String loginName = testUser.getLoginName();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() +"/" + loginName,
+                HttpMethod.GET, new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getLoginName(), is(loginName));
+    }
+
+    @Test
+    @DisplayName("Find user by login name should return HttpStatus.NOT_FOUND if the user is not in DB")
+    public void findByUnknownLoginName(){
+        // Given
+        String loginName = "Unknown";
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + loginName,
+                HttpMethod.GET, new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+
 
 
     private UserEntity createAdminUser() {

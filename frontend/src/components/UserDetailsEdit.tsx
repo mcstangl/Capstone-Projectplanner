@@ -6,8 +6,9 @@ import ErrorPopup from './ErrorPopup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from './Loader'
 import AuthContext from '../auth/AuthContext'
-import { updateUser } from '../service/api-service'
+import { resetUserPassword, updateUser } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
+import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
 interface UserDetailEditProps {
   user: UserDto
@@ -19,6 +20,7 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
   const [loading, setLoading] = useState(false)
+  const [newPassword, setNewPassword] = useState<string>()
   const [formData, setFormData] = useState<UserDto>({
     loginName: user.loginName,
     role: user.role,
@@ -58,6 +60,36 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
     }
   }
 
+  const handleResetPasswordOnClick = () => {
+    if (token) {
+      setLoading(true)
+      resetUserPassword(token, user.loginName)
+        .then((user: UserWithPasswordDto) => {
+          setLoading(false)
+          setNewPassword(user.password)
+        })
+        .catch(error => {
+          setLoading(false)
+          if (error.response.data.message) {
+            setError(error.response.data)
+          } else if (error.response.data.error) {
+            setError({
+              message:
+                error.response.data.status + ': ' + error.response.data.error,
+            })
+          } else
+            setError({
+              message: error.response.status + ': ' + error.response.statusText,
+            })
+        })
+    }
+  }
+
+  const handleNewPasswordPopupOnClick = () => {
+    setNewPassword(undefined)
+    resetEditMode()
+  }
+
   const resetErrorSate = () => setError(undefined)
 
   return (
@@ -79,12 +111,25 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
           </select>
 
           <Button disabled={!formData.loginName.trim()}>Speichern</Button>
-          <Button>Passwort zurücksetzen</Button>
-          <Button onClick={resetEditMode}>Abbrechen</Button>
+          <Button type="button" onClick={handleResetPasswordOnClick}>
+            Passwort zurücksetzen
+          </Button>
+          <Button type="button" onClick={resetEditMode}>
+            Abbrechen
+          </Button>
         </UserEditStyle>
       )}
       {error && (
         <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
+      )}
+      {newPassword && (
+        <NewPasswordPopupStyle>
+          <p>Temporäres Passwort für Benutzer {user.loginName}</p>
+          <p>{newPassword}</p>
+          <Button theme="secondary" onClick={handleNewPasswordPopupOnClick}>
+            OK
+          </Button>
+        </NewPasswordPopupStyle>
       )}
     </section>
   )
@@ -95,4 +140,25 @@ const UserEditStyle = styled.form`
   display: grid;
   grid-template-columns: max-content 1fr;
   grid-gap: var(--size-s);
+`
+const NewPasswordPopupStyle = styled.section`
+  position: absolute;
+  background-color: white;
+  right: 0;
+  left: 0;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  width: 250px;
+  display: grid;
+  grid-template-columns: 100%;
+  justify-items: center;
+  grid-gap: var(--size-l);
+  border: 1px solid var(--secondarycolor);
+  box-shadow: 3px 8px 12px grey;
+  padding: var(--size-l);
+
+  button {
+    width: 100%;
+  }
 `

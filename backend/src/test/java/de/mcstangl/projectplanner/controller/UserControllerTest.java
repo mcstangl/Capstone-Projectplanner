@@ -276,6 +276,63 @@ class UserControllerTest extends SpringBootTests {
         );
     }
 
+    @Test
+    @DisplayName("Reset password should return a user with random password")
+    public void resetUserPassword(){
+        // Given
+        UserEntity testUser = createUser();
+        String loginName = testUser.getLoginName();
+
+        // When
+        ResponseEntity<UserWithPasswordDto> response = testRestTemplate.exchange(
+                getUrl() + "/" + loginName + "/reset-password",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                UserWithPasswordDto.class);
+
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getPassword().length(), is(12));
+    }
+
+    @Test
+    @DisplayName("Reset password as non admin user should return HttpStatus.UNAUTHORIZED")
+    public void resetUserPasswordAsUser(){
+        // Given
+        UserEntity testUser = createUser();
+        String loginName = testUser.getLoginName();
+
+        // When
+        ResponseEntity<UserWithPasswordDto> response = testRestTemplate.exchange(
+                getUrl() + "/" + loginName + "/reset-password",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("USER")),
+                UserWithPasswordDto.class);
+
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.UNAUTHORIZED));
+    }
+
+    @Test
+    @DisplayName("Reset password should return HttpStatus.NOT_FOUND if the user is not in DB")
+    public void resetPasswordForUnknownUser(){
+        // When
+        ResponseEntity<UserWithPasswordDto> response = testRestTemplate.exchange(
+                getUrl() + "/Unknown/reset-password",
+                HttpMethod.PUT,
+                new HttpEntity<>(null, testUtil.getAuthHeader("ADMIN")),
+                UserWithPasswordDto.class);
+
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+
+
     private UserEntity createAdminUser() {
         return userRepository.save(UserEntity.builder()
                 .loginName("Hans")

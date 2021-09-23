@@ -3,7 +3,6 @@ package de.mcstangl.projectplanner.service;
 import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +26,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepositoryMock;
+
+    @Mock
+    private PasswordService passwordService;
 
     @InjectMocks
     private UserService userService;
@@ -57,6 +59,8 @@ class UserServiceTest {
         adminUser.setId(null);
         adminUser.setPassword(null);
 
+        when(passwordService.getRandomPassword()).thenReturn("RandomPassword");
+        when(passwordService.getHashedPassword("RandomPassword")).thenReturn("HashedPassword");
         when(userRepositoryMock.save(any())).thenReturn(adminUser);
         when(userRepositoryMock.findByLoginName(adminUser.getLoginName())).thenReturn(Optional.empty());
 
@@ -68,7 +72,9 @@ class UserServiceTest {
 
         // Then
         assertThat(argument, is(adminUser));
-        assertNotNull(argument.getPassword());
+        assertThat(argument.getPassword(), is("HashedPassword"));
+
+        assertThat(actual.getPassword(), is("RandomPassword"));
         assertThat(actual, is(adminUser));
     }
 

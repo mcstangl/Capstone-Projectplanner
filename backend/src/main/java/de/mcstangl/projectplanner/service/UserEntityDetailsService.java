@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.model.UserEntity;
+import de.mcstangl.projectplanner.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,16 +12,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserEntityDetailsService implements UserDetailsService {
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserEntityDetailsService(UserService userService) {
-        this.userService = userService;
+    public UserEntityDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
+
+
 
     @Override
     public UserDetails loadUserByUsername(String loginName) throws UsernameNotFoundException {
-        UserEntity userEntity = userService
+        UserEntity userEntity = userRepository
                 .findByLoginName(loginName)
                 .orElseThrow(() -> new UsernameNotFoundException("Could not find user =" + loginName));
         return User.builder()

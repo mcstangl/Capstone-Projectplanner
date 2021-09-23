@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -148,6 +149,76 @@ class UserServiceTest {
 
         // Then
         assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Update user should update all fields and return the updated user")
+    public void updateUser(){
+        // Given
+        UserEntity user = createUser();
+
+        UserEntity userUpdateData = UserEntity.builder()
+                .loginName("New Name")
+                .role(UserRole.ADMIN)
+                .build();
+        when(userRepositoryMock.findByLoginName(user.getLoginName())).thenReturn(Optional.of(user));
+        when(userRepositoryMock.save(any())).thenReturn(
+                UserEntity.builder()
+                        .id(user.getId())
+                        .loginName("New Name")
+                        .role(UserRole.ADMIN)
+                        .build());
+
+        // When
+        UserEntity actual = userService.updateUser(user.getLoginName(), userUpdateData);
+
+        verify(userRepositoryMock, times(1)).save(userEntityArgumentCaptor.capture());
+        UserEntity argument = userEntityArgumentCaptor.getValue();
+
+        // Then
+        assertThat(actual, is(UserEntity.builder()
+                .id(user.getId())
+                .loginName("New Name")
+                .role(UserRole.ADMIN)
+                .build()));
+
+        assertThat(argument.getLoginName(),is(userUpdateData.getLoginName()));
+        assertThat(argument.getRole(), is(userUpdateData.getRole()));
+        assertThat(argument.getId(), is(user.getId()));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForUpdateUserWithInvalidDataTest")
+    @DisplayName("Create user with invalid data should throw an exception")
+    public void updateUserWithInvalidData(String loginName, String newName, Throwable throwable){
+        // Given
+        UserEntity testUser = createUser();
+        UserEntity testAdminUser = createAdminUser();
+
+
+        UserEntity userUpdateData = UserEntity.builder()
+                .loginName(newName)
+                .role(UserRole.ADMIN)
+                .build();
+
+        when(userRepositoryMock.findByLoginName("Unknown")).thenReturn(Optional.empty());
+        when(userRepositoryMock.findByLoginName("Dave")).thenReturn(Optional.of(testUser));
+        when(userRepositoryMock.findByLoginName("Hans")).thenReturn(Optional.of(testAdminUser));
+
+        // Then
+        assertThrows(throwable.getClass(), ()-> userService.updateUser(loginName, userUpdateData));
+        verify(userRepositoryMock, times(0)).save(any());
+    }
+
+    private static Stream<Arguments> getArgumentsForUpdateUserWithInvalidDataTest(){
+        return Stream.of(
+                Arguments.of("Hans", null,new IllegalArgumentException()),
+                Arguments.of("Hans", "Dave", new EntityExistsException()),
+                Arguments.of("Unknown","New Name", new EntityNotFoundException())
+
+
+        );
     }
 
     private UserEntity createAdminUser() {

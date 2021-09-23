@@ -68,6 +68,15 @@ public class UserController extends Mapper {
     }
 
 
+    @PutMapping("{loginName}")
+    public ResponseEntity<UserDto> findByLoginName(@PathVariable String loginName, @RequestBody UserDto userDto){
+
+        UserEntity updatedUserEntity = userService.updateUser(loginName, mapUser(userDto));
+
+        return ok(mapUser(updatedUserEntity));
+    }
+
+
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals(UserRole.ADMIN);
     }

@@ -5,6 +5,7 @@ import de.mcstangl.projectplanner.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,5 +65,22 @@ public class UserService {
                 .password(userEntity.getPassword())
                 .role(userEntity.getRole())
                 .build();
+    }
+
+    public UserEntity updateUser(String loginName, UserEntity userUpdateData) {
+
+        hasText(userUpdateData.getLoginName(), "Login Name darf nicht leer sein");
+        UserEntity userEntity = findByLoginName(loginName)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                String.format("Der User %s konnte nicht gefunden werden", loginName)));
+
+        userEntity.setLoginName(userUpdateData.getLoginName());
+
+        if(userUpdateData.getRole() != null){
+            userEntity.setRole(userUpdateData.getRole());
+        }
+
+        return userRepository.save(userEntity);
     }
 }

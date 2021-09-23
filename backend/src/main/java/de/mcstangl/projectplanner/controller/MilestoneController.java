@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.MilestoneDto;
+import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
@@ -92,7 +93,7 @@ public class MilestoneController extends Mapper {
     }
 
     private boolean isAdmin(UserEntity authUser) {
-        return authUser.getRole().equals("ADMIN");
+        return authUser.getRole().equals(UserRole.ADMIN);
     }
 
 }

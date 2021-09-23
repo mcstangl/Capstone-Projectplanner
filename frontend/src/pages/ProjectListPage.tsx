@@ -142,9 +142,11 @@ const LinkStyle = styled(Link)`
   color: var(--maincolor);
   padding: 0.5rem 2rem;
   border-radius: 4px;
+  transition-duration: 300ms;
 
   &:hover {
     background-color: var(--maincolor);
     color: white;
+    transition-duration: 300ms;
   }
 `

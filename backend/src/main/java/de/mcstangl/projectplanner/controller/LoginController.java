@@ -21,7 +21,7 @@ import static org.springframework.util.Assert.hasText;
 @CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/auth")
-public class LoginController {
+public class LoginController extends Mapper{
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
@@ -59,14 +59,7 @@ public class LoginController {
 
     @GetMapping("me")
     public ResponseEntity<UserDto> authMe(@AuthenticationPrincipal UserEntity authUser) {
-        return ok(UserDto.builder().loginName(authUser.getLoginName()).role(authUser.getRole()).build());
+        return ok(mapUser(authUser));
     }
 
-    private boolean validateCredentials(CredentialsDto credentialsDto) {
-        return credentialsDto == null ||
-                credentialsDto.getLoginName() == null ||
-                credentialsDto.getLoginName().isBlank() ||
-                credentialsDto.getPassword() == null ||
-                credentialsDto.getPassword().isBlank();
-    }
 }

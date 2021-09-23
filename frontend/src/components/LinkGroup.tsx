@@ -9,10 +9,12 @@ export const LinkGroup = styled.section`
     color: var(--maincolor);
     padding: 0.5rem 2rem;
     border-radius: 4px;
+    transition-duration: 300ms;
   }
 
   a:hover {
     background-color: var(--maincolor);
     color: white;
+    transition-duration: 300ms;
   }
 `

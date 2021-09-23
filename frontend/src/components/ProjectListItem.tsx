@@ -58,6 +58,7 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
         })
     }
   }
+  const resetErrorState = () => setError(undefined)
 
   return (
     <section>
@@ -91,7 +92,9 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
           </Button>
         </DeletePopup>
       )}
-      {error && <ErrorPopup message={error} />}
+      {error && (
+        <ErrorPopup resetErrorState={resetErrorState} message={error} />
+      )}
     </section>
   )
 }

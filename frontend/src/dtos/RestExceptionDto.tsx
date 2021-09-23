@@ -1,4 +1,4 @@
 export interface RestExceptionDto {
   message: string
-  status: number
+  status?: number
 }

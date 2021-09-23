@@ -15,11 +15,15 @@ export default Loader
 
 const LoadingStyle = styled.div`
   display: inline-block;
-  position: relative;
+  position: absolute;
   top: 50%;
   left: 50%;
   width: 80px;
   height: 80px;
+  border: 1px solid lightgray;
+  border-radius: 12px;
+  box-shadow: 3px 8px 8px lightgray;
+  background: white;
 
   div {
     box-sizing: border-box;

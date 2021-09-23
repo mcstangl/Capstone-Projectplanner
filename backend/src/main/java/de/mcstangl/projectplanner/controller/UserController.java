@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.controller;
 
 import de.mcstangl.projectplanner.api.UserDto;
+import de.mcstangl.projectplanner.api.UserWithPasswordDto;
 import de.mcstangl.projectplanner.enums.UserRole;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.UserService;
@@ -44,7 +45,12 @@ public class UserController extends Mapper {
     public ResponseEntity<UserDto> createNewUser(@AuthenticationPrincipal UserEntity authUser, @RequestBody UserDto newUserDto){
         if(isAdmin(authUser)){
            UserEntity createdUserEntity = userService.createNewUser(mapUser(newUserDto));
-           return ok(mapUser(createdUserEntity));
+            UserWithPasswordDto userWithPasswordDto = UserWithPasswordDto.builder()
+                    .loginName(createdUserEntity.getLoginName())
+                    .password(createdUserEntity.getPassword())
+                    .role(createdUserEntity.getRole().toString())
+                    .build();
+           return ok(userWithPasswordDto);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }

@@ -65,6 +65,15 @@ export const updateUser = (
     )
     .then(response => response.data)
 
+export const resetUserPassword = (token: string, loginName: string) =>
+  axios
+    .put(
+      `/api/project-planner/user/${loginName}/reset-password`,
+      null,
+      getAuthHeaders(token)
+    )
+    .then(response => response.data)
+
 export const createNewMilestone = (token: string, milestoneDto: MilestoneDto) =>
   axios
     .post('/api/project-planner/milestone', milestoneDto, getAuthHeaders(token))

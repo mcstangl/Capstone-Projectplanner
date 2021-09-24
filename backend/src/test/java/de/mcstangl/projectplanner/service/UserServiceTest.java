@@ -83,7 +83,7 @@ class UserServiceTest {
     @ParameterizedTest
     @MethodSource("getArgumentsForCreateUserWithInvalidDataTest")
     @DisplayName("Create user with invalid data should throw an exception")
-    public void createUserWithInvalidData(String loginName, UserRole userRole, Throwable throwable){
+    public void createUserWithInvalidData(String loginName, UserRole userRole, Throwable throwable) {
         // Given
         UserEntity userToSave = UserEntity.builder()
                 .loginName(loginName)
@@ -93,22 +93,22 @@ class UserServiceTest {
         when(userRepositoryMock.findByLoginName("Test")).thenReturn(Optional.of(userToSave));
 
         // Then
-        assertThrows(throwable.getClass(), ()-> userService.createNewUser(userToSave));
+        assertThrows(throwable.getClass(), () -> userService.createNewUser(userToSave));
         verify(userRepositoryMock, times(0)).save(any());
     }
 
-    private static Stream<Arguments> getArgumentsForCreateUserWithInvalidDataTest(){
+    private static Stream<Arguments> getArgumentsForCreateUserWithInvalidDataTest() {
         return Stream.of(
-          Arguments.of(null, UserRole.ADMIN, new IllegalArgumentException()),
-          Arguments.of("NewUser", null, new IllegalArgumentException()),
-          Arguments.of("Test", UserRole.ADMIN, new EntityExistsException())
+                Arguments.of(null, UserRole.ADMIN, new IllegalArgumentException()),
+                Arguments.of("NewUser", null, new IllegalArgumentException()),
+                Arguments.of("Test", UserRole.ADMIN, new EntityExistsException())
         );
     }
 
 
     @Test
     @DisplayName("Find all should return all user in DB")
-    public void findAll(){
+    public void findAll() {
         // Given
         UserEntity adminUser = createAdminUser();
         UserEntity user = createUser();
@@ -125,7 +125,7 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Find user by login name should return the user found")
-    public void findByLoginName(){
+    public void findByLoginName() {
         // Given
         UserEntity adminUser = createAdminUser();
 
@@ -140,7 +140,7 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Find user by login should return an empty optional if the user is not in DB")
-    public void findByUnknownLoginName(){
+    public void findByUnknownLoginName() {
         // Given
         when(userRepositoryMock.findByLoginName("Unknown")).thenReturn(Optional.empty());
 
@@ -153,7 +153,7 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Update user should update all fields and return the updated user")
-    public void updateUser(){
+    public void updateUser() {
         // Given
         UserEntity user = createUser();
 
@@ -182,7 +182,7 @@ class UserServiceTest {
                 .role(UserRole.ADMIN)
                 .build()));
 
-        assertThat(argument.getLoginName(),is(userUpdateData.getLoginName()));
+        assertThat(argument.getLoginName(), is(userUpdateData.getLoginName()));
         assertThat(argument.getRole(), is(userUpdateData.getRole()));
         assertThat(argument.getId(), is(user.getId()));
     }
@@ -191,7 +191,7 @@ class UserServiceTest {
     @ParameterizedTest
     @MethodSource("getArgumentsForUpdateUserWithInvalidDataTest")
     @DisplayName("Create user with invalid data should throw an exception")
-    public void updateUserWithInvalidData(String loginName, String newName, Throwable throwable){
+    public void updateUserWithInvalidData(String loginName, String newName, Throwable throwable) {
         // Given
         UserEntity testUser = createUser();
         UserEntity testAdminUser = createAdminUser();
@@ -207,18 +207,40 @@ class UserServiceTest {
         when(userRepositoryMock.findByLoginName("Hans")).thenReturn(Optional.of(testAdminUser));
 
         // Then
-        assertThrows(throwable.getClass(), ()-> userService.updateUser(loginName, userUpdateData));
+        assertThrows(throwable.getClass(), () -> userService.updateUser(loginName, userUpdateData));
         verify(userRepositoryMock, times(0)).save(any());
     }
 
-    private static Stream<Arguments> getArgumentsForUpdateUserWithInvalidDataTest(){
+    private static Stream<Arguments> getArgumentsForUpdateUserWithInvalidDataTest() {
         return Stream.of(
-                Arguments.of("Hans", null,new IllegalArgumentException()),
+                Arguments.of("Hans", null, new IllegalArgumentException()),
                 Arguments.of("Hans", "Dave", new EntityExistsException()),
-                Arguments.of("Unknown","New Name", new EntityNotFoundException())
+                Arguments.of("Unknown", "New Name", new EntityNotFoundException())
 
 
         );
+    }
+
+    @Test
+    @DisplayName("Reset password should return a user with random password")
+    public void resetPassword() {
+        // Given
+        UserEntity testUser = createUser();
+
+        when(userRepositoryMock.findByLoginName(testUser.getLoginName())).thenReturn(Optional.of(testUser));
+        when(userRepositoryMock.save(any())).thenReturn(testUser);
+        when(passwordService.getRandomPassword()).thenReturn("RandomPassword");
+        when(passwordService.getHashedPassword("RandomPassword")).thenReturn("HashedPassword");
+
+        // When
+        UserEntity actual = userService.resetPassword(testUser.getLoginName());
+
+        verify(userRepositoryMock, times(1)).save(userEntityArgumentCaptor.capture());
+        UserEntity argument = userEntityArgumentCaptor.getValue();
+
+        // Then
+        assertThat(actual.getPassword(), is("RandomPassword"));
+        assertThat(argument.getPassword(), is("HashedPassword"));
     }
 
     private UserEntity createAdminUser() {
@@ -228,7 +250,8 @@ class UserServiceTest {
                 .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
                 .role(UserRole.ADMIN).build();
     }
-    private UserEntity createUser(){
+
+    private UserEntity createUser() {
         return UserEntity.builder()
                 .id(2L)
                 .loginName("Dave")

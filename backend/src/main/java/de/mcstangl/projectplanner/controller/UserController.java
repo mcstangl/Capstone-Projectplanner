@@ -96,6 +96,19 @@ public class UserController extends Mapper {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @DeleteMapping("{loginName}")
+    public ResponseEntity<UserDto> delete(@AuthenticationPrincipal UserEntity authUser, @PathVariable String loginName){
+        if(isAdmin(authUser) && authUser.getLoginName().equals(loginName)){
+            throw new IllegalArgumentException("Ein Admin darf sich nicht selbt löschen");
+        }
+
+        if(isAdmin(authUser)){
+            UserEntity deletedUser = userService.deleteUserByLoginName(loginName);
+            return ok(mapUser(deletedUser));
+        }
+
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
 
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals(UserRole.ADMIN);

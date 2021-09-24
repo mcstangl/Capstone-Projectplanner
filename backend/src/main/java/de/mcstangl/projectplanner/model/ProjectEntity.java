@@ -39,19 +39,25 @@ public class ProjectEntity {
     @Column(name = "status")
     private ProjectStatus status;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id")
     private UserEntity owner;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinColumn
+    @JoinTable(
+            name = "project_writers",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<UserEntity> writers;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinColumn
+    @JoinTable(
+            name = "project_motion_designers",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<UserEntity> motionDesigners;
 
-    @OneToMany(mappedBy = "projectEntity" , fetch=FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "projectEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MilestoneEntity> milestones;
 
     public void addWriter(UserEntity userEntity) {
@@ -62,7 +68,7 @@ public class ProjectEntity {
         motionDesigners.add(userEntity);
     }
 
-    public void removeMilestone(MilestoneEntity milestoneEntity){
+    public void removeMilestone(MilestoneEntity milestoneEntity) {
         milestones.remove(milestoneEntity);
     }
 

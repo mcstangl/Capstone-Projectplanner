@@ -82,6 +82,20 @@ public class UserController extends Mapper {
        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    @PutMapping("{loginName}/reset-password")
+    public ResponseEntity<UserWithPasswordDto> resetUserPassword(@AuthenticationPrincipal UserEntity authUser, @PathVariable String loginName){
+        if(isAdmin(authUser)){
+           UserEntity userEntity = userService.resetPassword(loginName);
+           UserWithPasswordDto userWithPasswordDto = UserWithPasswordDto.builder()
+                   .loginName(userEntity.getLoginName())
+                   .role(userEntity.getRole().toString())
+                   .password(userEntity.getPassword())
+                   .build();
+           return ok(userWithPasswordDto);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
 
     private boolean isAdmin(UserEntity authUser) {
         return authUser.getRole().equals(UserRole.ADMIN);

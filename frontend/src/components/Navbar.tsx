@@ -15,6 +15,7 @@ const Navbar: FC = () => {
           </NavLink>
           <NavLink to="/projects">Projekte</NavLink>
           {authUser.role === 'ADMIN' && <NavLink to="/users">Benutzer</NavLink>}
+          <NavLink to="/my-account">Mein Konto</NavLink>
         </Wrapper>
       )}
     </section>

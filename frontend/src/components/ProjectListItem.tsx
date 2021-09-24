@@ -81,7 +81,7 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
         ))}
       </ListItem>
       {restoreMode && authUser && authUser.role === 'ADMIN' && (
-        <DeletePopup>
+        <RestorePopup>
           <h3>Projekt</h3>
           <p>{project.title}</p>
           <Button theme="secondary" onClick={handleRestoreOnClick}>
@@ -90,7 +90,7 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
           <Button theme="secondary" onClick={() => setRestoreMode(false)}>
             Abbrechen
           </Button>
-        </DeletePopup>
+        </RestorePopup>
       )}
       {error && (
         <ErrorPopup resetErrorState={resetErrorState} message={error} />
@@ -101,7 +101,7 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
 
 export default ProjectListItem
 
-const DeletePopup = styled.section`
+const RestorePopup = styled.section`
   position: absolute;
   background-color: white;
   right: 0;

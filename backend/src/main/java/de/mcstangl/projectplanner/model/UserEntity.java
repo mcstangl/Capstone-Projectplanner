@@ -4,6 +4,7 @@ import de.mcstangl.projectplanner.enums.UserRole;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -28,9 +29,18 @@ public class UserEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="role", nullable = false)
+    @Column(name = "role", nullable = false)
     private UserRole role;
 
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.EAGER)
+    private List<ProjectEntity> ownedProjects;
+
+    @ManyToMany(mappedBy = "writers", fetch = FetchType.EAGER)
+    private List<ProjectEntity> writerInProjects;
+
+    @ManyToMany(mappedBy = "motionDesigners", fetch = FetchType.EAGER)
+    private List<ProjectEntity> motionDesignerInProjects;
 
     @Override
     public boolean equals(Object o) {

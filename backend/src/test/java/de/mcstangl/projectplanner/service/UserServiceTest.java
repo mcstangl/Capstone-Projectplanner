@@ -1,6 +1,7 @@
 package de.mcstangl.projectplanner.service;
 
 import de.mcstangl.projectplanner.enums.UserRole;
+import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -56,7 +57,7 @@ class UserServiceTest {
     @DisplayName("Create user should return the created user")
     public void createNewUser() {
         // Given
-        UserEntity adminUser = createAdminUser();
+        UserEntity adminUser = createTestAdminUser();
         adminUser.setId(null);
         adminUser.setPassword(null);
 
@@ -110,8 +111,8 @@ class UserServiceTest {
     @DisplayName("Find all should return all user in DB")
     public void findAll() {
         // Given
-        UserEntity adminUser = createAdminUser();
-        UserEntity user = createUser();
+        UserEntity adminUser = createTestAdminUser();
+        UserEntity user = createTestUser();
 
         when(userRepositoryMock.findAll()).thenReturn(List.of(adminUser, user));
 
@@ -127,7 +128,7 @@ class UserServiceTest {
     @DisplayName("Find user by login name should return the user found")
     public void findByLoginName() {
         // Given
-        UserEntity adminUser = createAdminUser();
+        UserEntity adminUser = createTestAdminUser();
 
         when(userRepositoryMock.findByLoginName(adminUser.getLoginName())).thenReturn(Optional.of(adminUser));
 
@@ -155,7 +156,7 @@ class UserServiceTest {
     @DisplayName("Update user should update all fields and return the updated user")
     public void updateUser() {
         // Given
-        UserEntity user = createUser();
+        UserEntity user = createTestUser();
 
         UserEntity userUpdateData = UserEntity.builder()
                 .loginName("New Name")
@@ -193,8 +194,8 @@ class UserServiceTest {
     @DisplayName("Create user with invalid data should throw an exception")
     public void updateUserWithInvalidData(String loginName, String newName, Throwable throwable) {
         // Given
-        UserEntity testUser = createUser();
-        UserEntity testAdminUser = createAdminUser();
+        UserEntity testUser = createTestUser();
+        UserEntity testAdminUser = createTestAdminUser();
 
 
         UserEntity userUpdateData = UserEntity.builder()
@@ -225,7 +226,7 @@ class UserServiceTest {
     @DisplayName("Reset password should return a user with random password")
     public void resetPassword() {
         // Given
-        UserEntity testUser = createUser();
+        UserEntity testUser = createTestUser();
 
         when(userRepositoryMock.findByLoginName(testUser.getLoginName())).thenReturn(Optional.of(testUser));
         when(userRepositoryMock.save(any())).thenReturn(testUser);
@@ -243,7 +244,65 @@ class UserServiceTest {
         assertThat(argument.getPassword(), is("HashedPassword"));
     }
 
-    private UserEntity createAdminUser() {
+    @Test
+    @DisplayName("Delete user should delete return deletes user")
+    public void delete() {
+        // Given
+        UserEntity testUser = createTestUser();
+
+        when(userRepositoryMock.findByLoginName(testUser.getLoginName())).thenReturn(Optional.of(testUser));
+
+        // When
+        UserEntity actual = userService.deleteUserByLoginName(testUser.getLoginName());
+
+        verify(userRepositoryMock, times(1)).delete(userEntityArgumentCaptor.capture());
+        UserEntity argument = userEntityArgumentCaptor.getValue();
+
+        // Then
+        assertThat(actual, is(testUser));
+        assertThat(argument, is(testUser));
+    }
+
+    @Test
+    @DisplayName("Delete an unknown user should throw EntityNotFoundException")
+    public void deleteUnknownUser() {
+        // Given
+        when(userRepositoryMock.findByLoginName("Unknown")).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(EntityNotFoundException.class, () -> userService.deleteUserByLoginName("Unknown"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForDeleteUserWithProjectsTest")
+    @DisplayName("Delete user should throw an IllegalArgumentException if the user has a relation to any project")
+    public void deleteUserWithProjects(List<ProjectEntity> projectList1,  List<ProjectEntity> projectList2, List<ProjectEntity> projectList3) {
+        // Given
+        UserEntity testUser = createTestUser();
+        testUser.setOwnedProjects(projectList1);
+        testUser.setWriterInProjects(projectList2);
+        testUser.setMotionDesignerInProjects(projectList3);
+
+        when(userRepositoryMock.findByLoginName(testUser.getLoginName())).thenReturn(Optional.of(testUser));
+
+        // Then
+        assertThrows(IllegalArgumentException.class, () -> userService.deleteUserByLoginName(testUser.getLoginName()));
+    }
+
+
+    public static Stream<Arguments> getArgumentsForDeleteUserWithProjectsTest(){
+        List<ProjectEntity> testProjectList = List.of(ProjectEntity.builder()
+                .title("Test")
+                .id(1L)
+                .build());
+        return Stream.of(
+                Arguments.of(null, null,testProjectList),
+                Arguments.of(null, testProjectList,null),
+                Arguments.of(testProjectList, null, null)
+        );
+    }
+
+    private UserEntity createTestAdminUser() {
         return UserEntity.builder()
                 .id(1L)
                 .loginName("Hans")
@@ -251,7 +310,7 @@ class UserServiceTest {
                 .role(UserRole.ADMIN).build();
     }
 
-    private UserEntity createUser() {
+    private UserEntity createTestUser() {
         return UserEntity.builder()
                 .id(2L)
                 .loginName("Dave")

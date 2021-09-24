@@ -133,14 +133,10 @@ class ProjectEntityTest extends SpringBootTests {
     @DisplayName("Delete should delete project from DB")
     public void delete() {
         // Given
-        createTestProject();
-        Optional<ProjectEntity> fetchedProjectEntityOpt = projectRepository.findByTitle("Test");
-        if (fetchedProjectEntityOpt.isEmpty()) {
-            fail();
-        }
+        ProjectEntity testProject = createTestProject();
 
         // When
-        projectRepository.delete(fetchedProjectEntityOpt.get());
+        projectRepository.delete(testProject);
 
         // Then
         List<ProjectEntity> actual = projectRepository.findAll();

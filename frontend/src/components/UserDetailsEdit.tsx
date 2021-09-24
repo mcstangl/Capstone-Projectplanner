@@ -17,9 +17,14 @@ import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 interface UserDetailEditProps {
   user: UserDto
   resetEditMode: () => void
+  fetchUser: () => Promise<void> | undefined
 }
 
-const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
+const UserDetailsEdit: FC<UserDetailEditProps> = ({
+  user,
+  resetEditMode,
+  fetchUser,
+}) => {
   const { token } = useContext(AuthContext)
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
@@ -48,11 +53,12 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
         role: formData.role,
       }
       updateUser(token, user.loginName, userDto)
-        .then((updatedUser: UserDto) => {
+        .then(() => {
           setLoading(false)
           resetEditMode()
-          history.push(`/users/${updatedUser.loginName}`)
         })
+        .then(() => fetchUser())
+        .then(() => history.push(`/users/${userDto.loginName}`))
         .catch(error => {
           setLoading(false)
           if (error.response.data) {

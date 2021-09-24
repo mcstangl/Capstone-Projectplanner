@@ -33,12 +33,19 @@ const UserDetailPage: FC = () => {
     setError(undefined)
   }
 
+  const fetchUser = () => {
+    if (token && loginName) {
+      return findUserByLoginName(token, loginName).then(setUser)
+    }
+  }
+
   return (
     <PageLayout>
       <Header />
       <main>
         {user && (
           <UserDetail
+            fetchUser={fetchUser}
             loading={loading}
             user={user}
             resetErrorState={resetErrorState}

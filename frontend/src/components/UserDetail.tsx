@@ -11,6 +11,7 @@ interface UserDetailProps {
   user: UserDto
   error?: RestExceptionDto
   resetErrorState: () => void
+  fetchUser: () => Promise<void> | undefined
   loading?: boolean
 }
 
@@ -19,6 +20,7 @@ const UserDetail: FC<UserDetailProps> = ({
   loading,
   error,
   resetErrorState,
+  fetchUser,
 }) => {
   const [editMode, setEditMode] = useState(false)
 
@@ -42,7 +44,11 @@ const UserDetail: FC<UserDetailProps> = ({
       )}
 
       {editMode && user && (
-        <UserDetailsEdit user={user} resetEditMode={resetEditMode} />
+        <UserDetailsEdit
+          fetchUser={fetchUser}
+          user={user}
+          resetEditMode={resetEditMode}
+        />
       )}
       {error && (
         <ErrorPopup message={error.message} resetErrorState={resetErrorState} />

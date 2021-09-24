@@ -6,7 +6,11 @@ import ErrorPopup from './ErrorPopup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from './Loader'
 import AuthContext from '../auth/AuthContext'
-import { resetUserPassword, updateUser } from '../service/api-service'
+import {
+  deleteUser,
+  resetUserPassword,
+  updateUser,
+} from '../service/api-service'
 import { useHistory } from 'react-router-dom'
 import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
@@ -19,6 +23,7 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
   const { token } = useContext(AuthContext)
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
+  const [deleteMode, setDeleteMode] = useState(false)
   const [loading, setLoading] = useState(false)
   const [newPassword, setNewPassword] = useState<string>()
   const [formData, setFormData] = useState<UserDto>({
@@ -89,6 +94,31 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
     setNewPassword(undefined)
     resetEditMode()
   }
+  const handleDeletePopupOnClick = () => {
+    if (token) {
+      setLoading(true)
+      deleteUser(token, user.loginName)
+        .then(() => {
+          setLoading(false)
+          history.push('/users')
+        })
+        .catch(error => {
+          setLoading(false)
+          setDeleteMode(false)
+          if (error.response.data.message) {
+            setError(error.response.data)
+          } else if (error.response.data.error) {
+            setError({
+              message:
+                error.response.data.status + ': ' + error.response.data.error,
+            })
+          } else
+            setError({
+              message: error.response.status + ': ' + error.response.statusText,
+            })
+        })
+    }
+  }
 
   const resetErrorSate = () => setError(undefined)
 
@@ -114,6 +144,13 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
           <Button type="button" onClick={handleResetPasswordOnClick}>
             Passwort zurücksetzen
           </Button>
+          <Button
+            type="button"
+            theme="secondary"
+            onClick={() => setDeleteMode(true)}
+          >
+            Löschen
+          </Button>
           <Button type="button" onClick={resetEditMode}>
             Abbrechen
           </Button>
@@ -123,13 +160,25 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
         <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
       )}
       {newPassword && (
-        <NewPasswordPopupStyle>
+        <PopupStyle>
           <p>Temporäres Passwort für Benutzer {user.loginName}</p>
           <p>{newPassword}</p>
           <Button theme="secondary" onClick={handleNewPasswordPopupOnClick}>
             OK
           </Button>
-        </NewPasswordPopupStyle>
+        </PopupStyle>
+      )}
+      {deleteMode && (
+        <PopupStyle>
+          <h3>Benutzer</h3>
+          <p>{user.loginName}</p>
+          <Button theme="secondary" onClick={handleDeletePopupOnClick}>
+            Löschen
+          </Button>
+          <Button theme="secondary" onClick={() => setDeleteMode(false)}>
+            Abbrechen
+          </Button>
+        </PopupStyle>
       )}
     </section>
   )
@@ -141,7 +190,7 @@ const UserEditStyle = styled.form`
   grid-template-columns: max-content 1fr;
   grid-gap: var(--size-s);
 `
-const NewPasswordPopupStyle = styled.section`
+const PopupStyle = styled.section`
   position: absolute;
   background-color: white;
   right: 0;

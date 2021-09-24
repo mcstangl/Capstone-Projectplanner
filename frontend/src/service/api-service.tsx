@@ -65,6 +65,11 @@ export const updateUser = (
     )
     .then(response => response.data)
 
+export const deleteUser = (token: string, loginName: string) =>
+  axios
+    .delete(`/api/project-planner/user/${loginName}`, getAuthHeaders(token))
+    .then(response => response.data)
+
 export const resetUserPassword = (token: string, loginName: string) =>
   axios
     .put(

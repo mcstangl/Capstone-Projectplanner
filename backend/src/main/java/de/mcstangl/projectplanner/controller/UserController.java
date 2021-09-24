@@ -99,7 +99,7 @@ public class UserController extends Mapper {
     @DeleteMapping("{loginName}")
     public ResponseEntity<UserDto> delete(@AuthenticationPrincipal UserEntity authUser, @PathVariable String loginName){
         if(isAdmin(authUser) && authUser.getLoginName().equals(loginName)){
-            throw new IllegalArgumentException("Ein Admin darf sich nicht selbt löschen");
+            throw new IllegalArgumentException("Ein Admin darf sich nicht selbst löschen");
         }
 
         if(isAdmin(authUser)){

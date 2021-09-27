@@ -3,6 +3,7 @@ package de.mcstangl.projectplanner.service;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 import static org.springframework.util.Assert.hasText;
 
 @Service
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -30,10 +32,12 @@ public class UserService {
     }
 
     public Optional<UserEntity> findByLoginName(String loginName) {
+        log.info(String.format("Fetched user %s", loginName));
         return userRepository.findByLoginName(loginName);
     }
 
     public List<UserEntity> findAll() {
+        log.info("Fetched all users");
         return userRepository.findAll();
     }
 
@@ -48,6 +52,7 @@ public class UserService {
         if (userEntityOpt.isPresent()) {
             throw new EntityExistsException("Ein User mit diesem Namen existiert schon");
         }
+        log.info(String.format("User %s created", newUserEntity.getLoginName()));
         return saveUserEntityWithNewRandomPassword(newUserEntity);
     }
 
@@ -70,7 +75,7 @@ public class UserService {
         if (userUpdateData.getRole() != null) {
             userEntity.setRole(userUpdateData.getRole());
         }
-
+        log.info(String.format("User %s updated", userEntity.getLoginName()));
         return userRepository.save(userEntity);
     }
 
@@ -81,6 +86,7 @@ public class UserService {
         checkIfUserHasProjects(userEntity);
 
         userRepository.delete(userEntity);
+        log.info(String.format("User %s deleted", loginName));
         return userEntity;
     }
 
@@ -88,8 +94,19 @@ public class UserService {
 
     public UserEntity resetPassword(String loginName) {
         UserEntity fetchedUserEntity = getUserEntity(loginName);
-
+        log.info(String.format("Reset password for user %s", loginName));
         return saveUserEntityWithNewRandomPassword(fetchedUserEntity);
+    }
+
+    public UserEntity updatePassword(String loginName, String password) {
+        UserEntity userEntity = getUserEntity(loginName);
+        hasText(password, "Das Passwort darf nicht leer sein");
+        String hashedPassword = passwordService.getHashedPassword(password);
+        userEntity.setPassword(hashedPassword);
+        log.info(String.format("Updated password for user %s", loginName));
+
+        return userRepository.save(userEntity);
+
     }
 
     private UserEntity saveUserEntityWithNewRandomPassword(UserEntity user) {
@@ -145,12 +162,5 @@ public class UserService {
     }
 
 
-    public UserEntity updatePassword(String loginName, String password) {
-        UserEntity userEntity = getUserEntity(loginName);
-        hasText(password, "Das Passwort darf nicht leer sein");
-        String hashedPassword = passwordService.getHashedPassword(password);
-        userEntity.setPassword(hashedPassword);
-        return userRepository.save(userEntity);
 
-    }
 }

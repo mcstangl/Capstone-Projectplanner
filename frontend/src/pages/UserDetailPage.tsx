@@ -1,16 +1,12 @@
 import { FC, useContext, useEffect, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
-import { Button } from '../components/Button'
 import { useParams } from 'react-router-dom'
-import styled from 'styled-components/macro'
 import { UserDto } from '../dtos/UserDto'
 import AuthContext from '../auth/AuthContext'
 import { findUserByLoginName } from '../service/api-service'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
-import ErrorPopup from '../components/ErrorPopup'
-import Loader from '../components/Loader'
-import UserDetailsEdit from '../components/UserDetailsEdit'
+import UserDetail from '../components/UserDetail'
 
 interface RouteParams {
   loginName: string
@@ -20,7 +16,6 @@ const UserDetailPage: FC = () => {
   const { loginName } = useParams<RouteParams>()
   const { token } = useContext(AuthContext)
 
-  const [editMode, setEditMode] = useState(false)
   const [error, setError] = useState<RestExceptionDto>()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<UserDto>()
@@ -34,37 +29,27 @@ const UserDetailPage: FC = () => {
     }
   }, [token, loginName])
 
-  const resetEditMode = () => {
-    if (editMode) {
-      setEditMode(false)
-    } else setEditMode(true)
-  }
   const resetErrorState = () => {
     setError(undefined)
+  }
+
+  const fetchUser = () => {
+    if (token && loginName) {
+      return findUserByLoginName(token, loginName).then(setUser)
+    }
   }
 
   return (
     <PageLayout>
       <Header />
       <main>
-        {loading && <Loader />}
-        {!loading && !editMode && user && (
-          <UserDetailsStyle>
-            <span>Login Name</span>
-            <span>{user.loginName}</span>
-            <span>User Rolle</span>
-            <span>{user.role}</span>
-            <Button onClick={resetEditMode}>Edit</Button>
-          </UserDetailsStyle>
-        )}
-
-        {editMode && user && (
-          <UserDetailsEdit user={user} resetEditMode={resetEditMode} />
-        )}
-        {error && (
-          <ErrorPopup
-            message={error.message}
+        {user && (
+          <UserDetail
+            fetchUser={fetchUser}
+            loading={loading}
+            user={user}
             resetErrorState={resetErrorState}
+            error={error}
           />
         )}
       </main>
@@ -72,9 +57,3 @@ const UserDetailPage: FC = () => {
   )
 }
 export default UserDetailPage
-
-const UserDetailsStyle = styled.section`
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  grid-gap: var(--size-s);
-`

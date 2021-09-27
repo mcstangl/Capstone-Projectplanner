@@ -6,31 +6,28 @@ import ErrorPopup from './ErrorPopup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from './Loader'
 import AuthContext from '../auth/AuthContext'
-import {
-  deleteUser,
-  resetUserPassword,
-  updateUser,
-} from '../service/api-service'
+import { updatePassword, updateUser } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
 import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
-interface UserDetailEditProps {
+interface MyAccountDetailsProps {
   user: UserDto
   resetEditMode: () => void
-  fetchUser: () => Promise<void> | undefined
 }
 
-const UserDetailsEdit: FC<UserDetailEditProps> = ({
+const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
   user,
   resetEditMode,
-  fetchUser,
 }) => {
-  const { token } = useContext(AuthContext)
+  const { token, logout } = useContext(AuthContext)
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
-  const [deleteMode, setDeleteMode] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [newPassword, setNewPassword] = useState<string>()
+  const [updatePasswordMode, setUpdatePasswordMode] = useState(false)
+  const [newPasswordFormData, setNewPasswordFormData] = useState({
+    password: '',
+    passwordRepeated: '',
+  })
   const [formData, setFormData] = useState<UserDto>({
     loginName: user.loginName,
     role: user.role,
@@ -40,25 +37,29 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
     setFormData({ ...formData, loginName: event.target.value })
   }
 
-  const handleSelectOnChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, role: event.target.value })
+  const handleNewPasswordOnChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setNewPasswordFormData({
+      ...newPasswordFormData,
+      [event.target.name]: event.target.value,
+    })
   }
 
   const handleFromOnSubmit = (event: FormEvent) => {
     event.preventDefault()
-    if (token && formData.loginName.trim()) {
+    if (token && logout && formData.loginName.trim()) {
       setLoading(true)
       const userDto: UserDto = {
         loginName: formData.loginName.trim(),
         role: formData.role,
       }
       updateUser(token, user.loginName, userDto)
-        .then(() => {
+        .then((updatedUser: UserDto) => {
           setLoading(false)
           resetEditMode()
+          if (updatedUser.loginName !== user.loginName) {
+            logout()
+          } else history.push(`/my-account`)
         })
-        .then(() => fetchUser())
-        .then(() => history.push(`/users/${userDto.loginName}`))
         .catch(error => {
           setLoading(false)
           if (error.response.data) {
@@ -71,53 +72,28 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
     }
   }
 
-  const handleResetPasswordOnClick = () => {
-    if (token) {
-      setLoading(true)
-      resetUserPassword(token, user.loginName)
-        .then((user: UserWithPasswordDto) => {
-          setLoading(false)
-          setNewPassword(user.password)
-        })
-        .catch(error => {
-          setLoading(false)
-          if (error.response.data.message) {
-            setError(error.response.data)
-          } else if (error.response.data.error) {
-            setError({
-              message:
-                error.response.data.status + ': ' + error.response.data.error,
-            })
-          } else
-            setError({
-              message: error.response.status + ': ' + error.response.statusText,
-            })
-        })
-    }
+  const handleNewPasswordPopupOnClick = () => {
+    if (updatePasswordMode) {
+      setUpdatePasswordMode(false)
+    } else setUpdatePasswordMode(true)
   }
 
-  const handleNewPasswordPopupOnClick = () => {
-    setNewPassword(undefined)
-    resetEditMode()
-  }
-  const handleDeletePopupOnClick = () => {
-    if (token) {
+  const handleNewPasswordFromSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    if (token && logout) {
       setLoading(true)
-      deleteUser(token, user.loginName)
-        .then(() => {
-          setLoading(false)
-          history.push('/users')
-        })
+      setUpdatePasswordMode(false)
+      const userWithPasswordDto: UserWithPasswordDto = {
+        loginName: user.loginName,
+        password: newPasswordFormData.password.trim(),
+        role: user.role,
+      }
+      updatePassword(token, userWithPasswordDto)
+        .then(() => logout())
         .catch(error => {
           setLoading(false)
-          setDeleteMode(false)
-          if (error.response.data.message) {
+          if (error.response.data) {
             setError(error.response.data)
-          } else if (error.response.data.error) {
-            setError({
-              message:
-                error.response.data.status + ': ' + error.response.data.error,
-            })
           } else
             setError({
               message: error.response.status + ': ' + error.response.statusText,
@@ -140,23 +116,13 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
             value={formData.loginName}
             onChange={handleInputOnChange}
           />
-          <span>User Rolle</span>
-          <select defaultValue={formData.role} onChange={handleSelectOnChange}>
-            <option value="USER">User</option>
-            <option value="ADMIN">Admin</option>
-          </select>
 
           <Button disabled={!formData.loginName.trim()}>Speichern</Button>
-          <Button type="button" onClick={handleResetPasswordOnClick}>
-            Passwort zurücksetzen
+
+          <Button type="button" onClick={handleNewPasswordPopupOnClick}>
+            Passwort ändern
           </Button>
-          <Button
-            type="button"
-            theme="secondary"
-            onClick={() => setDeleteMode(true)}
-          >
-            Löschen
-          </Button>
+
           <Button type="button" onClick={resetEditMode}>
             Abbrechen
           </Button>
@@ -165,38 +131,55 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
       {error && (
         <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
       )}
-      {newPassword && (
-        <PopupStyle>
-          <p>Temporäres Passwort für Benutzer {user.loginName}</p>
-          <p>{newPassword}</p>
-          <Button theme="secondary" onClick={handleNewPasswordPopupOnClick}>
+      {updatePasswordMode && (
+        <NewPasswordPopupStyle onSubmit={handleNewPasswordFromSubmit}>
+          <span>Bitte geben sie ein neues Passwort ein</span>
+          <input
+            name="password"
+            type="password"
+            value={newPasswordFormData.password}
+            onChange={handleNewPasswordOnChange}
+          />
+          <span>Passwort wiederholen</span>
+          <input
+            name="passwordRepeated"
+            type="password"
+            value={newPasswordFormData.passwordRepeated}
+            onChange={handleNewPasswordOnChange}
+          />
+          <Button
+            theme="secondary"
+            disabled={
+              !(
+                newPasswordFormData.password ===
+                  newPasswordFormData.passwordRepeated &&
+                newPasswordFormData.password.trim()
+              )
+            }
+          >
             OK
           </Button>
-        </PopupStyle>
-      )}
-      {deleteMode && (
-        <PopupStyle>
-          <h3>Benutzer</h3>
-          <p>{user.loginName}</p>
-          <Button theme="secondary" onClick={handleDeletePopupOnClick}>
-            Löschen
-          </Button>
-          <Button theme="secondary" onClick={() => setDeleteMode(false)}>
+          <Button
+            type="button"
+            theme="secondary"
+            onClick={handleNewPasswordPopupOnClick}
+          >
             Abbrechen
           </Button>
-        </PopupStyle>
+        </NewPasswordPopupStyle>
       )}
     </section>
   )
 }
-export default UserDetailsEdit
+export default MyAccountDetailsEdit
 
 const UserEditStyle = styled.form`
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content;
   grid-gap: var(--size-s);
 `
-const PopupStyle = styled.section`
+
+const NewPasswordPopupStyle = styled.form`
   position: absolute;
   background-color: white;
   right: 0;

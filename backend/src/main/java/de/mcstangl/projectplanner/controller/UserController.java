@@ -75,6 +75,7 @@ public class UserController extends Mapper {
             return ok(mapUser(updatedUserEntity));
         }
        if(!isAdmin(authUser) && authUser.getLoginName().equals(loginName)){
+           userDto.setRole("USER");
            UserEntity updatedUserEntity = userService.updateUser(loginName, mapUser(userDto));
            return ok(mapUser(updatedUserEntity));
        }
@@ -94,6 +95,12 @@ public class UserController extends Mapper {
            return ok(userWithPasswordDto);
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @PutMapping("update-password")
+    public ResponseEntity<UserDto> updatePassword(@AuthenticationPrincipal UserEntity authUser,@RequestBody UserWithPasswordDto userWithPasswordDto){
+        UserEntity userEntity = userService.updatePassword(authUser.getLoginName(), userWithPasswordDto.getPassword());
+        return ok(mapUser(userEntity));
     }
 
     @DeleteMapping("{loginName}")

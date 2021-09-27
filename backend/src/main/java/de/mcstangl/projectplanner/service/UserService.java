@@ -145,4 +145,12 @@ public class UserService {
     }
 
 
+    public UserEntity updatePassword(String loginName, String password) {
+        UserEntity userEntity = getUserEntity(loginName);
+        hasText(password, "Das Passwort darf nicht leer sein");
+        String hashedPassword = passwordService.getHashedPassword(password);
+        userEntity.setPassword(hashedPassword);
+        return userRepository.save(userEntity);
+
+    }
 }

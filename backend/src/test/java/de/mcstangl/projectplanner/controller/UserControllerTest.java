@@ -23,6 +23,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 
 import java.sql.Date;
 import java.util.stream.Stream;
@@ -45,6 +48,9 @@ class UserControllerTest extends SpringBootTests {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private TestRestTemplate testRestTemplate;
@@ -336,6 +342,96 @@ class UserControllerTest extends SpringBootTests {
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("Update password should return user")
+    public void updatePassword() {
+        // Given
+        UserEntity testUser = userRepository.saveAndFlush(UserEntity.builder()
+                .loginName("Hans")
+                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
+                .role(UserRole.USER).build());
+
+        String newPassword = "NewPassword12!";
+
+        UserWithPasswordDto passwordUpdateData = UserWithPasswordDto.builder()
+                .password(newPassword)
+                .build();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + "/update-password",
+                HttpMethod.PUT,
+                new HttpEntity<>(passwordUpdateData, testUtil.getAuthHeader("USER")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertNotNull(response.getBody());
+        assertThat(response.getBody().getLoginName(), is("Hans"));
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                testUser.getLoginName(),
+                passwordUpdateData.getPassword()
+        );
+        try {
+            authenticationManager.authenticate(authenticationToken);
+        } catch (AuthenticationException e) {
+            fail();
+        }
+    }
+    @Test
+    @DisplayName("Update password should return HttpStatus.NOT_FOUND if the user is not in DB")
+    public void updatePasswordUnknownUser(){
+        // Given
+        String newPassword = "NewPassword12!";
+
+        UserWithPasswordDto passwordUpdateData = UserWithPasswordDto.builder()
+                .password(newPassword)
+                .build();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + "/update-password",
+                HttpMethod.PUT,
+                new HttpEntity<>(passwordUpdateData, testUtil.getAuthHeader("USER")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getArgumentsForInvalidPasswordTest")
+    @DisplayName("Update password should return HttpStatus.BAD_REQUEST if the password is invalid")
+    public void updatePasswordWithInvalidPassword(String newPassword){
+        // Given
+        userRepository.saveAndFlush(UserEntity.builder()
+                .loginName("Hans")
+                .password("$2a$10$wFun/giZHIbz7.qC2Kv97.uPgNGYOqRUW62d2m5NobVAJZLA3gZA.")
+                .role(UserRole.USER).build());
+
+        UserWithPasswordDto passwordUpdateData = UserWithPasswordDto.builder()
+                .password(newPassword)
+                .build();
+
+        // When
+        ResponseEntity<UserDto> response = testRestTemplate.exchange(
+                getUrl() + "/update-password",
+                HttpMethod.PUT,
+                new HttpEntity<>(passwordUpdateData, testUtil.getAuthHeader("USER")),
+                UserDto.class);
+
+        // Then
+        assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+    }
+
+    public static Stream<Arguments> getArgumentsForInvalidPasswordTest(){
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of("")
+        );
     }
 
     @Test

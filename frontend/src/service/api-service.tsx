@@ -6,6 +6,7 @@ import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
 import { MilestoneDto } from '../dtos/MilestoneDto'
 import { NewUserDto } from '../dtos/NewUserDto'
 import { UserDto } from '../dtos/UserDto'
+import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
 export const getAccessToken = (credentials: CredentialsDto) =>
   axios
@@ -75,6 +76,18 @@ export const resetUserPassword = (token: string, loginName: string) =>
     .put(
       `/api/project-planner/user/${loginName}/reset-password`,
       null,
+      getAuthHeaders(token)
+    )
+    .then(response => response.data)
+
+export const updatePassword = (
+  token: string,
+  userWithPasswordDto: UserWithPasswordDto
+) =>
+  axios
+    .put(
+      `/api/project-planner/user/update-password`,
+      userWithPasswordDto,
       getAuthHeaders(token)
     )
     .then(response => response.data)

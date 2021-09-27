@@ -75,6 +75,7 @@ public class UserController extends Mapper {
             return ok(mapUser(updatedUserEntity));
         }
        if(!isAdmin(authUser) && authUser.getLoginName().equals(loginName)){
+           userDto.setRole("USER");
            UserEntity updatedUserEntity = userService.updateUser(loginName, mapUser(userDto));
            return ok(mapUser(updatedUserEntity));
        }

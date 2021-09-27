@@ -6,29 +6,21 @@ import ErrorPopup from './ErrorPopup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from './Loader'
 import AuthContext from '../auth/AuthContext'
-import {
-  deleteUser,
-  resetUserPassword,
-  updateUser,
-} from '../service/api-service'
+import { updateUser } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
-import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
-interface UserDetailEditProps {
+interface MyAccountDetailsProps {
   user: UserDto
   resetEditMode: () => void
-  fetchUser: () => Promise<void> | undefined
 }
 
-const UserDetailsEdit: FC<UserDetailEditProps> = ({
+const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
   user,
   resetEditMode,
-  fetchUser,
 }) => {
-  const { token } = useContext(AuthContext)
+  const { token, logout } = useContext(AuthContext)
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
-  const [deleteMode, setDeleteMode] = useState(false)
   const [loading, setLoading] = useState(false)
   const [newPassword, setNewPassword] = useState<string>()
   const [formData, setFormData] = useState<UserDto>({
@@ -40,25 +32,22 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
     setFormData({ ...formData, loginName: event.target.value })
   }
 
-  const handleSelectOnChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, role: event.target.value })
-  }
-
   const handleFromOnSubmit = (event: FormEvent) => {
     event.preventDefault()
-    if (token && formData.loginName.trim()) {
+    if (token && logout && formData.loginName.trim()) {
       setLoading(true)
       const userDto: UserDto = {
         loginName: formData.loginName.trim(),
         role: formData.role,
       }
       updateUser(token, user.loginName, userDto)
-        .then(() => {
+        .then((updatedUser: UserDto) => {
           setLoading(false)
           resetEditMode()
+          if (updatedUser.loginName !== user.loginName) {
+            logout()
+          } else history.push(`/my-account`)
         })
-        .then(() => fetchUser())
-        .then(() => history.push(`/users/${userDto.loginName}`))
         .catch(error => {
           setLoading(false)
           if (error.response.data) {
@@ -71,59 +60,9 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
     }
   }
 
-  const handleResetPasswordOnClick = () => {
-    if (token) {
-      setLoading(true)
-      resetUserPassword(token, user.loginName)
-        .then((user: UserWithPasswordDto) => {
-          setLoading(false)
-          setNewPassword(user.password)
-        })
-        .catch(error => {
-          setLoading(false)
-          if (error.response.data.message) {
-            setError(error.response.data)
-          } else if (error.response.data.error) {
-            setError({
-              message:
-                error.response.data.status + ': ' + error.response.data.error,
-            })
-          } else
-            setError({
-              message: error.response.status + ': ' + error.response.statusText,
-            })
-        })
-    }
-  }
-
   const handleNewPasswordPopupOnClick = () => {
     setNewPassword(undefined)
     resetEditMode()
-  }
-  const handleDeletePopupOnClick = () => {
-    if (token) {
-      setLoading(true)
-      deleteUser(token, user.loginName)
-        .then(() => {
-          setLoading(false)
-          history.push('/users')
-        })
-        .catch(error => {
-          setLoading(false)
-          setDeleteMode(false)
-          if (error.response.data.message) {
-            setError(error.response.data)
-          } else if (error.response.data.error) {
-            setError({
-              message:
-                error.response.data.status + ': ' + error.response.data.error,
-            })
-          } else
-            setError({
-              message: error.response.status + ': ' + error.response.statusText,
-            })
-        })
-    }
   }
 
   const resetErrorSate = () => setError(undefined)
@@ -140,23 +79,11 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
             value={formData.loginName}
             onChange={handleInputOnChange}
           />
-          <span>User Rolle</span>
-          <select defaultValue={formData.role} onChange={handleSelectOnChange}>
-            <option value="USER">User</option>
-            <option value="ADMIN">Admin</option>
-          </select>
 
           <Button disabled={!formData.loginName.trim()}>Speichern</Button>
-          <Button type="button" onClick={handleResetPasswordOnClick}>
-            Passwort zurücksetzen
-          </Button>
-          <Button
-            type="button"
-            theme="secondary"
-            onClick={() => setDeleteMode(true)}
-          >
-            Löschen
-          </Button>
+
+          <Button>Passwort ändern</Button>
+
           <Button type="button" onClick={resetEditMode}>
             Abbrechen
           </Button>
@@ -174,26 +101,14 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
           </Button>
         </PopupStyle>
       )}
-      {deleteMode && (
-        <PopupStyle>
-          <h3>Benutzer</h3>
-          <p>{user.loginName}</p>
-          <Button theme="secondary" onClick={handleDeletePopupOnClick}>
-            Löschen
-          </Button>
-          <Button theme="secondary" onClick={() => setDeleteMode(false)}>
-            Abbrechen
-          </Button>
-        </PopupStyle>
-      )}
     </section>
   )
 }
-export default UserDetailsEdit
+export default MyAccountDetailsEdit
 
 const UserEditStyle = styled.form`
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content;
   grid-gap: var(--size-s);
 `
 const PopupStyle = styled.section`

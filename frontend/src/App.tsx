@@ -10,6 +10,7 @@ import ProjectDetailsPage from './pages/ProjectDetailsPage'
 import UserListPage from './pages/UserListPage'
 import NewUserPage from './pages/NewUserPage'
 import UserDetailPage from './pages/UserDetailPage'
+import MyAccountPage from './pages/MyAccountPage'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             path="/users/:loginName"
             component={UserDetailPage}
           />
+          <ProtectedRoute path="/my-account" component={MyAccountPage} />
           <ProtectedRoute adminOnly path="/users" component={UserListPage} />
           <ProtectedRoute adminOnly path="/new-user" component={NewUserPage} />
           <ProtectedRoute path="/" component={Homepage} />

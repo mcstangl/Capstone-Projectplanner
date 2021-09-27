@@ -56,9 +56,11 @@ public class UserService {
 
         hasText(userUpdateData.getLoginName(), "Login Name darf nicht leer sein");
 
-        Optional<UserEntity> userEntityOpt = findByLoginName(userUpdateData.getLoginName());
-        if (userEntityOpt.isPresent()) {
-            throw new EntityExistsException("Ein User mit diesem Namen existiert schon");
+        if(!loginName.equals(userUpdateData.getLoginName())){
+            Optional<UserEntity> userEntityOpt = findByLoginName(userUpdateData.getLoginName());
+            if (userEntityOpt.isPresent()) {
+                throw new EntityExistsException("Ein User mit diesem Namen existiert schon");
+            }
         }
 
         UserEntity userEntity = getUserEntity(loginName);

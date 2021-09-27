@@ -6,6 +6,7 @@ import de.mcstangl.projectplanner.api.UserDto;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.service.JwtService;
 import de.mcstangl.projectplanner.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,7 @@ import static org.springframework.util.Assert.hasText;
 @CrossOrigin
 @RestController
 @RequestMapping("api/project-planner/auth")
+@Slf4j
 public class LoginController extends Mapper{
 
     private final AuthenticationManager authenticationManager;
@@ -54,6 +56,7 @@ public class LoginController extends Mapper{
                 );
 
         String token = jwtService.createToken(userEntity);
+        log.info(String.format("Logged in user %s", credentialsDto.getLoginName()));
         return ok(AccessTokenDto.builder().token(token).build());
     }
 

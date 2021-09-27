@@ -5,6 +5,7 @@ import de.mcstangl.projectplanner.model.MilestoneEntity;
 import de.mcstangl.projectplanner.model.ProjectEntity;
 import de.mcstangl.projectplanner.model.UserEntity;
 import de.mcstangl.projectplanner.repository.ProjectRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import static org.springframework.util.Assert.hasText;
 
 
 @Service
+@Slf4j
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -33,6 +35,7 @@ public class ProjectService {
 
         Optional<ProjectEntity> fetchedProjectEntityOpt = projectRepository.findByTitle(title);
         if (fetchedProjectEntityOpt.isPresent()) {
+            log.info(String.format("Fetched project %s", title));
             ProjectEntity fetchedProjectEntity = fetchedProjectEntityOpt.get();
             if (fetchedProjectEntity.getMilestones() == null) {
                 return Optional.of(fetchedProjectEntity);
@@ -54,10 +57,12 @@ public class ProjectService {
         Optional<ProjectEntity> projectEntityOptional = findByTitle(projectEntity.getTitle());
 
         if (projectEntityOptional.isPresent()) {
+            log.info(String.format("Create new project failed. %s already exists", projectEntity.getTitle()));
             throw new EntityExistsException("Ein Projekt mit diesem Namen existiert schon");
         }
         projectEntity.setMilestones(List.of());
         projectEntity.setStatus(ProjectStatus.OPEN);
+        log.info(String.format("Project %s created", projectEntity.getTitle()));
         return projectRepository.save(projectEntity);
     }
 
@@ -72,7 +77,7 @@ public class ProjectService {
                 allProjectsSorted.add(project);
             }
         }
-
+        log.info("Fetched all projects");
         return allProjectsSorted;
     }
 
@@ -84,6 +89,7 @@ public class ProjectService {
         for (ProjectEntity project : sortedProjects) {
             sortProjectMilestones(project);
         }
+        log.info("Sorted all projects by milestone due date");
         return sortedProjects;
     }
 
@@ -120,18 +126,21 @@ public class ProjectService {
         if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
             projectEntityCopy.setTitle(newTitle);
         }
+        log.info(String.format("Project %s updated", projectEntityCopy.getTitle()));
         return projectRepository.save(projectEntityCopy);
     }
 
     public ProjectEntity moveToArchive(String title) {
         ProjectEntity fetchProjectEntity = getProjectEntity(title);
         fetchProjectEntity.setStatus(ProjectStatus.ARCHIVE);
+        log.info(String.format("Project %s updated status to archive", title));
         return projectRepository.save(fetchProjectEntity);
     }
 
     public ProjectEntity restoreFromArchive(String title) {
         ProjectEntity fetchProjectEntity = getProjectEntity(title);
         fetchProjectEntity.setStatus(ProjectStatus.OPEN);
+        log.info(String.format("Project %s updated status to open", title));
         return projectRepository.save(fetchProjectEntity);
     }
 

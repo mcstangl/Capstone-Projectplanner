@@ -6,8 +6,9 @@ import ErrorPopup from './ErrorPopup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from './Loader'
 import AuthContext from '../auth/AuthContext'
-import { updateUser } from '../service/api-service'
+import { updatePassword, updateUser } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
+import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 
 interface MyAccountDetailsProps {
   user: UserDto
@@ -22,7 +23,11 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
   const [loading, setLoading] = useState(false)
-  const [newPassword, setNewPassword] = useState<string>()
+  const [updatePasswordMode, setUpdatePasswordMode] = useState(false)
+  const [newPasswordFormData, setNewPasswordFormData] = useState({
+    password: '',
+    passwordRepeated: '',
+  })
   const [formData, setFormData] = useState<UserDto>({
     loginName: user.loginName,
     role: user.role,
@@ -30,6 +35,13 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
 
   const handleInputOnChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, loginName: event.target.value })
+  }
+
+  const handleNewPasswordOnChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setNewPasswordFormData({
+      ...newPasswordFormData,
+      [event.target.name]: event.target.value,
+    })
   }
 
   const handleFromOnSubmit = (event: FormEvent) => {
@@ -61,8 +73,33 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
   }
 
   const handleNewPasswordPopupOnClick = () => {
-    setNewPassword(undefined)
-    resetEditMode()
+    if (updatePasswordMode) {
+      setUpdatePasswordMode(false)
+    } else setUpdatePasswordMode(true)
+  }
+
+  const handleNewPasswordFromSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    if (token && logout) {
+      setLoading(true)
+      setUpdatePasswordMode(false)
+      const userWithPasswordDto: UserWithPasswordDto = {
+        loginName: user.loginName,
+        password: newPasswordFormData.password.trim(),
+        role: user.role,
+      }
+      updatePassword(token, userWithPasswordDto)
+        .then(() => logout())
+        .catch(error => {
+          setLoading(false)
+          if (error.response.data) {
+            setError(error.response.data)
+          } else
+            setError({
+              message: error.response.status + ': ' + error.response.statusText,
+            })
+        })
+    }
   }
 
   const resetErrorSate = () => setError(undefined)
@@ -82,7 +119,9 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
 
           <Button disabled={!formData.loginName.trim()}>Speichern</Button>
 
-          <Button>Passwort ändern</Button>
+          <Button type="button" onClick={handleNewPasswordPopupOnClick}>
+            Passwort ändern
+          </Button>
 
           <Button type="button" onClick={resetEditMode}>
             Abbrechen
@@ -92,14 +131,42 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
       {error && (
         <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
       )}
-      {newPassword && (
-        <PopupStyle>
-          <p>Temporäres Passwort für Benutzer {user.loginName}</p>
-          <p>{newPassword}</p>
-          <Button theme="secondary" onClick={handleNewPasswordPopupOnClick}>
+      {updatePasswordMode && (
+        <NewPasswordPopupStyle onSubmit={handleNewPasswordFromSubmit}>
+          <span>Bitte geben sie ein neues Passwort ein</span>
+          <input
+            name="password"
+            type="password"
+            value={newPasswordFormData.password}
+            onChange={handleNewPasswordOnChange}
+          />
+          <span>Passwort wiederholen</span>
+          <input
+            name="passwordRepeated"
+            type="password"
+            value={newPasswordFormData.passwordRepeated}
+            onChange={handleNewPasswordOnChange}
+          />
+          <Button
+            theme="secondary"
+            disabled={
+              !(
+                newPasswordFormData.password ===
+                  newPasswordFormData.passwordRepeated &&
+                newPasswordFormData.password.trim()
+              )
+            }
+          >
             OK
           </Button>
-        </PopupStyle>
+          <Button
+            type="button"
+            theme="secondary"
+            onClick={handleNewPasswordPopupOnClick}
+          >
+            Abbrechen
+          </Button>
+        </NewPasswordPopupStyle>
       )}
     </section>
   )
@@ -111,7 +178,8 @@ const UserEditStyle = styled.form`
   grid-template-columns: max-content;
   grid-gap: var(--size-s);
 `
-const PopupStyle = styled.section`
+
+const NewPasswordPopupStyle = styled.form`
   position: absolute;
   background-color: white;
   right: 0;

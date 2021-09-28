@@ -170,14 +170,19 @@ const MilestoneEditStyle = styled.form`
   position: absolute;
   right: 0;
   left: 0;
-  width: 250px;
+  width: max-content;
   margin-left: auto;
   margin-right: auto;
-  text-align: center;
   display: grid;
-  grid-gap: var(--size-m);
+  grid-template-columns: max-content;
+  grid-gap: var(--size-l);
+
+  label {
+    font-size: 110%;
+  }
 
   section {
     display: grid;
+    width: 100%;
   }
 `

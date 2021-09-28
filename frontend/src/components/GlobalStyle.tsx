@@ -15,6 +15,7 @@ export default createGlobalStyle`
     --accentcolor-gradient: rgba(243, 146, 0, 0.5);
     --secondarycolor: #d1d0d0;
     --darkgrey: #939393;
+    --lightgrey: rgba(209, 208, 208, 0.18);
   }
 
   * {

@@ -126,8 +126,8 @@ const RestorePopup = styled.section`
 const ListItem = styled.section`
   display: grid;
   grid-template-columns: var(--size-xxl) repeat(7, 1fr);
-  grid-column-gap: var(--size-s);
-  padding: 0.5rem;
+  grid-column-gap: var(--size-m);
+  padding: 1rem;
   text-decoration: none;
   color: black;
 

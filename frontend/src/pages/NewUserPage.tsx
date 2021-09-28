@@ -14,6 +14,9 @@ import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 import { InputField } from '../components/Inputfield'
 import { SelectStyle } from '../components/SelectStyle'
 import NewPasswordPopup from '../components/NewPasswordPopup'
+import MainStyle from '../components/MainStyle'
+import { LinkStyle } from '../components/LinkStyle'
+import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
 
 const NewUserPage: FC = () => {
   const { token } = useContext(AuthContext)
@@ -64,8 +67,11 @@ const NewUserPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         {loading && <Loader />}
+        <ButtonGroupFlexbox>
+          <LinkStyle to="/users">Zurück zur Liste</LinkStyle>
+        </ButtonGroupFlexbox>
         {!loading && (
           <NewUserForm onSubmit={handleFormOnSubmit}>
             <section>
@@ -108,7 +114,7 @@ const NewUserPage: FC = () => {
             handleNewPasswordPopupOnClick={handleNewPasswordPopupOnClick}
           />
         )}
-      </main>
+      </MainStyle>
     </PageLayout>
   )
 }
@@ -123,6 +129,7 @@ const NewUserForm = styled.form`
   section {
     width: 100%;
     display: grid;
+    grid-template-columns: 1fr;
     justify-content: center;
   }
 `

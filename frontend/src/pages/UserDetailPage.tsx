@@ -9,6 +9,7 @@ import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import UserDetail from '../components/UserDetail'
 import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
 import { LinkStyle } from '../components/LinkStyle'
+import MainStyle from '../components/MainStyle'
 
 interface RouteParams {
   loginName: string
@@ -44,7 +45,7 @@ const UserDetailPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         <ButtonGroupFlexbox>
           <LinkStyle to="/users">Zurück zur Liste</LinkStyle>
         </ButtonGroupFlexbox>
@@ -57,7 +58,7 @@ const UserDetailPage: FC = () => {
             error={error}
           />
         )}
-      </main>
+      </MainStyle>
     </PageLayout>
   )
 }

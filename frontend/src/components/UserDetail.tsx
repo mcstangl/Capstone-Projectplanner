@@ -60,8 +60,9 @@ export default UserDetail
 
 const UserDetailsStyle = styled.section`
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+  justify-content: center;
 
   span {
     justify-self: right;

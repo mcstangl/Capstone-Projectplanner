@@ -37,6 +37,10 @@ const MilestoneListStyle = styled.ul`
   margin: 0;
   display: grid;
   grid-gap: 0 var(--size-s);
+
+  section:nth-child(2n) {
+    background-color: var(--lightgrey);
+  }
 `
 
 const ListHeader = styled.li`

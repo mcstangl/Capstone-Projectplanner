@@ -52,12 +52,16 @@ const List = styled.section`
   margin: 0;
   display: grid;
   grid-gap: 0 var(--size-s);
+
+  section:nth-child(2n) {
+    background-color: var(--lightgrey);
+  }
 `
 
 const ListHeader = styled.div`
   display: grid;
   grid-template-columns: var(--size-xxl) repeat(7, 1fr);
-  grid-column-gap: var(--size-s);
+  grid-column-gap: var(--size-m);
   padding: 0.5rem;
   border-bottom: solid 1px var(--secondarycolor);
 `

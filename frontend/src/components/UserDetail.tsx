@@ -62,4 +62,14 @@ const UserDetailsStyle = styled.section`
   display: grid;
   grid-template-columns: max-content 1fr;
   grid-gap: var(--size-s);
+
+  span {
+    justify-self: right;
+    margin: 0;
+    padding: 0.5rem 1rem 0.5rem 0;
+  }
+  span:nth-child(2n) {
+    padding: 0.5rem;
+    justify-self: left;
+  }
 `

@@ -21,6 +21,7 @@ import { UserDto } from '../dtos/UserDto'
 import { UpdateProjectDto } from '../dtos/UpdateProjectDto'
 import Loader from './Loader'
 import { useHistory } from 'react-router-dom'
+import { EditInputField } from './EditInputField'
 
 interface ProjectDetailsEditProps {
   project?: ProjectDto
@@ -153,7 +154,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
         <ProjectDetails onSubmit={submitHandler}>
           <h4>Eingangsdatum</h4>
 
-          <input
+          <EditInputField
             type="date"
             name="dateOfReceipt"
             value={formData.dateOfReceipt}
@@ -163,7 +164,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 
           <h4>Kunde</h4>
 
-          <input
+          <EditInputField
             name="customer"
             type="text"
             value={formData.customer}
@@ -172,7 +173,7 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
           />
           <h4>Title</h4>
 
-          <input
+          <EditInputField
             name="title"
             type="text"
             value={formData.title}
@@ -218,7 +219,11 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
         </ProjectDetails>
       )}
       {!loading && (
-        <Button type="button" onClick={handleMoveToArchiveOnClick}>
+        <Button
+          type="button"
+          theme="secondary"
+          onClick={handleMoveToArchiveOnClick}
+        >
           ins Archiv verschieben
         </Button>
       )}
@@ -229,13 +234,14 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
 export default ProjectDetailsEdit
 
 const ProjectDetails = styled.form`
-  max-width: 300px;
   display: grid;
-  grid-template-columns: min-content 1fr;
+  grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+  padding-bottom: 2rem;
 
   h4 {
+    justify-self: right;
     margin: 0;
-    padding: 0;
+    padding: 0.5rem 1rem 0.5rem 0;
   }
 `

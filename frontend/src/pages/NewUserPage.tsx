@@ -11,6 +11,9 @@ import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from '../components/Loader'
 import ErrorPopup from '../components/ErrorPopup'
 import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
+import { InputField } from '../components/Inputfield'
+import { SelectStyle } from '../components/SelectStyle'
+import NewPasswordPopup from '../components/NewPasswordPopup'
 
 const NewUserPage: FC = () => {
   const { token } = useContext(AuthContext)
@@ -65,21 +68,31 @@ const NewUserPage: FC = () => {
         {loading && <Loader />}
         {!loading && (
           <NewUserForm onSubmit={handleFormOnSubmit}>
-            <input
-              name="loginName"
-              type="text"
-              placeholder="Name"
-              value={formData.loginName}
-              onChange={handleInputOnChange}
-            />
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleOnSelectChange}
-            >
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <section>
+              <label htmlFor="loginName">Benutzername</label>
+              <InputField
+                id="loginName"
+                name="loginName"
+                type="text"
+                placeholder="Name"
+                value={formData.loginName}
+                onChange={handleInputOnChange}
+              />
+            </section>
+
+            <section>
+              <label htmlFor="role">Benutzerrolle</label>
+              <SelectStyle
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleOnSelectChange}
+              >
+                <option value="USER">User</option>
+                <option value="ADMIN">Admin</option>
+              </SelectStyle>
+            </section>
+
             <Button disabled={!formData.loginName.trim()}>Speichern</Button>
           </NewUserForm>
         )}
@@ -90,13 +103,10 @@ const NewUserPage: FC = () => {
           />
         )}
         {newUser && (
-          <NewPasswordPopupStyle>
-            <p>Temporäres Passwort für Benutzer {newUser.loginName}</p>
-            <p>{newUser.password}</p>
-            <Button theme="secondary" onClick={handleNewPasswordPopupOnClick}>
-              OK
-            </Button>
-          </NewPasswordPopupStyle>
+          <NewPasswordPopup
+            newUser={newUser}
+            handleNewPasswordPopupOnClick={handleNewPasswordPopupOnClick}
+          />
         )}
       </main>
     </PageLayout>
@@ -106,27 +116,13 @@ export default NewUserPage
 
 const NewUserForm = styled.form`
   display: grid;
+  grid-template-columns: max-content;
   grid-gap: var(--size-l);
-  justify-items: center;
-`
-const NewPasswordPopupStyle = styled.section`
-  position: absolute;
-  background-color: white;
-  right: 0;
-  left: 0;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  width: 250px;
-  display: grid;
-  grid-template-columns: 100%;
-  justify-items: center;
-  grid-gap: var(--size-l);
-  border: 1px solid var(--secondarycolor);
-  box-shadow: 3px 8px 12px grey;
-  padding: var(--size-l);
+  justify-content: center;
 
-  button {
+  section {
     width: 100%;
+    display: grid;
+    justify-content: center;
   }
 `

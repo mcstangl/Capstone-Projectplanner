@@ -13,6 +13,8 @@ import {
 } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
 import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
+import { EditInputField } from './EditInputField'
+import { EditSelect } from './EditSelect'
 
 interface UserDetailEditProps {
   user: UserDto
@@ -134,17 +136,23 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
       {!loading && (
         <UserEditStyle onSubmit={handleFromOnSubmit}>
           <span>Login Name</span>
-          <input
+          <EditInputField
             type="text"
             placeholder={user.loginName}
             value={formData.loginName}
             onChange={handleInputOnChange}
           />
           <span>User Rolle</span>
-          <select defaultValue={formData.role} onChange={handleSelectOnChange}>
-            <option value="USER">User</option>
-            <option value="ADMIN">Admin</option>
-          </select>
+
+          <EditSelect>
+            <select
+              defaultValue={formData.role}
+              onChange={handleSelectOnChange}
+            >
+              <option value="USER">User</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </EditSelect>
 
           <Button disabled={!formData.loginName.trim()}>Speichern</Button>
           <Button type="button" onClick={handleResetPasswordOnClick}>
@@ -193,8 +201,14 @@ export default UserDetailsEdit
 
 const UserEditStyle = styled.form`
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+
+  span {
+    justify-self: right;
+    margin: 0;
+    padding: 0.5rem 1rem 0.5rem 0;
+  }
 `
 const PopupStyle = styled.section`
   position: absolute;

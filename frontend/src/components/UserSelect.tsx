@@ -1,6 +1,7 @@
 import { ChangeEvent, FC } from 'react'
 import { ProjectDto } from '../dtos/ProjectDto'
 import { UserDto } from '../dtos/UserDto'
+import { EditSelect } from './EditSelect'
 
 interface UserSelectProps {
   handleSelectChange: (event: ChangeEvent<HTMLSelectElement>) => void
@@ -25,22 +26,24 @@ const UserSelect: FC<UserSelectProps> = ({
   } else defaultValue = ''
 
   return (
-    <select
-      onChange={handleSelectChange}
-      defaultValue={defaultValue}
-      name={name}
-    >
-      {name !== 'owner' && (
-        <option key="none" value={undefined}>
-          kein
-        </option>
-      )}
-      {userList?.map(user => (
-        <option key={user.loginName} value={user.loginName}>
-          {user.loginName}
-        </option>
-      ))}
-    </select>
+    <EditSelect>
+      <select
+        onChange={handleSelectChange}
+        defaultValue={defaultValue}
+        name={name}
+      >
+        {name !== 'owner' && (
+          <option key="none" value={undefined}>
+            kein
+          </option>
+        )}
+        {userList?.map(user => (
+          <option key={user.loginName} value={user.loginName}>
+            {user.loginName}
+          </option>
+        ))}
+      </select>
+    </EditSelect>
   )
 }
 export default UserSelect

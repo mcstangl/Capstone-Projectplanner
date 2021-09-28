@@ -10,6 +10,7 @@ import AuthContext from '../auth/AuthContext'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import styled from 'styled-components/macro'
 import Loader from './Loader'
+import { EditInputField } from './EditInputField'
 
 interface MilestoneFormData {
   title: string
@@ -103,39 +104,56 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
       {loading && <Loader />}
       {!loading && (
         <MilestoneEditStyle onSubmit={handleOnSubmit}>
-          <input
-            type="text"
-            name="title"
-            placeholder="Titel"
-            value={formData.title}
-            onChange={handleOnChange}
-          />
-          <input
-            type="date"
-            name="dueDate"
-            value={formData.dueDate}
-            onChange={handleOnChange}
-          />
-          <input
-            type="date"
-            name="dateFinished"
-            value={formData.dateFinished}
-            onChange={handleOnChange}
-          />
-          {milestone && (
-            <Button type="button" onClick={handleDeleteOnClick}>
-              Löschen
-            </Button>
-          )}
-          {!milestone && <div />}
-          <Button type="button" onClick={handleOnClick}>
-            Abbrechen
-          </Button>
+          <section>
+            <label htmlFor="title">Milestone</label>
+            <EditInputField
+              id="title"
+              type="text"
+              name="title"
+              placeholder="Titel"
+              value={formData.title}
+              onChange={handleOnChange}
+            />
+          </section>
+
+          <section>
+            <label htmlFor="dueDate">Fällig am</label>
+            <EditInputField
+              id="dueDate"
+              type="date"
+              name="dueDate"
+              value={formData.dueDate}
+              onChange={handleOnChange}
+            />
+          </section>
+
+          <section>
+            <label htmlFor="dateFinished"> Fertig am</label>
+            <EditInputField
+              id="dateFinished"
+              type="date"
+              name="dateFinished"
+              value={formData.dateFinished}
+              onChange={handleOnChange}
+            />
+          </section>
 
           <Button disabled={!(formData.title.trim() && formData.dueDate)}>
             Speichern
           </Button>
-
+          <Button type="button" onClick={handleOnClick}>
+            Abbrechen
+          </Button>
+          {milestone && (
+            <Button
+              type="button"
+              theme="secondary"
+              onClick={handleDeleteOnClick}
+            >
+              Löschen
+            </Button>
+          )}
+          {!milestone && <div />}
           {error && <p>{error.message}</p>}
         </MilestoneEditStyle>
       )}
@@ -145,7 +163,21 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
 export default MilestoneEdit
 
 const MilestoneEditStyle = styled.form`
+  padding: 1rem;
+  border: 1px solid var(--secondarycolor);
+  background: white;
+  box-shadow: 3px 8px 8px grey;
+  position: absolute;
+  right: 0;
+  left: 0;
+  width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-gap: var(--size-m);
+
+  section {
+    display: grid;
+  }
 `

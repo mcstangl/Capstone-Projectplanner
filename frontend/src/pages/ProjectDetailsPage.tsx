@@ -1,11 +1,10 @@
 import { FC, useCallback, useContext, useEffect, useState } from 'react'
 import { PageLayout } from '../components/PageLayout'
 import Header from '../components/Header'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { findProjectByTitle } from '../service/api-service'
 import { ProjectDto } from '../dtos/ProjectDto'
 import AuthContext from '../auth/AuthContext'
-import { LinkGroup } from '../components/LinkGroup'
 import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import ProjectDetailsEdit from '../components/ProjectDetailsEdit'
@@ -14,6 +13,8 @@ import Milestone from '../components/Milestone'
 import styled from 'styled-components/macro'
 import MainStyle from '../components/MainStyle'
 import Loader from '../components/Loader'
+import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
+import { LinkStyle } from '../components/LinkStyle'
 
 interface RouteParams {
   projectTitle: string
@@ -72,9 +73,12 @@ const ProjectDetailsPage: FC = () => {
     <PageLayout>
       <Header />
       <MainStyle>
-        <LinkGroup>
-          <Link to="/projects">Zurück zur Liste</Link>
-        </LinkGroup>
+        <ButtonGroupFlexbox>
+          {!editMode && authUser && authUser.role === 'ADMIN' && (
+            <Button onClick={onClickHandler}>Edit</Button>
+          )}
+          <LinkStyle to="/projects">Zurück zur Liste</LinkStyle>
+        </ButtonGroupFlexbox>
         {loading && <Loader />}
         {!loading && (
           <ProjectDetailsStyle>
@@ -88,13 +92,11 @@ const ProjectDetailsPage: FC = () => {
                   updateProjectState={updateProjectState}
                 />
               )}
-              {!editMode && authUser && authUser.role === 'ADMIN' && (
-                <Button onClick={onClickHandler}>Edit</Button>
-              )}
+
               {error && <p>{error.message}</p>}
             </section>
 
-            {project && (
+            {project && !editMode && (
               <Milestone fetchProject={fetchProject} project={project} />
             )}
           </ProjectDetailsStyle>
@@ -107,6 +109,6 @@ export default ProjectDetailsPage
 
 const ProjectDetailsStyle = styled.section`
   width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
 `

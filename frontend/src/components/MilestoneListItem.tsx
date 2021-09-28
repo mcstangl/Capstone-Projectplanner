@@ -27,13 +27,11 @@ const MilestoneListItem: FC<MilestoneListItemProps> = ({
 
   return (
     <section>
-      {!editMode && (
-        <MilestoneListItemStyle onClick={switchEditMode}>
-          <span>{milestone.title}</span>
-          <span>{milestone.dueDate}</span>
-          <span>{milestone.dateFinished}</span>
-        </MilestoneListItemStyle>
-      )}
+      <MilestoneListItemStyle onClick={switchEditMode}>
+        <span>{milestone.title}</span>
+        <span>{milestone.dueDate}</span>
+        <span>{milestone.dateFinished}</span>
+      </MilestoneListItemStyle>
       {editMode && authUser && authUser.role === 'ADMIN' && (
         <MilestoneEdit
           fetchProject={fetchProject}

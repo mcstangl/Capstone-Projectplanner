@@ -40,13 +40,17 @@ const ProjectDetails: FC<ProjectDetailsProps> = ({ project }) => {
 export default ProjectDetails
 
 const ProjectDetailsStyle = styled.section`
-  max-width: 300px;
   display: grid;
-  grid-template-columns: min-content 1fr;
+  grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+  padding-bottom: 2rem;
 
   h4 {
+    justify-self: right;
     margin: 0;
-    padding: 0;
+    padding: 0.5rem 1rem 0.5rem 0;
+  }
+  span {
+    padding: 0.5rem;
   }
 `

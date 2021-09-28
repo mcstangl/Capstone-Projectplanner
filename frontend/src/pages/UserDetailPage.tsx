@@ -7,6 +7,8 @@ import AuthContext from '../auth/AuthContext'
 import { findUserByLoginName } from '../service/api-service'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import UserDetail from '../components/UserDetail'
+import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
+import { LinkStyle } from '../components/LinkStyle'
 
 interface RouteParams {
   loginName: string
@@ -43,6 +45,9 @@ const UserDetailPage: FC = () => {
     <PageLayout>
       <Header />
       <main>
+        <ButtonGroupFlexbox>
+          <LinkStyle to="/users">Zurück zur Liste</LinkStyle>
+        </ButtonGroupFlexbox>
         {user && (
           <UserDetail
             fetchUser={fetchUser}

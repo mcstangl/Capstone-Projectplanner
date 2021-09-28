@@ -12,13 +12,16 @@ import styled from 'styled-components/macro'
 import { NewProjectDto } from '../dtos/NewProjectDto'
 import { createNewProject, findAllUser } from '../service/api-service'
 import AuthContext from '../auth/AuthContext'
-import { Link, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { Button } from '../components/Button'
-import { LinkGroup } from '../components/LinkGroup'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import { UserDto } from '../dtos/UserDto'
 import Loader from '../components/Loader'
 import MainStyle from '../components/MainStyle'
+import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
+import { InputField } from '../components/Inputfield'
+import { LinkStyle } from '../components/LinkStyle'
+import { SelectStyle } from '../components/SelectStyle'
 
 interface NewProjectFormData {
   customer: string
@@ -99,42 +102,61 @@ const NewProjectPage: FC = () => {
     <PageLayout>
       <Header />
       <MainStyle>
-        <LinkGroup>
-          <Link to="/projects">Zurück zur Liste</Link>
-        </LinkGroup>
+        <ButtonGroupFlexbox>
+          <LinkStyle to="/projects">Zurück zur Liste</LinkStyle>
+        </ButtonGroupFlexbox>
         {loading && <Loader />}
         {!loading && (
           <ProjectForm onSubmit={submitHandler}>
-            <input
-              name="customer"
-              type="text"
-              placeholder="Kundenname"
-              value={formData.customer}
-              onChange={handleInputChange}
-            />
-            <input
-              name="title"
-              type="text"
-              placeholder="Projekt Titel"
-              value={formData.title}
-              onChange={handleInputChange}
-            />
-            <select onChange={handleSelectChange} defaultValue={'DEFAULT'}>
-              <option value="DEFAULT" disabled>
-                ...bitte auswählen
-              </option>
-              {userList?.map(user => (
-                <option key={user.loginName} value={user.loginName}>
-                  {user.loginName}
-                </option>
-              ))}
-            </select>
+            <section>
+              <label htmlFor="customer">Kundenname</label>
+              <InputField
+                id="customer"
+                name="customer"
+                type="text"
+                value={formData.customer}
+                onChange={handleInputChange}
+              />
+            </section>
 
-            <input
-              type="date"
-              value={formData.dateOfReceipt}
-              onChange={handleDateChange}
-            />
+            <section>
+              <label htmlFor="title">Titel</label>
+              <InputField
+                id="title"
+                name="title"
+                type="text"
+                value={formData.title}
+                onChange={handleInputChange}
+              />
+            </section>
+
+            <section>
+              <label htmlFor="owner">Projektleitung</label>
+              <SelectStyle
+                id="owner"
+                onChange={handleSelectChange}
+                defaultValue={'DEFAULT'}
+              >
+                <option value="DEFAULT" disabled>
+                  ...bitte auswählen
+                </option>
+                {userList?.map(user => (
+                  <option key={user.loginName} value={user.loginName}>
+                    {user.loginName}
+                  </option>
+                ))}
+              </SelectStyle>
+            </section>
+
+            <section>
+              <label htmlFor="dateOfReceipt">Eingangsdatum</label>
+              <InputField
+                id="dateOfReceipt"
+                type="date"
+                value={formData.dateOfReceipt}
+                onChange={handleDateChange}
+              />
+            </section>
 
             {formData.customer.trim() &&
             formData.title.trim() &&
@@ -155,6 +177,13 @@ export default NewProjectPage
 
 const ProjectForm = styled.form`
   display: grid;
+  grid-template-columns: max-content;
   grid-gap: var(--size-l);
-  justify-items: center;
+  justify-content: center;
+
+  section {
+    width: 100%;
+    display: grid;
+    justify-items: center;
+  }
 `

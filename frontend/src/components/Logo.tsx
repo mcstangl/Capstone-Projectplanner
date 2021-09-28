@@ -7,7 +7,7 @@ const Logo: FC = () => {
 export default Logo
 
 const Wrapper = styled.div`
-  border: solid 2px var(--maincolor);
+  // border: solid 2px var(--maincolor);
   border-radius: 50%;
   color: var(--maincolor);
   width: 100px;

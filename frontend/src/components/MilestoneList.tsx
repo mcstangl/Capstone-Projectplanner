@@ -15,7 +15,7 @@ const MilestoneList: FC<MilestoneListProps> = ({
   return (
     <MilestoneListStyle>
       <ListHeader>
-        <span>Title</span>
+        <span>Milestone</span>
         <span>Fällig am</span>
         <span>Fertig am</span>
       </ListHeader>

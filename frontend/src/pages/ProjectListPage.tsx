@@ -11,6 +11,7 @@ import MainStyle from '../components/MainStyle'
 import ProjectList from '../components/ProjectList'
 import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
 import Switch from 'react-switch'
+import { InputField } from '../components/Inputfield'
 
 const ProjectListPage: FC = () => {
   const { token, authUser } = useContext(AuthContext)
@@ -123,17 +124,12 @@ const ArchiveSwitchLabel = styled.label`
   font-size: 112%;
 `
 
-const SearchInput = styled.input`
+const SearchInput = styled(InputField)`
   width: 30%;
   margin-bottom: var(--size-m);
   margin-right: var(--size-s);
   margin-top: var(--size-m);
   justify-self: right;
-
-  &:focus {
-    border: 2px solid white;
-    outline: 2px solid var(--accentcolor);
-  }
 `
 
 const LinkStyle = styled(Link)`

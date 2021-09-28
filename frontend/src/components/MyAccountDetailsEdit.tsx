@@ -9,6 +9,7 @@ import AuthContext from '../auth/AuthContext'
 import { updatePassword, updateUser } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
 import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
+import { EditInputField } from './EditInputField'
 
 interface MyAccountDetailsProps {
   user: UserDto
@@ -109,8 +110,9 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
       {loading && <Loader />}
       {!loading && (
         <UserEditStyle onSubmit={handleFromOnSubmit}>
-          <span>Login Name</span>
-          <input
+          <label htmlFor="loginName">Benutzername</label>
+          <EditInputField
+            id="loginName"
             type="text"
             placeholder={user.loginName}
             value={formData.loginName}
@@ -132,7 +134,7 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
         <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
       )}
       {updatePasswordMode && (
-        <NewPasswordPopupStyle onSubmit={handleNewPasswordFromSubmit}>
+        <UpdatePasswordPopupStyle onSubmit={handleNewPasswordFromSubmit}>
           <span>Bitte geben sie ein neues Passwort ein</span>
           <input
             name="password"
@@ -166,7 +168,7 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
           >
             Abbrechen
           </Button>
-        </NewPasswordPopupStyle>
+        </UpdatePasswordPopupStyle>
       )}
     </section>
   )
@@ -177,9 +179,10 @@ const UserEditStyle = styled.form`
   display: grid;
   grid-template-columns: max-content;
   grid-gap: var(--size-s);
+  justify-items: center;
 `
 
-const NewPasswordPopupStyle = styled.form`
+const UpdatePasswordPopupStyle = styled.form`
   position: absolute;
   background-color: white;
   right: 0;

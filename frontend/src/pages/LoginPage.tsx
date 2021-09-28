@@ -9,6 +9,7 @@ import { Button } from '../components/Button'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import Loader from '../components/Loader'
 import MainStyle from '../components/MainStyle'
+import { InputField } from '../components/Inputfield'
 
 const LoginPage: FC = () => {
   const { login, authUser } = useContext(AuthContext)
@@ -40,7 +41,7 @@ const LoginPage: FC = () => {
   }
 
   if (authUser) {
-    return <Redirect to={'/'} />
+    return <Redirect to={'/projects'} />
   }
 
   return (
@@ -50,20 +51,26 @@ const LoginPage: FC = () => {
         {loading && <Loader />}
         {!loading && (
           <LoginForm onSubmit={submitHandler}>
-            <input
-              type="text"
-              name="loginName"
-              placeholder="Benutzername"
-              value={formData.loginName}
-              onChange={handleInputChange}
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Passwort"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
+            <section>
+              <label htmlFor="loginName"> Benutzername</label>
+              <InputField
+                id="loginName"
+                type="text"
+                name="loginName"
+                value={formData.loginName}
+                onChange={handleInputChange}
+              />
+            </section>
+            <section>
+              <label htmlFor="password">Passwort</label>
+              <InputField
+                id="password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+              />
+            </section>
 
             <Button
               disabled={
@@ -72,7 +79,6 @@ const LoginPage: FC = () => {
             >
               Anmelden
             </Button>
-
             {error && <p>{error.message}</p>}
           </LoginForm>
         )}
@@ -86,4 +92,9 @@ const LoginForm = styled.form`
   display: grid;
   grid-gap: var(--size-l);
   justify-items: center;
+
+  section {
+    display: grid;
+    justify-items: center;
+  }
 `

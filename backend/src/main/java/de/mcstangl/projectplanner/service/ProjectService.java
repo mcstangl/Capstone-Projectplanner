@@ -60,7 +60,8 @@ public class ProjectService {
             log.info(String.format("Create new project failed. %s already exists", projectEntity.getTitle()));
             throw new EntityExistsException("Ein Projekt mit diesem Namen existiert schon");
         }
-        projectEntity.setMilestones(List.of());
+        List<MilestoneEntity> defaultMilestones = milestoneService.getDefaultMilestones(projectEntity.getDateOfReceipt(), projectEntity);
+        projectEntity.setMilestones(defaultMilestones);
         projectEntity.setStatus(ProjectStatus.OPEN);
         log.info(String.format("Project %s created", projectEntity.getTitle()));
         return projectRepository.save(projectEntity);

@@ -33,6 +33,9 @@ class MilestoneServiceTest {
     @Mock
     private ProjectRepository projectRepositoryMock;
 
+    @Mock
+    private DateService dateServiceMock;
+
     @InjectMocks
     private MilestoneService mileStoneService;
 
@@ -238,6 +241,20 @@ class MilestoneServiceTest {
         // Then
         assertThat(actual, contains(firstMilestone, secondMilestone, thirdMilestone));
 
+    }
+
+    @Test
+    @DisplayName("Get default milestones should return a list of milestones with expected due dates")
+    public void getDefaultMilestones(){
+        // Given
+        ProjectEntity testProject = ProjectEntity.builder().build();
+        Date testStartDate = Date.valueOf("2021-08-30");
+
+        // When
+        List<MilestoneEntity> actual = mileStoneService.getDefaultMilestones(testStartDate, testProject);
+
+        // Then
+        assertThat(actual.size(), is(9));
     }
 
     private MilestoneEntity getTestMilestone() {

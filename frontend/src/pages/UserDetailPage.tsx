@@ -9,6 +9,7 @@ import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import UserDetail from '../components/UserDetail'
 import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
 import { LinkStyle } from '../components/LinkStyle'
+import MainStyle from '../components/MainStyle'
 
 interface RouteParams {
   loginName: string
@@ -35,29 +36,22 @@ const UserDetailPage: FC = () => {
     setError(undefined)
   }
 
-  const fetchUser = () => {
-    if (token && loginName) {
-      return findUserByLoginName(token, loginName).then(setUser)
-    }
-  }
-
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         <ButtonGroupFlexbox>
           <LinkStyle to="/users">Zurück zur Liste</LinkStyle>
         </ButtonGroupFlexbox>
         {user && (
           <UserDetail
-            fetchUser={fetchUser}
             loading={loading}
             user={user}
             resetErrorState={resetErrorState}
             error={error}
           />
         )}
-      </main>
+      </MainStyle>
     </PageLayout>
   )
 }

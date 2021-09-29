@@ -4,7 +4,6 @@ import AuthProvider from './auth/AuthProvider'
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
 import NewProjectPage from './pages/NewProjectPage'
 import ProjectListPage from './pages/ProjectListPage'
-import Homepage from './pages/Homepage'
 import ProtectedRoute from './auth/ProtectedRoute'
 import ProjectDetailsPage from './pages/ProjectDetailsPage'
 import UserListPage from './pages/UserListPage'
@@ -36,7 +35,7 @@ function App() {
           <ProtectedRoute path="/my-account" component={MyAccountPage} />
           <ProtectedRoute adminOnly path="/users" component={UserListPage} />
           <ProtectedRoute adminOnly path="/new-user" component={NewUserPage} />
-          <ProtectedRoute path="/" component={Homepage} />
+          <ProtectedRoute path="/" component={ProjectListPage} />
         </Switch>
       </Router>
     </AuthProvider>

@@ -8,6 +8,7 @@ import { UserDto } from '../dtos/UserDto'
 import AuthContext from '../auth/AuthContext'
 import { findAllUser } from '../service/api-service'
 import Loader from '../components/Loader'
+import MainStyle from '../components/MainStyle'
 
 const UserListPage: FC = () => {
   const { token, authUser } = useContext(AuthContext)
@@ -32,7 +33,7 @@ const UserListPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         <ButtonGroupFlexbox>
           {!loading && (
             <LinkStyle to="/new-user">Neuen Benutzer anlegen</LinkStyle>
@@ -57,7 +58,7 @@ const UserListPage: FC = () => {
             ))}
           </UserList>
         )}
-      </main>
+      </MainStyle>
     </PageLayout>
   )
 }
@@ -93,7 +94,6 @@ const UserListHeader = styled.section`
   grid-column-gap: var(--size-s);
   padding: 0.5rem;
   border-bottom: solid 1px var(--secondarycolor);
-  margin-bottom: var(--size-s);
 `
 
 const UserListItem = styled.section`

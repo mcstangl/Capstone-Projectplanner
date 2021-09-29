@@ -10,6 +10,7 @@ import { updatePassword, updateUser } from '../service/api-service'
 import { useHistory } from 'react-router-dom'
 import { UserWithPasswordDto } from '../dtos/UserWithPasswordDto'
 import { EditInputField } from './EditInputField'
+import { InputField } from './Inputfield'
 
 interface MyAccountDetailsProps {
   user: UserDto
@@ -110,40 +111,48 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
       {loading && <Loader />}
       {!loading && (
         <UserEditStyle onSubmit={handleFromOnSubmit}>
-          <label htmlFor="loginName">Benutzername</label>
-          <EditInputField
-            id="loginName"
-            type="text"
-            placeholder={user.loginName}
-            value={formData.loginName}
-            onChange={handleInputOnChange}
-          />
+          {!updatePasswordMode && (
+            <label htmlFor="loginName">Benutzername</label>
+          )}
 
-          <Button disabled={!formData.loginName.trim()}>Speichern</Button>
+          {!updatePasswordMode && (
+            <EditInputField
+              id="loginName"
+              type="text"
+              placeholder={user.loginName}
+              value={formData.loginName}
+              onChange={handleInputOnChange}
+            />
+          )}
 
-          <Button type="button" onClick={handleNewPasswordPopupOnClick}>
-            Passwort ändern
-          </Button>
+          {!updatePasswordMode && (
+            <Button disabled={!formData.loginName.trim()}>Speichern</Button>
+          )}
 
-          <Button type="button" onClick={resetEditMode}>
-            Abbrechen
-          </Button>
+          {!updatePasswordMode && (
+            <Button type="button" onClick={handleNewPasswordPopupOnClick}>
+              Passwort ändern
+            </Button>
+          )}
+
+          {!updatePasswordMode && (
+            <Button type="button" onClick={resetEditMode}>
+              Abbrechen
+            </Button>
+          )}
         </UserEditStyle>
-      )}
-      {error && (
-        <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
       )}
       {updatePasswordMode && (
         <UpdatePasswordPopupStyle onSubmit={handleNewPasswordFromSubmit}>
           <span>Bitte geben sie ein neues Passwort ein</span>
-          <input
+          <InputField
             name="password"
             type="password"
             value={newPasswordFormData.password}
             onChange={handleNewPasswordOnChange}
           />
           <span>Passwort wiederholen</span>
-          <input
+          <InputField
             name="passwordRepeated"
             type="password"
             value={newPasswordFormData.passwordRepeated}
@@ -159,7 +168,7 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
               )
             }
           >
-            OK
+            Passwort speichern
           </Button>
           <Button
             type="button"
@@ -170,6 +179,10 @@ const MyAccountDetailsEdit: FC<MyAccountDetailsProps> = ({
           </Button>
         </UpdatePasswordPopupStyle>
       )}
+
+      {error && (
+        <ErrorPopup message={error.message} resetErrorState={resetErrorSate} />
+      )}
     </section>
   )
 }
@@ -177,26 +190,28 @@ export default MyAccountDetailsEdit
 
 const UserEditStyle = styled.form`
   display: grid;
-  grid-template-columns: max-content;
-  grid-gap: var(--size-s);
-  justify-items: center;
+  grid-template-columns: 250px;
+  grid-gap: var(--size-l);
+  justify-content: center;
 `
 
 const UpdatePasswordPopupStyle = styled.form`
-  position: absolute;
+  //position: absolute;
   background-color: white;
   right: 0;
   left: 0;
+  margin-top: var(--size-m);
   margin-left: auto;
   margin-right: auto;
-  text-align: center;
+  //text-align: center;
   width: 250px;
   display: grid;
   grid-template-columns: 100%;
   justify-items: center;
   grid-gap: var(--size-l);
   border: 1px solid var(--secondarycolor);
-  box-shadow: 3px 8px 12px grey;
+  //box-shadow: 3px 8px 12px grey;
+  border-radius: 4px;
   padding: var(--size-l);
 
   button {

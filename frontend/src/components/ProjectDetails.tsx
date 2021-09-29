@@ -44,6 +44,7 @@ const ProjectDetailsStyle = styled.section`
   grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
   padding-bottom: 2rem;
+  justify-content: center;
 
   h4 {
     justify-self: right;

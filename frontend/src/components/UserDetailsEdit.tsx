@@ -19,14 +19,9 @@ import { EditSelect } from './EditSelect'
 interface UserDetailEditProps {
   user: UserDto
   resetEditMode: () => void
-  fetchUser: () => Promise<void> | undefined
 }
 
-const UserDetailsEdit: FC<UserDetailEditProps> = ({
-  user,
-  resetEditMode,
-  fetchUser,
-}) => {
+const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
   const { token } = useContext(AuthContext)
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
@@ -59,7 +54,6 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
           setLoading(false)
           resetEditMode()
         })
-        .then(() => fetchUser())
         .then(() => history.push(`/users/${userDto.loginName}`))
         .catch(error => {
           setLoading(false)
@@ -154,10 +148,12 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
             </select>
           </EditSelect>
 
-          <Button disabled={!formData.loginName.trim()}>Speichern</Button>
           <Button type="button" onClick={handleResetPasswordOnClick}>
             Passwort zurücksetzen
           </Button>
+
+          <Button disabled={!formData.loginName.trim()}>Speichern</Button>
+
           <Button
             type="button"
             theme="secondary"
@@ -203,6 +199,7 @@ const UserEditStyle = styled.form`
   display: grid;
   grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+  justify-content: center;
 
   span {
     justify-self: right;

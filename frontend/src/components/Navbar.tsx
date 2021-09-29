@@ -10,9 +10,6 @@ const Navbar: FC = () => {
     <section>
       {authUser && (
         <Wrapper>
-          <NavLink exact to="/">
-            Homepage
-          </NavLink>
           <NavLink to="/projects">Projekte</NavLink>
           {authUser.role === 'ADMIN' && <NavLink to="/users">Benutzer</NavLink>}
           <NavLink to="/my-account">Mein Konto</NavLink>
@@ -32,7 +29,7 @@ const Wrapper = styled.nav`
     text-decoration: none;
     color: var(--darkgrey);
     transition-duration: 300ms;
-    padding: 0 2rem;
+    padding: 0.5rem 2rem 0;
   }
 
   a.active {

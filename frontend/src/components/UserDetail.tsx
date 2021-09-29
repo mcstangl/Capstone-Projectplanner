@@ -11,7 +11,6 @@ interface UserDetailProps {
   user: UserDto
   error?: RestExceptionDto
   resetErrorState: () => void
-  fetchUser: () => Promise<void> | undefined
   loading?: boolean
 }
 
@@ -20,7 +19,6 @@ const UserDetail: FC<UserDetailProps> = ({
   loading,
   error,
   resetErrorState,
-  fetchUser,
 }) => {
   const [editMode, setEditMode] = useState(false)
 
@@ -44,11 +42,7 @@ const UserDetail: FC<UserDetailProps> = ({
       )}
 
       {editMode && user && (
-        <UserDetailsEdit
-          fetchUser={fetchUser}
-          user={user}
-          resetEditMode={resetEditMode}
-        />
+        <UserDetailsEdit user={user} resetEditMode={resetEditMode} />
       )}
       {error && (
         <ErrorPopup message={error.message} resetErrorState={resetErrorState} />
@@ -60,8 +54,9 @@ export default UserDetail
 
 const UserDetailsStyle = styled.section`
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+  justify-content: center;
 
   span {
     justify-self: right;

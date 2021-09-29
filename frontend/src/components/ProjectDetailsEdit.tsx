@@ -107,7 +107,10 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
           updateProjectState(projectDto)
           switchEditMode()
         })
-        .catch(error => updateErrorState(error.response.data))
+        .catch(error => {
+          setLoading(false)
+          updateErrorState(error.response.data)
+        })
     }
   }
 
@@ -219,13 +222,13 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
         </ProjectDetails>
       )}
       {!loading && (
-        <Button
+        <MoveToArchiveButton
           type="button"
           theme="secondary"
           onClick={handleMoveToArchiveOnClick}
         >
           ins Archiv verschieben
-        </Button>
+        </MoveToArchiveButton>
       )}
     </section>
   )
@@ -238,10 +241,14 @@ const ProjectDetails = styled.form`
   grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
   padding-bottom: 2rem;
+  justify-content: center;
 
   h4 {
     justify-self: right;
     margin: 0;
     padding: 0.5rem 1rem 0.5rem 0;
   }
+`
+const MoveToArchiveButton = styled(Button)`
+  margin: var(--size-l);
 `

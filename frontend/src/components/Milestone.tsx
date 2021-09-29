@@ -23,17 +23,20 @@ const Milestone: FC<MilestoneProps> = ({ project, fetchProject }) => {
 
   return (
     <MilestoneStyle>
+      {!editMode && authUser && authUser.role === 'ADMIN' && (
+        <div>
+          <AddMilestoneButton onClick={switchEditMode}>
+            Milestone hinzufügen
+          </AddMilestoneButton>
+        </div>
+      )}
       {project.milestones && project.milestones.length > 0 && (
         <MilestoneList
           fetchProject={fetchProject}
           milestones={project.milestones}
         />
       )}
-      {!editMode && authUser && authUser.role === 'ADMIN' && (
-        <div>
-          <Button onClick={switchEditMode}>Milestone hinzufügen</Button>
-        </div>
-      )}
+
       {editMode && authUser && authUser.role === 'ADMIN' && (
         <MilestoneEdit
           fetchProject={fetchProject}
@@ -53,6 +56,9 @@ const MilestoneStyle = styled.section`
   grid-template-rows: min-content 1fr;
 
   div {
-    justify-self: center;
+    justify-self: right;
   }
+`
+const AddMilestoneButton = styled(Button)`
+  margin: var(--size-l);
 `

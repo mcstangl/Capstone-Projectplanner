@@ -54,17 +54,17 @@ public class ProjectService {
         hasText(projectEntity.getCustomer(), "Kundenname darf nicht leer sein");
         hasText(projectEntity.getTitle(), "Projekttitel darf nicht leer sein");
 
-        Optional<ProjectEntity> projectEntityOptional = findByTitle(projectEntity.getTitle());
+        String convertedTitle = removeInvalidCharsFromTitle(projectEntity.getTitle());
+        projectEntity.setTitle(convertedTitle);
 
-        if (projectEntityOptional.isPresent()) {
-            log.info(String.format("Create new project failed. %s already exists", projectEntity.getTitle()));
-            throw new EntityExistsException("Ein Projekt mit diesem Namen existiert schon");
-        }
-        projectEntity.setMilestones(List.of());
+        checkIfProjectTitleExists(projectEntity.getTitle());
+        List<MilestoneEntity> defaultMilestones = milestoneService.getDefaultMilestones(projectEntity.getDateOfReceipt(), projectEntity);
+        projectEntity.setMilestones(defaultMilestones);
         projectEntity.setStatus(ProjectStatus.OPEN);
         log.info(String.format("Project %s created", projectEntity.getTitle()));
         return projectRepository.save(projectEntity);
     }
+
 
     public List<ProjectEntity> findAll() {
         List<ProjectEntity> sortedProjectsWithMilestones = getAllProjectsSortedByMilestoneDueDate();
@@ -99,6 +99,9 @@ public class ProjectService {
 
         ProjectEntity projectEntityCopy = copyProjectEntity(fetchedProjectEntity);
 
+        hasText(newTitle,"Projekttitel darf nicht leer sein" );
+        String convertedNewTitle = removeInvalidCharsFromTitle(newTitle);
+
         if (projectUpdateData.getCustomer() != null) {
             updateCustomer(projectUpdateData, projectEntityCopy);
         }
@@ -123,8 +126,9 @@ public class ProjectService {
             updateMotionDesigners(projectUpdateData, projectEntityCopy);
         }
 
-        if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
-            projectEntityCopy.setTitle(newTitle);
+        if (!convertedNewTitle.trim().equals(fetchedProjectEntity.getTitle())) {
+            checkIfProjectTitleExists(convertedNewTitle);
+            projectEntityCopy.setTitle(convertedNewTitle);
         }
         log.info(String.format("Project %s updated", projectEntityCopy.getTitle()));
         return projectRepository.save(projectEntityCopy);
@@ -143,6 +147,16 @@ public class ProjectService {
         log.info(String.format("Project %s updated status to open", title));
         return projectRepository.save(fetchProjectEntity);
     }
+
+    private void checkIfProjectTitleExists(String title) {
+        Optional<ProjectEntity> projectEntityOptional = findByTitle(title);
+
+        if (projectEntityOptional.isPresent()) {
+            log.info(String.format("Create new project failed. %s already exists", title));
+            throw new EntityExistsException("Ein Projekt mit diesem Namen existiert schon");
+        }
+    }
+
 
     private ProjectEntity getProjectEntity(String title) {
         return findByTitle(title).orElseThrow(
@@ -204,5 +218,9 @@ public class ProjectService {
         return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
 
+    private String removeInvalidCharsFromTitle(String title){
+        String convertedTitle = title.trim();
+       return convertedTitle.replaceAll("\\?", "");
+    }
 
 }

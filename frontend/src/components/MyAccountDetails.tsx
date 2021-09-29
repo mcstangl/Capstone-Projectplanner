@@ -32,7 +32,7 @@ const MyAccountDetails: FC<MyAccountDetailsProps> = ({
     <section>
       {!editMode && user && (
         <UserDetailsStyle>
-          <span>Login Name</span>
+          <span>Benutzername</span>
           <span>{user.loginName}</span>
           {adminMode && <span>User Rolle</span>}
           {adminMode && <span>{user.role}</span>}
@@ -53,6 +53,11 @@ export default MyAccountDetails
 
 const UserDetailsStyle = styled.section`
   display: grid;
-  grid-template-columns: max-content;
-  grid-gap: var(--size-s);
+  grid-template-columns: 250px;
+  grid-gap: var(--size-l);
+  justify-content: center;
+
+  span {
+    padding: 0.5rem;
+  }
 `

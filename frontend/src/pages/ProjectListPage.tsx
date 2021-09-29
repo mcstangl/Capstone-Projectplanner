@@ -85,12 +85,14 @@ const ProjectListPage: FC = () => {
 
         {loading && <Loader />}
         {!loading && (
-          <SearchInput
-            type="text"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            placeholder="Suche in Projekten"
-          />
+          <SearchBox>
+            <SearchInput
+              type="text"
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              placeholder="Suche in Projekten"
+            />
+          </SearchBox>
         )}
         {!loading && !archiveOn && (
           <ProjectList
@@ -127,9 +129,12 @@ const ArchiveSwitchLabel = styled.label`
 const SearchInput = styled(InputField)`
   width: 30%;
   margin-bottom: var(--size-m);
-  margin-right: var(--size-s);
+  margin-right: var(--size-l);
   margin-top: var(--size-m);
-  justify-self: right;
+`
+const SearchBox = styled.section`
+  display: flex;
+  justify-content: right;
 `
 
 const LinkStyle = styled(Link)`

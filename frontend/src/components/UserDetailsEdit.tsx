@@ -154,10 +154,12 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
             </select>
           </EditSelect>
 
-          <Button disabled={!formData.loginName.trim()}>Speichern</Button>
           <Button type="button" onClick={handleResetPasswordOnClick}>
             Passwort zurücksetzen
           </Button>
+
+          <Button disabled={!formData.loginName.trim()}>Speichern</Button>
+
           <Button
             type="button"
             theme="secondary"
@@ -203,6 +205,7 @@ const UserEditStyle = styled.form`
   display: grid;
   grid-template-columns: max-content max-content;
   grid-gap: var(--size-s);
+  justify-content: center;
 
   span {
     justify-self: right;

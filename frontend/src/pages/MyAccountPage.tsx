@@ -6,6 +6,7 @@ import { findUserByLoginName } from '../service/api-service'
 import { RestExceptionDto } from '../dtos/RestExceptionDto'
 import MyAccountDetails from '../components/MyAccountDetails'
 import Loader from '../components/Loader'
+import MainStyle from '../components/MainStyle'
 
 const MyAccountPage: FC = () => {
   const { authUser, token } = useContext(AuthContext)
@@ -42,7 +43,7 @@ const MyAccountPage: FC = () => {
   return (
     <PageLayout>
       <Header />
-      <main>
+      <MainStyle>
         {loading && <Loader />}
         {!loading && user && (
           <MyAccountDetails
@@ -52,7 +53,7 @@ const MyAccountPage: FC = () => {
             loading={loading}
           />
         )}
-      </main>
+      </MainStyle>
     </PageLayout>
   )
 }

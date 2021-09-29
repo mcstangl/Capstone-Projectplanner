@@ -28,6 +28,7 @@ const ProjectList: FC<ProjectListProps> = ({
     <List>
       <ListHeader key="header">
         <span>Pos.</span>
+        <span />
         <Column2Style>Eingangsdatum</Column2Style>
         <span>Kunde</span>
         <span>Titel</span>

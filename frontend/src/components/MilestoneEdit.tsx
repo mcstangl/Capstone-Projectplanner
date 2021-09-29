@@ -38,7 +38,8 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
   const [formData, setFormData] = useState<MilestoneFormData>({
     title: milestone ? milestone.title : '',
     dueDate: milestone ? milestone.dueDate : '',
-    dateFinished: milestone ? milestone.dateFinished : '',
+    dateFinished:
+      milestone && milestone.dateFinished ? milestone.dateFinished : '',
   })
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {

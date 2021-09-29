@@ -280,7 +280,6 @@ class ProjectControllerTest extends SpringBootTests {
 
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
         return Stream.of(
-                Arguments.of(null, "Test"),
                 Arguments.of("Test", "Test"),
                 Arguments.of("New Title", "New Title")
         );
@@ -299,7 +298,7 @@ class ProjectControllerTest extends SpringBootTests {
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
                 .title("Test")
-                .newTitle(null)
+                .newTitle("Test")
                 .dateOfReceipt("2021-09-13")
                 .writer(writers)
                 .build();
@@ -350,7 +349,7 @@ class ProjectControllerTest extends SpringBootTests {
                 .owner(UserDto.builder().loginName("Other User").role("ADMIN").build())
                 .customer("New Customer")
                 .title("Test")
-                .newTitle(null)
+                .newTitle("Test")
                 .dateOfReceipt("2021-09-13")
                 .motionDesign(motionDesigners)
                 .build();

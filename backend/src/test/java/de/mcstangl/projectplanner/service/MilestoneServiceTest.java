@@ -118,7 +118,13 @@ class MilestoneServiceTest {
     public void createNewMilestoneWithAnExistingTitle() {
         // Given
         when(milestoneRepositoryMock.findAllByProjectEntity(any())).thenReturn(
-                List.of(getTestMilestone())
+                List.of(MilestoneEntity.builder()
+                                .id(1L)
+                        .projectEntity(ProjectEntity.builder().title("Test").build())
+                        .dateFinished(Date.valueOf("2021-12-12"))
+                        .dueDate(Date.valueOf("2021-03-13"))
+                        .title("Test1")
+                        .build())
         );
         when(projectRepositoryMock.findByTitle("Test")).thenReturn(
                 Optional.of(ProjectEntity.builder().title("Test").id(1L).build())
@@ -136,6 +142,19 @@ class MilestoneServiceTest {
     @Test
     @DisplayName("Update a milestone should change all fields")
     public void update() {
+        // Given
+        when(milestoneRepositoryMock.findAllByProjectEntity(any())).thenReturn(
+                List.of(MilestoneEntity.builder()
+                        .id(1L)
+                        .projectEntity(ProjectEntity.builder().title("Test").build())
+                        .dateFinished(Date.valueOf("2021-12-12"))
+                        .dueDate(Date.valueOf("2021-03-13"))
+                        .title("Test1")
+                        .build()));
+
+        when(projectRepositoryMock.findByTitle("Test")).thenReturn(
+                Optional.of(ProjectEntity.builder().title("Test").id(1L).build()));
+
         // When
         mileStoneService.updateMilestone(MilestoneEntity.builder()
                 .id(1L)

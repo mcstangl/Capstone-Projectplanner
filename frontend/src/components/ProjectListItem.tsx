@@ -7,6 +7,14 @@ import { Button } from './Button'
 import { restoreFromArchive } from '../service/api-service'
 import AuthContext from '../auth/AuthContext'
 import ErrorPopup from './ErrorPopup'
+import {
+  Column2Style,
+  Column5Style,
+  Column6Style,
+  Column7Style,
+  Column8Style,
+  ListItemStyle,
+} from './ProjectListGridStyle'
 
 interface ProjectListItemProps {
   project: ProjectDto
@@ -50,8 +58,8 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
   const handleRestoreOnClick = () => {
     if (token && updateProjects) {
       restoreFromArchive(token, project.title)
-        .then(() => updateProjects())
         .then(() => setRestoreMode(false))
+        .then(() => updateProjects())
         .catch(error => {
           setRestoreMode(false)
           setError(error.data.message)
@@ -64,20 +72,24 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
     <section>
       <ListItem theme={theme} id={project.title} onClick={handleOnClick}>
         <span>{position}</span>
-        <span>{project.dateOfReceipt}</span>
+        <Column2Style>{project.dateOfReceipt}</Column2Style>
         <span>{project.customer}</span>
         <span>{project.title}</span>
         {nextMilestone ? (
-          <span>{nextMilestone.dueDate + ' ' + nextMilestone.title}</span>
+          <Column5Style>
+            {nextMilestone.dueDate + ' ' + nextMilestone.title}
+          </Column5Style>
         ) : (
           <div />
         )}
-        <span>{project.owner.loginName}</span>
+        <Column6Style>{project.owner.loginName}</Column6Style>
         {project.writer.map(writer => (
-          <span key={writer.loginName}>{writer.loginName}</span>
+          <Column7Style key={writer.loginName}>{writer.loginName}</Column7Style>
         ))}
         {project.motionDesign.map(motionDesigner => (
-          <span key={motionDesigner.loginName}>{motionDesigner.loginName}</span>
+          <Column8Style key={motionDesigner.loginName}>
+            {motionDesigner.loginName}
+          </Column8Style>
         ))}
       </ListItem>
       {restoreMode && authUser && authUser.role === 'ADMIN' && (
@@ -123,11 +135,7 @@ const RestorePopup = styled.section`
   }
 `
 
-const ListItem = styled.section`
-  display: grid;
-  grid-template-columns: var(--size-xxl) repeat(7, 1fr);
-  grid-column-gap: var(--size-m);
-  padding: 1rem;
+const ListItem = styled(ListItemStyle)`
   text-decoration: none;
   color: black;
 

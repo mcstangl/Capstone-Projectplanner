@@ -169,6 +169,22 @@ class ProjectServiceTest {
         assertThat(actual.getStatus(), is(ProjectStatus.OPEN));
     }
 
+    @Test
+    @DisplayName("Creating a new project with a question mark or trailing spaces in title should save the project without question mark and spaces")
+    public void createNewProjectWithQuestionMark() {
+        // Given
+        ProjectEntity testProject = createTestProject();
+        testProject.setTitle("     Ti?tle    ");
+
+        // When
+        ProjectEntity newProject = projectService.createNewProject(testProject);
+
+        verify(projectRepositoryMock, times(1)).save(projectEntityCaptor.capture());
+        ProjectEntity actual = projectEntityCaptor.getValue();
+        // Then
+        assertThat(actual.getTitle(), is("Title"));
+    }
+
 
     @Test
     @DisplayName("Creating a new project with a title that is already in DB should throw EntityExistsException")
@@ -244,7 +260,6 @@ class ProjectServiceTest {
 
     private static Stream<Arguments> getArgumentsForUpdateProjectTest() {
         return Stream.of(
-                Arguments.of((Object) null),
                 Arguments.of("Test")
         );
     }

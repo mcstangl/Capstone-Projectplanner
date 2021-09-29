@@ -107,7 +107,10 @@ const ProjectDetailsEdit: FC<ProjectDetailsEditProps> = ({
           updateProjectState(projectDto)
           switchEditMode()
         })
-        .catch(error => updateErrorState(error.response.data))
+        .catch(error => {
+          setLoading(false)
+          updateErrorState(error.response.data)
+        })
     }
   }
 

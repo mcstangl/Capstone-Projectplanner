@@ -15,6 +15,7 @@ import MainStyle from '../components/MainStyle'
 import Loader from '../components/Loader'
 import { ButtonGroupFlexbox } from '../components/ButtonGroupFlexbox'
 import { LinkStyle } from '../components/LinkStyle'
+import ErrorPopup from '../components/ErrorPopup'
 
 interface RouteParams {
   projectTitle: string
@@ -65,6 +66,8 @@ const ProjectDetailsPage: FC = () => {
     [setError]
   )
 
+  const resetErrorState = () => setError(undefined)
+
   const onClickHandler = () => {
     switchEditMode()
   }
@@ -74,10 +77,10 @@ const ProjectDetailsPage: FC = () => {
       <Header />
       <MainStyle>
         <ButtonGroupFlexbox>
+          <LinkStyle to="/projects">Zurück zur Liste</LinkStyle>
           {!editMode && authUser && authUser.role === 'ADMIN' && (
             <Button onClick={onClickHandler}>Edit</Button>
           )}
-          <LinkStyle to="/projects">Zurück zur Liste</LinkStyle>
         </ButtonGroupFlexbox>
         {loading && <Loader />}
         {!loading && (
@@ -93,7 +96,12 @@ const ProjectDetailsPage: FC = () => {
                 />
               )}
 
-              {error && <p>{error.message}</p>}
+              {error && (
+                <ErrorPopup
+                  message={error.message}
+                  resetErrorState={resetErrorState}
+                />
+              )}
             </section>
 
             {project && !editMode && (

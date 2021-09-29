@@ -38,7 +38,8 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
   const [formData, setFormData] = useState<MilestoneFormData>({
     title: milestone ? milestone.title : '',
     dueDate: milestone ? milestone.dueDate : '',
-    dateFinished: milestone ? milestone.dateFinished : '',
+    dateFinished:
+      milestone && milestone.dateFinished ? milestone.dateFinished : '',
   })
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -61,11 +62,12 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
     if (milestone) {
       setLoading(true)
       updateMilestone(token, milestoneDto)
-        .then(() => fetchProject())
         .then(() => {
           switchEditMode()
           setLoading(false)
         })
+        .then(() => fetchProject())
+
         .catch(error => {
           setLoading(false)
           setError(error.response.data)
@@ -73,11 +75,11 @@ const MilestoneEdit: FC<MilestoneEditProps> = ({
     } else {
       setLoading(true)
       createNewMilestone(token, milestoneDto)
-        .then(() => fetchProject())
         .then(() => {
           switchEditMode()
           setLoading(false)
         })
+        .then(() => fetchProject())
         .catch(error => {
           setLoading(false)
           setError(error.response.data)

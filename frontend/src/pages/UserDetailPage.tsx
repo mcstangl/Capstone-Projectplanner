@@ -36,12 +36,6 @@ const UserDetailPage: FC = () => {
     setError(undefined)
   }
 
-  const fetchUser = () => {
-    if (token && loginName) {
-      return findUserByLoginName(token, loginName).then(setUser)
-    }
-  }
-
   return (
     <PageLayout>
       <Header />
@@ -51,7 +45,6 @@ const UserDetailPage: FC = () => {
         </ButtonGroupFlexbox>
         {user && (
           <UserDetail
-            fetchUser={fetchUser}
             loading={loading}
             user={user}
             resetErrorState={resetErrorState}

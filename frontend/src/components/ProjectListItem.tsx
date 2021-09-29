@@ -58,8 +58,8 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
   const handleRestoreOnClick = () => {
     if (token && updateProjects) {
       restoreFromArchive(token, project.title)
-        .then(() => updateProjects())
         .then(() => setRestoreMode(false))
+        .then(() => updateProjects())
         .catch(error => {
           setRestoreMode(false)
           setError(error.data.message)

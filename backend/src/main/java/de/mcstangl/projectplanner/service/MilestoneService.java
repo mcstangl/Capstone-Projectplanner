@@ -61,6 +61,9 @@ public class MilestoneService {
     }
 
     public MilestoneEntity updateMilestone(MilestoneEntity milestoneUpdateData) {
+
+        checkForExistingMilestoneForProject(milestoneUpdateData);
+
         log.info(String.format("Updated milestone %s for project %s", milestoneUpdateData.getTitle(), milestoneUpdateData.getProjectEntity().getTitle()));
         return milestoneRepository.save(milestoneUpdateData);
     }
@@ -68,7 +71,7 @@ public class MilestoneService {
     private void checkForExistingMilestoneForProject(MilestoneEntity newMilestone) {
         List<MilestoneEntity> fetchedMilestonesForProject = findAllByProjectTitle(newMilestone.getProjectEntity().getTitle());
         for (MilestoneEntity fetchedMilestone : fetchedMilestonesForProject) {
-            if (fetchedMilestone.getTitle().equals(newMilestone.getTitle())) {
+            if (fetchedMilestone.getTitle().equals(newMilestone.getTitle()) && !fetchedMilestone.getId().equals(newMilestone.getId()) ) {
                 log.info(String.format("Check failed: Project %s already has a milestone %s", newMilestone.getProjectEntity().getTitle(), newMilestone.getTitle()));
                 throw new EntityExistsException(String.format("Dieses Projekt hat bereits einen Milestone %s", newMilestone.getTitle()));
             }

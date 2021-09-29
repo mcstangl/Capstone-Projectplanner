@@ -19,14 +19,9 @@ import { EditSelect } from './EditSelect'
 interface UserDetailEditProps {
   user: UserDto
   resetEditMode: () => void
-  fetchUser: () => Promise<void> | undefined
 }
 
-const UserDetailsEdit: FC<UserDetailEditProps> = ({
-  user,
-  resetEditMode,
-  fetchUser,
-}) => {
+const UserDetailsEdit: FC<UserDetailEditProps> = ({ user, resetEditMode }) => {
   const { token } = useContext(AuthContext)
   const history = useHistory()
   const [error, setError] = useState<RestExceptionDto>()
@@ -59,7 +54,6 @@ const UserDetailsEdit: FC<UserDetailEditProps> = ({
           setLoading(false)
           resetEditMode()
         })
-        .then(() => fetchUser())
         .then(() => history.push(`/users/${userDto.loginName}`))
         .catch(error => {
           setLoading(false)

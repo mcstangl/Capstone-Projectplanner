@@ -54,6 +54,9 @@ public class ProjectService {
         hasText(projectEntity.getCustomer(), "Kundenname darf nicht leer sein");
         hasText(projectEntity.getTitle(), "Projekttitel darf nicht leer sein");
 
+        String convertedTitle = removeInvalidCharsFromTitle(projectEntity.getTitle());
+        projectEntity.setTitle(convertedTitle);
+
         checkIfProjectTitleExists(projectEntity.getTitle());
         List<MilestoneEntity> defaultMilestones = milestoneService.getDefaultMilestones(projectEntity.getDateOfReceipt(), projectEntity);
         projectEntity.setMilestones(defaultMilestones);
@@ -96,6 +99,9 @@ public class ProjectService {
 
         ProjectEntity projectEntityCopy = copyProjectEntity(fetchedProjectEntity);
 
+        hasText(newTitle,"Projekttitel darf nicht leer sein" );
+        String convertedNewTitle = removeInvalidCharsFromTitle(newTitle);
+
         if (projectUpdateData.getCustomer() != null) {
             updateCustomer(projectUpdateData, projectEntityCopy);
         }
@@ -120,9 +126,9 @@ public class ProjectService {
             updateMotionDesigners(projectUpdateData, projectEntityCopy);
         }
 
-        if (newTitle != null && !newTitle.trim().equals(fetchedProjectEntity.getTitle())) {
-            checkIfProjectTitleExists(newTitle);
-            projectEntityCopy.setTitle(newTitle);
+        if (!convertedNewTitle.trim().equals(fetchedProjectEntity.getTitle())) {
+            checkIfProjectTitleExists(convertedNewTitle);
+            projectEntityCopy.setTitle(convertedNewTitle);
         }
         log.info(String.format("Project %s updated", projectEntityCopy.getTitle()));
         return projectRepository.save(projectEntityCopy);
@@ -212,5 +218,9 @@ public class ProjectService {
         return milestoneEntityList.stream().sorted(Comparator.comparing(MilestoneEntity::getDueDate)).toList();
     }
 
+    private String removeInvalidCharsFromTitle(String title){
+        String convertedTitle = title.trim();
+       return convertedTitle.replaceAll("\\?", "");
+    }
 
 }

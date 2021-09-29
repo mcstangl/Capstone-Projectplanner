@@ -74,10 +74,10 @@ const ProjectDetailsPage: FC = () => {
       <Header />
       <MainStyle>
         <ButtonGroupFlexbox>
+          <LinkStyle to="/projects">Zurück zur Liste</LinkStyle>
           {!editMode && authUser && authUser.role === 'ADMIN' && (
             <Button onClick={onClickHandler}>Edit</Button>
           )}
-          <LinkStyle to="/projects">Zurück zur Liste</LinkStyle>
         </ButtonGroupFlexbox>
         {loading && <Loader />}
         {!loading && (

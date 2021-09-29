@@ -21,8 +21,10 @@ const HeaderStyle = styled.header`
   margin-bottom: var(--size-xxl);
   display: grid;
   grid-template-columns: 150px 1fr;
-  grid-template-rows: 150px 1fr;
+  grid-template-rows: 80px 1fr;
   padding-bottom: var(--size-m);
+  padding-left: var(--size-m);
+  padding-right: var(--size-m);
 
   h3 {
     color: var(--maincolor);

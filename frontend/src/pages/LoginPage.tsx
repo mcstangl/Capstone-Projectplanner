@@ -90,8 +90,14 @@ export default LoginPage
 
 const LoginForm = styled.form`
   display: grid;
+  grid-template-columns: max-content;
+  justify-content: center;
   grid-gap: var(--size-l);
   justify-items: center;
+
+  button {
+    width: 100%;
+  }
 
   section {
     display: grid;

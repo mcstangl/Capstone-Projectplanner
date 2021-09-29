@@ -29,7 +29,7 @@ const Wrapper = styled.nav`
     text-decoration: none;
     color: var(--darkgrey);
     transition-duration: 300ms;
-    padding: 0 2rem;
+    padding: 0.5rem 2rem 0;
   }
 
   a.active {

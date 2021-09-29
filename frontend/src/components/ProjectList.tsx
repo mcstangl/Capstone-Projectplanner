@@ -2,6 +2,14 @@ import { FC } from 'react'
 import styled from 'styled-components/macro'
 import { ProjectDto } from '../dtos/ProjectDto'
 import ProjectListItem from './ProjectListItem'
+import {
+  Column5Style,
+  Column6Style,
+  Column8Style,
+  Column7Style,
+  Column2Style,
+  ListItemStyle,
+} from './ProjectListGridStyle'
 
 interface ProjectListProps {
   projects: ProjectDto[]
@@ -20,13 +28,13 @@ const ProjectList: FC<ProjectListProps> = ({
     <List>
       <ListHeader key="header">
         <span>Pos.</span>
-        <span>Eingangsdatum</span>
+        <Column2Style>Eingangsdatum</Column2Style>
         <span>Kunde</span>
         <span>Titel</span>
-        <span>Milestone</span>
-        <span>Projektleitung</span>
-        <span>Redaktion</span>
-        <span>Motion Design</span>
+        <Column5Style>Milestone</Column5Style>
+        <Column6Style>Projektleitung</Column6Style>
+        <Column7Style>Redaktion</Column7Style>
+        <Column8Style>Motion Design</Column8Style>
       </ListHeader>
       {projects &&
         projects.length &&
@@ -58,10 +66,6 @@ const List = styled.section`
   }
 `
 
-const ListHeader = styled.div`
-  display: grid;
-  grid-template-columns: var(--size-xxl) repeat(7, 1fr);
-  grid-column-gap: var(--size-m);
-  padding: 0.5rem;
+const ListHeader = styled(ListItemStyle)`
   border-bottom: solid 1px var(--secondarycolor);
 `

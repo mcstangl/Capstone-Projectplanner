@@ -25,8 +25,9 @@ const NewPasswordPopup: FC<NewPasswordPopupProps> = ({
 export default NewPasswordPopup
 
 const NewPasswordPopupStyle = styled.section`
-  position: absolute;
+  position: fixed;
   background-color: white;
+  top: 30%;
   right: 0;
   left: 0;
   margin-left: auto;

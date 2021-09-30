@@ -196,8 +196,9 @@ const UserEditStyle = styled.form`
 `
 
 const UpdatePasswordPopupStyle = styled.form`
-  //position: absolute;
+  position: fixed;
   background-color: white;
+  top: 30%;
   right: 0;
   left: 0;
   margin-top: var(--size-m);

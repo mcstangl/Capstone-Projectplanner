@@ -169,7 +169,8 @@ const MilestoneEditStyle = styled.form`
   border: 1px solid var(--secondarycolor);
   background: white;
   box-shadow: 3px 8px 8px grey;
-  position: absolute;
+  position: fixed;
+  top: 30%;
   right: 0;
   left: 0;
   width: max-content;

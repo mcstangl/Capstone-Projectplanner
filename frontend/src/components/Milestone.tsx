@@ -23,7 +23,7 @@ const Milestone: FC<MilestoneProps> = ({ project, fetchProject }) => {
 
   return (
     <MilestoneStyle>
-      {!editMode && authUser && authUser.role === 'ADMIN' && (
+      {authUser && authUser.role === 'ADMIN' && (
         <div>
           <AddMilestoneButton onClick={switchEditMode}>
             Milestone hinzufügen

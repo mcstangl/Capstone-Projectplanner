@@ -197,9 +197,9 @@ const MilestoneIndicatorLight = styled.div`
   ${props =>
     props.theme === 'done'
       ? css`
-          background-color: chartreuse;
+          background-color: var(--maincolor);
         `
       : css`
-          background-color: red;
+          background-color: var(--secondarycolor);
         `}
 `

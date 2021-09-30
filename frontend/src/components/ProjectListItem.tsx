@@ -33,11 +33,15 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
 }) => {
   const { token, authUser } = useContext(AuthContext)
   const [nextMilestone, setNextMilestone] = useState<MilestoneDto>()
+  const [milestonesIndicators, setMilestoneIndicators] = useState<
+    JSX.Element[]
+  >([])
   const [restoreMode, setRestoreMode] = useState(false)
   const [error, setError] = useState()
   const history = useHistory()
 
   useEffect(() => {
+    setNextMilestone(undefined)
     let filteredMilestones: MilestoneDto[] = []
     if (project.milestones) {
       filteredMilestones = project.milestones.filter(
@@ -68,10 +72,38 @@ const ProjectListItem: FC<ProjectListItemProps> = ({
   }
   const resetErrorState = () => setError(undefined)
 
+  useEffect(() => {
+    setMilestoneIndicators([])
+    if (project.milestones) {
+      const milestoneProgressArray: JSX.Element[] = []
+      for (const milestone of project.milestones) {
+        if (milestone.dateFinished && milestone.id) {
+          milestoneProgressArray.push(
+            <MilestoneIndicatorLight
+              id={milestone.id + ''}
+              key={'indicator' + milestone.id}
+              theme="done"
+            />
+          )
+        } else if (!milestone.dateFinished && milestone.id) {
+          milestoneProgressArray.push(
+            <MilestoneIndicatorLight
+              id={milestone.id + ''}
+              key={'indicator' + milestone.id}
+              theme="open"
+            />
+          )
+        }
+      }
+      setMilestoneIndicators(milestoneProgressArray)
+    }
+  }, [project.milestones])
+
   return (
     <section>
       <ListItem theme={theme} id={project.title} onClick={handleOnClick}>
         <span>{position}</span>
+        <MilestoneProgressStyle>{milestonesIndicators}</MilestoneProgressStyle>
         <Column2Style>{project.dateOfReceipt}</Column2Style>
         <span>{project.customer}</span>
         <span>{project.title}</span>
@@ -149,4 +181,25 @@ const ListItem = styled(ListItemStyle)`
             background-color: var(--gradient4);
           `};
   }
+`
+const MilestoneProgressStyle = styled.span`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+`
+const MilestoneIndicatorLight = styled.div`
+  margin: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  ${props =>
+    props.theme === 'done'
+      ? css`
+          background-color: chartreuse;
+        `
+      : css`
+          background-color: red;
+        `}
 `

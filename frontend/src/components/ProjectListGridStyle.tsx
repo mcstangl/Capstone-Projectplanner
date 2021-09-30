@@ -33,25 +33,25 @@ export const ListItemStyle = styled.section`
   display: grid;
   grid-column-gap: var(--size-m);
   padding: 1rem;
-  grid-template-columns: var(--size-xxl) repeat(2, 1fr);
+  grid-template-columns: var(--size-xxl) 64px repeat(2, 1fr);
 
   @media (min-width: 500px) {
-    grid-template-columns: var(--size-xxl) 8rem repeat(2, 1fr);
+    grid-template-columns: var(--size-xxl) 64px 8rem repeat(2, 1fr);
   }
 
   @media (min-width: 800px) {
-    grid-template-columns: var(--size-xxl) 8rem repeat(3, 1fr);
+    grid-template-columns: var(--size-xxl) 64px 8rem repeat(3, 1fr);
   }
 
   @media (min-width: 1000px) {
-    grid-template-columns: var(--size-xxl) 8rem repeat(4, 1fr);
+    grid-template-columns: var(--size-xxl) 64px 8rem repeat(4, 1fr);
   }
 
   @media (min-width: 1200px) {
-    grid-template-columns: var(--size-xxl) 8rem repeat(5, 1fr);
+    grid-template-columns: var(--size-xxl) 64px 8rem repeat(5, 1fr);
   }
 
   @media (min-width: 1400px) {
-    grid-template-columns: var(--size-xxl) 8rem repeat(6, 1fr);
+    grid-template-columns: var(--size-xxl) 64px 8rem repeat(6, 1fr);
   }
 `
